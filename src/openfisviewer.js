@@ -70,9 +70,14 @@
 		
 		//UI options
 		this.options.ui = {};
-		this.options.ui.time = 'datePicker';
+		this.options.ui.query = {};
+		this.options.ui.query.columns = 1;
+		this.options.ui.query.time = 'datePicker';
 		if(options.ui){
-			if(options.ui.time) this.options.ui.time = options.ui.time;
+			if(options.ui.query.columns){
+				if([1,2].indexOf(options.ui.query.columns) != -1) this.options.ui.query.columns = options.ui.query.columns;
+			}
+			if(options.ui.query.time) this.options.ui.query.time = options.ui.query.time;
 		}
 		
 		//MAP options
@@ -141,10 +146,14 @@
 		this.updateDatasetSelector(true);
                 
         //init widgets
+		$("#queryDialog").css("width", (this.options.ui.query.columns * 400)+"px !important");
         this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0, null);
         this.initDialog("dataDialog", "Browse data catalogue", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ this_.updateSelection(); });
-        this.initDialog("queryDialog", "Query a dataset", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){ this_.updateDatasetSelector(); });
+        this.initDialog("queryDialog", "Query a dataset", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){this_.updateDatasetSelector(); });
         this.openAboutDialog();
+		
+		//Query dialog
+		$("#queryDialog").css("width", (this.options.ui.query.columns * 400)+"px !important");
 
 		//resolve viewer from URL
 		this.resolveViewer();
@@ -653,9 +662,10 @@
 			var featureAttributeModel = {
 				name : $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:memberName") return item;})[0].childNodes[1].textContent,
 				definition : $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:definition") return item;})[0].childNodes[1].textContent,
-				code: $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:code") return item;})[0].childNodes[1].textContent,
+				primitiveCode: $(featureAttributePrim.childNodes).filter(function(i,item){if(item.nodeName == "gfc:code") return item;})[0].childNodes[1].textContent,
 				primitiveType: $(featureAttributePrim.childNodes).filter(function(i,item){if(item.nodeName == "gfc:valueType") return item;})[0].childNodes[1].childNodes[1].childNodes[1].textContent,
-				sdmxType: $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:valueType") return item;})[0].childNodes[1].childNodes[1].childNodes[1].textContent,
+				serviceCode: $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:code") return item;})[0].childNodes[1].textContent,
+				serviceType: $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:valueType") return item;})[0].childNodes[1].childNodes[1].childNodes[1].textContent,
 				values: null
 			}
 			//values
@@ -711,6 +721,8 @@
 				$("#datasetSelector").val(this_.selected_dsd.pid).trigger('change');
 				
 				//build UI
+				var bootstrapClass = "col-md-" + 12/this_.options.ui.query.columns;
+				
 				//1. Build codelist (multi-selection) UIs
 				//-------------------------------------------
 				
@@ -729,16 +741,17 @@
 					return null;
 				}
 				$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
-				$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="col-md-6"></div>');
+				$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 				$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Fishery dimensions</label></p></div>');
 				for(var i=0;i<this_.selected_dsd.dsd.length;i++){
 					var dsd_component = this_.selected_dsd.dsd[i];
-					if(dsd_component.sdmxType == "Dimension"){
+					if(dsd_component.serviceType == "Dimension"){
 						if(dsd_component.values){
 							//id
-							var dsd_component_id = "dsd-ui-dimension-" + dsd_component.code;
+							var dsd_component_id = "dsd-ui-dimension-" + dsd_component.serviceCode;
 							
 							//html
+							console.log($("#dsd-ui-col-1").css("height"));
 							$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-codelist"></select>');
 							
 							//jquery widget
@@ -780,18 +793,38 @@
 				}
 				
 				//for time dimension
+				//year extent extracted from metadata, information always available
 				var year_start = parseInt(this_.selected_dsd.dataset.time_start.substring(0,4));
 				var year_end = parseInt(this_.selected_dsd.dataset.time_end.substring(0,4));
 				
-				$("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="col-md-6"></div>');
+				$("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				
 				//2. Time start/end slider or datepickers
 				//-----------------------------------------
+				this_.timeWidget = this_.options.ui.time? this_.options.ui.time : 'slider';
 				var dsd_time_dimensions = ["time_start", "time_end"];
-				var timeDimensions = this_.selected_dsd.dsd.filter(function(item){if(dsd_time_dimensions.indexOf(item.code) != -1) return item});
+				var timeDimensions = this_.selected_dsd.dsd.filter(function(item){if(dsd_time_dimensions.indexOf(item.serviceCode) != -1) return item});
+				var timeDimTypeList = this_.selected_dsd.dsd.filter(function(i){if(i.serviceType=="TimeDimension"){return(i)}}).map(function(i){return(i.primitiveType)});
+				this_.timeDimensionType = "";
+				var timeDimTypes = new Array();
+				for(var i=0;i<timeDimTypeList.length;i++){ 
+					var timeDimType = timeDimTypeList[i];
+					if(timeDimTypes.indexOf(timeDimType) == -1){
+						timeDimTypes.push(timeDimType);
+					}
+				}
+				if(timeDimTypes.length > 1){
+					alert("Multiple Time dimension types for the same dataset")
+				}else{
+					switch(timeDimTypes[0]){
+						case "xs:int":
+							this_.timeDimensionType = 'year'; break;
+						case "xs:dateTime":
+							this_.timeDimensionType = 'datetime'; break;
+					}
+				}
+				if(this_.timeDimensionType == 'year'){ this_.timeWidget = "slider" }
 				if(timeDimensions.length == 2){
-					this_.timeWidget = this_.options.ui.time? this_.options.ui.time : 'slider';
-					
 					if(this_.timeWidget == "slider"){
 						//id
 						var dsd_component_id = "dsd-ui-time";
@@ -839,6 +872,8 @@
 						}
 						$("#dsd-ui-col-2").append('</p></div>');
 					}
+				}else{
+					alert("openfisviewer doesn't support yet data services with a single time parameter")
 				}
 				
 				//3. Other time dimensions
@@ -847,9 +882,9 @@
 				for(var i=0;i<this_.selected_dsd.dsd.length;i++){
 					var dsd_component = this_.selected_dsd.dsd[i];
 					//id
-					var dsd_component_id = "dsd-ui-dimension-" + dsd_component.code;
+					var dsd_component_id = "dsd-ui-dimension-" + dsd_component.serviceCode;
 					
-					if(extra_time_dimensions.indexOf(dsd_component.code) != -1){
+					if(extra_time_dimensions.indexOf(dsd_component.serviceCode) != -1){
 						//html
 						$("#dsd-ui-col-2").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-codelist"></select>');
 						//jquery widget
@@ -862,7 +897,7 @@
 						};
 						var dsd_component_placeholder = 'Add a ' + dsd_component.name;
 						var extra_time_data;
-						switch(dsd_component.code){
+						switch(dsd_component.serviceCode){
 							case "year":
 								extra_time_data = Array.apply(0, Array(year_end-year_start)).map(function(_,b) { return {id: year_start + b, text: year_start + b} });
 								break;
@@ -1018,8 +1053,10 @@
 		var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
 		if(this_.timeWidget == 'slider'){
 			var values = $("#dsd-ui-time").slider('values');
-			var time_start = new Date(new Date(values[0], 1 - 1, 1) - tzoffset).toISOString().split('T')[0];
-			var time_end = new Date(new Date(values[1], 11, 31) - tzoffset).toISOString().split('T')[0];
+			var time_start = values[0]
+			if(this_.timeDimensionType == 'datetime') time_start = new Date(new Date(values[0], 1 - 1, 1) - tzoffset).toISOString().split('T')[0];
+			var time_end = values[1];
+			if(this_.timeDimensionType == 'datetime') time_end = new Date(new Date(values[1], 11, 31) - tzoffset).toISOString().split('T')[0];
 			var data_component_query = 'time_start:' + time_start + ';' + 'time_end:' + time_end;
 			data_query += data_component_query + ';';
 			
@@ -1199,17 +1236,17 @@
 	 * OpenFisViewer.prototype.addLayer Adds layer
 	 * @param mainOverlayGroup
 	 * @param id
-    	 * @param title
+	 * @param title
 	 * @param wmsUrl
 	 * @param layer
 	 * @param cql_filter
+	 * @param style
 	 * @param viewparams
 	 * @param envfun
 	 * @param envparams
-	 * @param style
 	 */
 	OpenFisViewer.prototype.addLayer = function(mainOverlayGroup, id, title, wmsUrl, layer, visible, showLegend, opacity, tiled,
-											cql_filter, viewparams, envfun, envparams, style){
+											cql_filter, style, viewparams, envfun, envparams){
 		var this_ = this;
 		var layerParams = {
 				'LAYERS' : layer,
@@ -1372,6 +1409,7 @@
 		    breaks;					
 	    }
 	    breaks = breaks.map(function(i){return Math.round(i * 100) / 100});
+		breaks[breaks.length-1] = max(values);
 	    return breaks;
 	}
 
@@ -1404,7 +1442,7 @@
 	    //dynamic styling properties
 	    var classType = $("#map-classtype-selector").select2('val');
 	    var classNb = $("#map-classnb-selector").select2('val');
-	    var layerStyle =  "dyn_poly_regular_class_" + classNb;
+	    var layerStyle =  "dyn_poly_choropleth_class_" + classNb;
 
 		if(!layer){
 			//ADD LAYER
@@ -1412,15 +1450,20 @@
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
 				this_.getDatasetValues(viewparams).then(function(values){
+					if(values.length < classNb){
+						classNb = values.length;
+						layerStyle = "dyn_poly_choropleth_class_" + classNb;
+					}
 					var breaks = this_.calculateBreaks(values, classType, classNb);
+					if(breaks.length == 2) breaks[0] = 0;
 					var envparams = this_.buildEnvParams(breaks);
-					var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, viewparams, classType, envparams, layerStyle);
+					var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams);
 					this_.setLegendGraphic(layer, breaks);	
 					this_.map.changed();				
 				});
 			}else{
 				//static styling
-				var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, viewparams);
+				var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, null, viewparams);
 				this_.map.changed();
 			}	     
 		}else{
@@ -1428,8 +1471,13 @@
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
 				this_.getDatasetValues(viewparams).then(function(values){
+					if(values.length < classNb){
+						classNb = values.length;
+						layerStyle = "dyn_poly_choropleth_class_" + classNb;
+					}
 					//update breaks
 					var breaks = this_.calculateBreaks(values, classType, classNb);
+					if(breaks.length == 2) breaks[0] = 0;
 					var envparams = this_.buildEnvParams(breaks);
 
 					//update viewparams, envparams & legend
@@ -1465,18 +1513,110 @@
 			if(filter) return item;
 		   }
 		)[0].ciOnlineResource.linkage.url;
+		//if(!aggregated) layerUrl += "&propertyName=" + ;
 	    if(viewparams) layerUrl += "&VIEWPARAMS=" + viewparams;
 	    if(format) layerUrl = layerUrl.replace("CSV", format);
  	    return layerUrl;	
 	}	
 
+	
+		/**
+		 * Simple json2csv util
+		 * @param objArray
+		 * @returns a string representive the CSV
+		 */
+		OpenFisViewer.prototype.json2csv = function(objArray) {
+			var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+			var str = '';
+			var line = '';
+
+			//add colnames
+			var head = array[0];
+				for (var index in array[0]) {
+					line += index + ';';
+				}
+			line = line.slice(0, -1);
+			str += line + '\r\n';
+			
+			//add data
+			for (var i = 0; i < array.length; i++) {
+				var line = '';
+					for (var index in array[i]) {
+				val = array[i][index];
+				if(typeof val == 'string') val = '"' + val + '"';
+						line += val + ';';
+					}
+				line = line.slice(0, -1);
+				str += line + '\r\n';
+			}
+			return str;
+		}
+
+		/**
+		 * Download CSV
+		 * @param content csv string
+		 * @param fileName
+		 * @param mimeType
+		 */
+		OpenFisViewer.prototype.downloadCSV = function(content, fileName, mimeType) {
+			if(!mimeType) mimeType <- 'text/csv;charset=utf-8;';
+  			var a = document.createElement('a');
+  			mimeType = mimeType || 'application/octet-stream';
+
+  			if (navigator.msSaveBlob) { // IE10
+    				navigator.msSaveBlob(new Blob([content], {
+    				  type: mimeType
+    				}), fileName);
+  			} else if (URL && 'download' in a) { //html5 A[download]
+    				a.href = URL.createObjectURL(new Blob([content], {
+      					type: mimeType
+    				}));
+    				a.setAttribute('download', fileName);
+    				document.body.appendChild(a);
+    				a.click();
+    				document.body.removeChild(a);
+  			} else {
+    				location.href = 'data:application/octet-stream,' + encodeURIComponent(content); // only this mime type is supported
+  			}
+		}	
+	
+	
+	/**
+	 * OpenFisViewer.prototype.getateTimeString
+	 * @param date
+	 */
+	OpenFisViewer.prototype.getDateTimeString = function(date){
+		var str = date.toISOString();
+		return (str.split("T")[0] + "" + str.split("T")[1].split(".")[0]).replace(/-/g,"").replace(/:/g,"");
+	}
+	
 	/**
 	 * OpenFisViewer.prototype.downloadDatasetCSV
 	 * @param aggregated true if aggregated, false otherwise
 	 */
 	OpenFisViewer.prototype.downloadDatasetCSV = function(aggregated){
-		var layerUrl = this.getDatasetWFSLink(aggregated, this.getViewParams());
-		window.open(layerUrl);
+		var this_ = this;
+		var layerUrl = this.getDatasetWFSLink(aggregated, this.getViewParams(), 'json');
+		$.getJSON(layerUrl, function(response){
+			var features = new ol.format.GeoJSON().readFeatures(response);
+			console.log(features);
+			var featuresToExport = new Array();
+			for(var i=0;i<features.length;i++){
+				var feature = features[i];
+				var props = feature.getProperties();
+				geomwkt = new ol.format.WKT().writeGeometry(props.geometry);
+				delete props.geometry;
+				delete props.bbox;
+				props.geometry = geomwkt;
+				featuresToExport.push(props);
+			}
+			console.log(features);
+			var csv = this_.json2csv(featuresToExport);
+			var fileName = this_.selected_dsd.pid;
+			if(aggregated) fileName += "_aggregated";
+			fileName += "_"+ this_.getDateTimeString(new Date()) + ".csv";
+			this_.downloadCSV(csv, fileName); 
+		});
 	}
 
 	/**
@@ -1490,7 +1630,9 @@
 		if( source instanceof ol.source.TileWMS | source instanceof ol.source.ImageWMS ){
 			var params = source.getParams();
 			var request = '';
-			request += (source instanceof ol.source.TileWMS? source.getUrls()[0] : source.getUrl()) + '?';
+			var wmsUrl = (source instanceof ol.source.TileWMS? source.getUrls()[0] : source.getUrl());
+			var serviceSeparator = (wmsUrl.indexOf("wms?") || wmsUrl.indexOf("ows?"))? "&" : "?";
+			request += wmsUrl + serviceSeparator;
 			request += 'VERSION=1.0.0';
 			request += '&REQUEST=GetLegendGraphic';
 			request += '&LAYER=' + params.LAYERS.split(",")[0];
@@ -1505,14 +1647,15 @@
 		 	if(source.getParams().VIEWPARAMS != "undefined" & this.options.map.styling.dynamic){
 				var canvas = document.createElement('canvas');
 				document.body.appendChild(canvas);
-				canvas.height = '100';
+				var canvasHeight = breaks? (breaks.length-1) * 20 : 100;
+				canvas.height = String(canvasHeight);
 				canvas.width = '200';
 				var ctx = canvas.getContext('2d');
 				var palette = new Image();
 				palette.src = request;
 				palette.onload = function() {
 				    //draw color palette
-   				    ctx.drawImage(palette, 0, 0, 32, 100);
+   				    ctx.drawImage(palette, 0, 0, 32, canvasHeight);
 				    //draw break legends
 				    ctx.font = "9pt Arial";
 				    var breakPt = 14;
@@ -1523,7 +1666,7 @@
 						if(breaks.length==5) breakSpace = 12;
 						var break_signs = this_.options.map.styling.breaks;
 						for(var i=1;i<breaks.length;i++){
-							var breakLegend = break_signs[0]+" " + breaks[i-1] + " "+break_signs[1]+" " + breaks[i];
+							var breakLegend = break_signs[0]+" " + (Math.round(breaks[i-1] * 100) / 100) + " "+break_signs[1]+" " + (Math.round(breaks[i] * 100) / 100);
 							//if(i==breaks.length-1){ breakLegend += " " + breaks_signs[2] }else{ breakLegend += " [" };
 							breakLegend += " " + break_signs[2]
 							ctx.fillText(breakLegend, dx, dy);
@@ -1574,7 +1717,7 @@
 				var layerDef = this.config.OGC_WMS_LAYERS[i];				
 				this_.addLayer(
 					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, layerDef.layer,
-					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter
+					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter, layerDef.style
 				);
 			}
 		}
@@ -1671,7 +1814,7 @@
 		var layerUrl = datasetDef.entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine
 			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
 		var layer = this.addLayer(1, datasetDef.pid, datasetDef.entry.title, layerUrl, layerName, true, true, 0.9, true, null,
-					  datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.style);
+					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams);
 		this_.setLegendGraphic(layer, datasetDef.breaks);		
 	}
 
