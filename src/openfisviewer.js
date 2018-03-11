@@ -146,15 +146,11 @@
 		this.updateDatasetSelector(true);
                 
         //init widgets
-		$("#queryDialog").css("width", (this.options.ui.query.columns * 400)+"px !important");
         this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0, null);
         this.initDialog("dataDialog", "Browse data catalogue", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ this_.updateSelection(); });
         this.initDialog("queryDialog", "Query a dataset", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){this_.updateDatasetSelector(); });
         this.openAboutDialog();
 		
-		//Query dialog
-		$("#queryDialog").css("width", (this.options.ui.query.columns * 400)+"px !important");
-
 		//resolve viewer from URL
 		this.resolveViewer();
 	}
@@ -679,7 +675,7 @@
 					var clLabel = props[1].childNodes[1].textContent;
 					var clDefinition = undefined;
 					if(props[5]) clDefinition = props[5].childNodes[1].textContent;
-					var clItem = {id: clCode, text: clLabel, alternateText: (clDefinition? clDefinition : null), codelist: featureAttributeModel.code};
+					var clItem = {id: clCode, text: clLabel, alternateText: (clDefinition? clDefinition : null), codelist: featureAttributeModel.primitiveCode};
 					featureAttributeModel.values.push(clItem);
 				}
 			}
@@ -751,7 +747,6 @@
 							var dsd_component_id = "dsd-ui-dimension-" + dsd_component.serviceCode;
 							
 							//html
-							console.log($("#dsd-ui-col-1").css("height"));
 							$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-codelist"></select>');
 							
 							//jquery widget
@@ -813,16 +808,13 @@
 						timeDimTypes.push(timeDimType);
 					}
 				}
-				if(timeDimTypes.length > 1){
-					alert("Multiple Time dimension types for the same dataset")
-				}else{
-					switch(timeDimTypes[0]){
-						case "xs:int":
-							this_.timeDimensionType = 'year'; break;
-						case "xs:dateTime":
-							this_.timeDimensionType = 'datetime'; break;
-					}
+				switch(timeDimTypes[0]){
+					case "xs:int":
+						this_.timeDimensionType = 'year'; break;
+					case "xs:dateTime":
+						this_.timeDimensionType = 'datetime'; break;
 				}
+				
 				if(this_.timeDimensionType == 'year'){ this_.timeWidget = "slider" }
 				if(timeDimensions.length == 2){
 					if(this_.timeWidget == "slider"){
@@ -1599,7 +1591,6 @@
 		var layerUrl = this.getDatasetWFSLink(aggregated, this.getViewParams(), 'json');
 		$.getJSON(layerUrl, function(response){
 			var features = new ol.format.GeoJSON().readFeatures(response);
-			console.log(features);
 			var featuresToExport = new Array();
 			for(var i=0;i<features.length;i++){
 				var feature = features[i];
@@ -1892,6 +1883,7 @@
      * OpenFisViewer.prototype.initDialog Init dialog
 	 */
 	OpenFisViewer.prototype.initDialog = function(id, title, classes, position, liIdx, iconName, onopen, onclose){
+		var this_ = this;
 		if(!classes){
 			classes  = {
 			  "ui-dialog": "ui-corner-all",
@@ -1902,6 +1894,7 @@
 			position = { my: "center", at: "top", of: window };
 		}
 		$( "#" + id ).dialog({
+			width: ((id=='queryDialog')? ((this_.options.ui.query.columns * 400)+'px') : undefined),
 			autoOpen: false,
 			title: title,
 			classes: classes,
