@@ -1625,10 +1625,10 @@
 			for(var i=0;i<features.length;i++){
 				var feature = features[i];
 				var props = feature.getProperties();
-				//geomwkt = new ol.format.WKT().writeGeometry(props.geometry);
+				geomwkt = new ol.format.WKT().writeGeometry(props.geometry);
 				delete props.geometry;
 				delete props.bbox;
-				//props.geometry = geomwkt;
+				props.geometry = geomwkt;
 				featuresToExport.push(props);
 			}
 			console.log(features);
