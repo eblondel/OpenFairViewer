@@ -1,0 +1,22 @@
+/**
+ * ZoomToMaxExtent control
+ */
+
+.ol-zoom-max-extent{
+	top:4.643em;
+	left:.5em;
+	-webkit-border-radius: 16px;
+	-moz-border-radius: 16px;
+	border-radius: 16px;
+}
+
+.ol-zoom-max-extent button{
+	-webkit-border-radius: 16px;
+	-moz-border-radius: 16px;
+	border-radius: 16px;
+}
+
+.ol-zoom-max-extent img{
+	width:inherit;
+	height:inherit;
+}

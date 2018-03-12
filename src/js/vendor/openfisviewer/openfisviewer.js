@@ -33,11 +33,6 @@
 		factory();
 	}
 }(this, function(){
-	
-	//conflict resolvers
-	var bootstrapButton = $.fn.button.noConflict() // return $.fn.button to previously assigned value
-	$.fn.bootstrapBtn = bootstrapButton       
-	
 
 	//polyfills
 	//===========================================================================================
@@ -1000,12 +995,11 @@
 				//Query and mapbutton
 				//------------------------------
 				$("#dsd-ui-col-2").append('<br><br>');
-				$("#dsd-ui-col-2").append('<button type="button" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary" onclick="app.mapDataset()">Query & Map</button>');
-				$("#dsd-ui-col-2").append('<br><span class="query-nodata" style="display:none;">Ups! There is no data for this query...</span>');
+				$("#dsd-ui-col-2").append('<button id="datasetMapper" style="width:90%;" title="Query & Map!" class="btn btn-primary" onclick="app.mapDataset()">Query & Map</button>');
 				
 				//download buttons
 				//------------------------------
-				$("#dsd-ui-col-2").append('<br><br>');
+				$("#dsd-ui-col-2").append('<br>');
 				$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Download?</label></p></div>');
 				$("#dsd-ui-col-2").append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
 				var button_csv_aggregated = '<button id="dsd-ui-button-csv1" type="button" class="btn data-action-button data-csv-agg" title="Download aggregated data (CSV)" onclick="app.downloadDatasetCSV(true)"></button>';
@@ -1297,7 +1291,6 @@
 	 * @param by the property 
 	 */
     OpenFisViewer.prototype.removeLayerByProperty = function(layerProperty, by){
-		console.log("Remove layer dataset with property "+by+" = " + layerProperty);
 		var removed = false;
 		if(!by) byTitle = false;
 		var target = undefined;
@@ -1429,10 +1422,6 @@
 	OpenFisViewer.prototype.mapDataset = function(){
 		var this_ = this;
 
-		$("#datasetMapper").prop('disabled', true);
-		$("#datasetMapper").bootstrapBtn('loading');
-		$(".query-nodata").hide();
-		
 	    //actions o download buttons
 		$('#dsd-ui-button-csv1').prop('disabled', false);
 		$('#dsd-ui-button-csv2').prop('disabled', false);
@@ -1453,25 +1442,16 @@
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
 				this_.getDatasetValues(viewparams).then(function(values){
-					if(values.length > 0){
-						if(values.length < classNb){
-							classNb = values.length;
-							layerStyle = "dyn_poly_choropleth_class_" + classNb;
-						}
-						var breaks = this_.calculateBreaks(values, classType, classNb);
-						if(breaks.length == 2) breaks[0] = 0;
-						var envparams = this_.buildEnvParams(breaks);
-						var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams);
-						this_.setLegendGraphic(layer, breaks);	
-						this_.map.changed();
-						$("#datasetMapper").bootstrapBtn('reset');
-						$("#datasetMapper").prop('disabled', false);
-					}else{
-						console.log("Actions on no data");
-						$("#datasetMapper").bootstrapBtn('reset');
-						$("#datasetMapper").prop('disabled', false);
-						$(".query-nodata").show();
+					if(values.length < classNb){
+						classNb = values.length;
+						layerStyle = "dyn_poly_choropleth_class_" + classNb;
 					}
+					var breaks = this_.calculateBreaks(values, classType, classNb);
+					if(breaks.length == 2) breaks[0] = 0;
+					var envparams = this_.buildEnvParams(breaks);
+					var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams);
+					this_.setLegendGraphic(layer, breaks);	
+					this_.map.changed();				
 				});
 			}else{
 				//static styling
@@ -1483,32 +1463,22 @@
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
 				this_.getDatasetValues(viewparams).then(function(values){
-					if(values.length > 0){
-						if(values.length < classNb){
-							classNb = values.length;
-							layerStyle = "dyn_poly_choropleth_class_" + classNb;
-						}
-						//update breaks
-						var breaks = this_.calculateBreaks(values, classType, classNb);
-						if(breaks.length == 2) breaks[0] = 0;
-						var envparams = this_.buildEnvParams(breaks);
-
-						//update viewparams, envparams & legend
-						layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
-						layer.getSource().updateParams({'STYLES' : layerStyle});
-						layer.getSource().updateParams({'env' : envparams});
-						layer.envfun = classType;
-						this_.setLegendGraphic(layer, breaks);
-						this_.map.changed();
-						$("#datasetMapper").bootstrapBtn('reset');
-						$("#datasetMapper").prop('disabled', false);
-					}else{
-						this_.removeLayerByProperty(this_.selected_dsd.pid, "id");
-						this_.map.changed();
-						$("#datasetMapper").bootstrapBtn('reset');
-						$("#datasetMapper").prop('disabled', false);
-						$(".query-nodata").show();
+					if(values.length < classNb){
+						classNb = values.length;
+						layerStyle = "dyn_poly_choropleth_class_" + classNb;
 					}
+					//update breaks
+					var breaks = this_.calculateBreaks(values, classType, classNb);
+					if(breaks.length == 2) breaks[0] = 0;
+					var envparams = this_.buildEnvParams(breaks);
+
+					//update viewparams, envparams & legend
+					layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
+					layer.getSource().updateParams({'STYLES' : layerStyle});
+					layer.getSource().updateParams({'env' : envparams});
+					layer.envfun = classType;
+					this_.setLegendGraphic(layer, breaks);
+					this_.map.changed();
 				});
 			}else{
 				//static styling
