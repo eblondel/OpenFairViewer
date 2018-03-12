@@ -1555,7 +1555,7 @@
 			//add colnames
 			var head = array[0];
 				for (var index in array[0]) {
-					line += index + ';';
+					line += index + ',';
 				}
 			line = line.slice(0, -1);
 			str += line + '\r\n';
@@ -1566,7 +1566,7 @@
 					for (var index in array[i]) {
 				val = array[i][index];
 				if(typeof val == 'string') val = '"' + val + '"';
-						line += val + ';';
+						line += val + ',';
 					}
 				line = line.slice(0, -1);
 				str += line + '\r\n';
@@ -1625,10 +1625,10 @@
 			for(var i=0;i<features.length;i++){
 				var feature = features[i];
 				var props = feature.getProperties();
-				geomwkt = new ol.format.WKT().writeGeometry(props.geometry);
+				//geomwkt = new ol.format.WKT().writeGeometry(props.geometry);
 				delete props.geometry;
 				delete props.bbox;
-				props.geometry = geomwkt;
+				//props.geometry = geomwkt;
 				featuresToExport.push(props);
 			}
 			console.log(features);
