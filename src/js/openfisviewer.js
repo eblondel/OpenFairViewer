@@ -1012,15 +1012,19 @@
 				$("#dsd-ui-buttons").append(button_csv_aggregated);
 				var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="app.downloadDatasetCSV(false)"></button>';
 				$("#dsd-ui-buttons").append(button_csv_raw);
+				var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="app.downloadMapPNG()"></button>';
+				$("#dsd-ui-buttons").append(button_png_map);
 				
 				var layerName = this_.selected_dsd.pid + "_aggregated";
 				var layer = this_.getLayerByProperty(this_.selected_dsd.pid, 'id');
 				if(layer){
 					$('#dsd-ui-button-csv1').prop('disabled', false);
 					$('#dsd-ui-button-csv2').prop('disabled', false);
+					//$('#dsd-ui-button-png').prop('disabled', false);
 				}else{
 					$('#dsd-ui-button-csv1').prop('disabled', true);
 					$('#dsd-ui-button-csv2').prop('disabled', true);
+					$('#dsd-ui-button-png').prop('disabled', true);
 				}
 				
 				deferred.resolve();
@@ -1432,10 +1436,6 @@
 		$("#datasetMapper").prop('disabled', true);
 		$("#datasetMapper").bootstrapBtn('loading');
 		$(".query-nodata").hide();
-		
-	    //actions o download buttons
-		$('#dsd-ui-button-csv1').prop('disabled', false);
-		$('#dsd-ui-button-csv2').prop('disabled', false);
 
 	    //layer properties
 		var layerName = this_.selected_dsd.pid + "_aggregated";
@@ -1466,17 +1466,30 @@
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
+	    					
+						//actions o download buttons
+						$('#dsd-ui-button-csv1').prop('disabled', false);
+						$('#dsd-ui-button-csv2').prop('disabled', false);
+						//$('#dsd-ui-button-png').prop('disabled', false);
 					}else{
 						console.log("Actions on no data");
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						$(".query-nodata").show();
+						//actions o download buttons
+						$('#dsd-ui-button-csv1').prop('disabled', true);
+						$('#dsd-ui-button-csv2').prop('disabled', true);
+						$('#dsd-ui-button-png').prop('disabled', true);
 					}
 				});
 			}else{
 				//static styling
 				var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, null, viewparams);
 				this_.map.changed();
+				//actions o download buttons
+				$('#dsd-ui-button-csv1').prop('disabled', false);
+				$('#dsd-ui-button-csv2').prop('disabled', false);
+				//$('#dsd-ui-button-png').prop('disabled', false);
 			}	     
 		}else{
 			//UPDATE LAYER
@@ -1502,18 +1515,30 @@
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
+						//actions o download buttons
+						$('#dsd-ui-button-csv1').prop('disabled', false);
+						$('#dsd-ui-button-csv2').prop('disabled', false);
+						//$('#dsd-ui-button-png').prop('disabled', false);
 					}else{
 						this_.removeLayerByProperty(this_.selected_dsd.pid, "id");
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						$(".query-nodata").show();
+						//actions o download buttons
+						$('#dsd-ui-button-csv1').prop('disabled', true);
+						$('#dsd-ui-button-csv2').prop('disabled', true);
+						$('#dsd-ui-button-png').prop('disabled', true);
 					}
 				});
 			}else{
 				//static styling
 				layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
 				this_.map.changed();
+				//actions o download buttons
+				$('#dsd-ui-button-csv1').prop('disabled', false);
+				$('#dsd-ui-button-csv2').prop('disabled', false);
+				//$('#dsd-ui-button-png').prop('disabled', false);
 			}
 		}
 	}
@@ -1639,7 +1664,25 @@
 			this_.downloadCSV(csv, fileName); 
 		});
 	}
-
+	
+	/**
+	 * OpenFisViewer.prototype.downloadMapPNG
+	 *
+	 */
+	OpenFisViewer.prototype.downloadMapPNG = function(){
+		this.map.once('postcompose', function(event) {
+			var canvas = event.context.canvas;
+			if (navigator.msSaveBlob) {
+				navigator.msSaveBlob(canvas.msToBlob(), 'map.png');
+			} else {
+				canvas.toBlob(function(blob) {
+					saveAs(blob, 'map.png');
+				});
+			}
+        });
+        this.map.renderSync();
+	}
+	 
 	/**
 	 * OpenFisViewer.prototype.setLegendGraphic Set legend graphic
 	 * @param a ol.layer.Layer object

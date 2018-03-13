@@ -165,6 +165,7 @@ nav ul li.active { background-color: #0C71B8;}
 .data-action-button:disabled{opacity:0.7;filter: grayscale(100%);-webkit-filter: grayscale(100%);-moz-filter: grayscale(100%);-ms-filter: grayscale(100%);-o-filter: grayscale(100%);}
 .data-csv-agg {background-image: url(../img/buttons/csv-icon-agg.png);}
 .data-csv-raw {background-image: url(../img/buttons/csv-icon-raw.png);}
+.data-png-map {background-image: url(../img/buttons/png-icon-map.png);}
 
 /** MAP **/
 #pageMap { display: block; background-color: rgba(2, 113, 190, 1);}
