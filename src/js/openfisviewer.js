@@ -1154,7 +1154,8 @@
 									'TILESORIGIN' : [-180,-90].join(',')
 							},
 							wrapX: true,
-							serverType : 'geoserver'
+							serverType : 'geoserver',
+							crossOrigin: 'anonymous'
 						})
 					})
 
@@ -1470,7 +1471,7 @@
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
-						//$('#dsd-ui-button-png').prop('disabled', false);
+						$('#dsd-ui-button-png').prop('disabled', false);
 					}else{
 						console.log("Actions on no data");
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -1489,7 +1490,7 @@
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
 				$('#dsd-ui-button-csv2').prop('disabled', false);
-				//$('#dsd-ui-button-png').prop('disabled', false);
+				$('#dsd-ui-button-png').prop('disabled', false);
 			}	     
 		}else{
 			//UPDATE LAYER
@@ -1518,7 +1519,7 @@
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
-						//$('#dsd-ui-button-png').prop('disabled', false);
+						$('#dsd-ui-button-png').prop('disabled', false);
 					}else{
 						this_.removeLayerByProperty(this_.selected_dsd.pid, "id");
 						this_.map.changed();
@@ -1538,7 +1539,7 @@
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
 				$('#dsd-ui-button-csv2').prop('disabled', false);
-				//$('#dsd-ui-button-png').prop('disabled', false);
+				$('#dsd-ui-button-png').prop('disabled', false);
 			}
 		}
 	}
@@ -1670,17 +1671,19 @@
 	 *
 	 */
 	OpenFisViewer.prototype.downloadMapPNG = function(){
+		var this_ = this;
 		this.map.once('postcompose', function(event) {
 			var canvas = event.context.canvas;
+			var fileName = this_.selected_dsd.pid +"_"+ this_.getDateTimeString(new Date()) + ".png";
 			if (navigator.msSaveBlob) {
-				navigator.msSaveBlob(canvas.msToBlob(), 'map.png');
+				navigator.msSaveBlob(canvas.msToBlob(), fileName);
 			} else {
-				canvas.toBlob(function(blob) {
-					saveAs(blob, 'map.png');
+				canvas.toBlob(function(blob){
+					saveAs(blob, fileName);
 				});
 			}
-        });
-        this.map.renderSync();
+		});
+        	this.map.renderSync();
 	}
 	 
 	/**
@@ -1695,7 +1698,7 @@
 			var params = source.getParams();
 			var request = '';
 			var wmsUrl = (source instanceof ol.source.TileWMS? source.getUrls()[0] : source.getUrl());
-			var serviceSeparator = (wmsUrl.indexOf("wms?") || wmsUrl.indexOf("ows?"))? "&" : "?";
+			var serviceSeparator = (wmsUrl.indexOf("wms?") > 0 || wmsUrl.indexOf("ows?") > 0)? "&" : "?";
 			request += wmsUrl + serviceSeparator;
 			request += 'VERSION=1.0.0';
 			request += '&REQUEST=GetLegendGraphic';
