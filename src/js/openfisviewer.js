@@ -757,7 +757,7 @@
 							//jquery widget
 							var formatItem = function(item) {
 							  if (!item.id) { return item.text; }
-							  if(item.codelist == "flag"){
+							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > 0){
 								  var $item = $(
 									'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
 									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
@@ -1245,9 +1245,10 @@
 	 * @param viewparams
 	 * @param envfun
 	 * @param envparams
+	 * @param count
 	 */
 	OpenFisViewer.prototype.addLayer = function(mainOverlayGroup, id, title, wmsUrl, layer, visible, showLegend, opacity, tiled,
-											cql_filter, style, viewparams, envfun, envparams){
+											cql_filter, style, viewparams, envfun, envparams, count){
 		var this_ = this;
 		var layerParams = {
 				'LAYERS' : layer,
@@ -1283,6 +1284,7 @@
 	    this.setLegendGraphic(layer);
             layer.id = id;
 	    layer.envfun = envfun;
+	    layer.count = count;
 	    layer.showLegendGraphic = showLegend;
 			
  	    if(mainOverlayGroup > this.layers.overlays.length-1){
@@ -1410,8 +1412,6 @@
 		    }
 		    breaks;					
 	    }
-	    breaks = breaks.map(function(i){return Math.round(i * 100) / 100});
-		breaks[breaks.length-1] = max(values);
 	    return breaks;
 	}
 
@@ -1460,7 +1460,7 @@
 						var breaks = this_.calculateBreaks(values, classType, classNb);
 						if(breaks.length == 2) breaks[0] = 0;
 						var envparams = this_.buildEnvParams(breaks);
-						var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams);
+						var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
 						this_.setLegendGraphic(layer, breaks);	
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -1510,6 +1510,7 @@
 						layer.getSource().updateParams({'STYLES' : layerStyle});
 						layer.getSource().updateParams({'env' : envparams});
 						layer.envfun = classType;
+						layer.count = values.length;
 						this_.setLegendGraphic(layer, breaks);
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -1709,7 +1710,7 @@
 			request += '&WIDTH=30';
 
 			//case of dynamic maps
-		 	if(source.getParams().VIEWPARAMS & this.options.map.styling.dynamic){
+		 	if(source.getParams().VIEWPARAMS && this.options.map.styling.dynamic){
 				var canvas = document.createElement('canvas');
 				document.body.appendChild(canvas);
 				var canvasHeight = breaks? (breaks.length-1) * 20 : 100;
@@ -1731,9 +1732,12 @@
 						if(breaks.length==5) breakSpace = 12;
 						var break_signs = this_.options.map.styling.breaks;
 						for(var i=1;i<breaks.length;i++){
-							var breakLegend = break_signs[0]+" " + (Math.round(breaks[i-1] * 100) / 100) + " "+break_signs[1]+" " + (Math.round(breaks[i] * 100) / 100);
-							//if(i==breaks.length-1){ breakLegend += " " + breaks_signs[2] }else{ breakLegend += " [" };
-							breakLegend += " " + break_signs[2]
+							var minVal = (Math.round(breaks[i-1] * 100) / 100);
+							var maxVal = (Math.round(breaks[i] * 100) / 100);
+							var breakLegend = break_signs[0]+" " + minVal + " "+break_signs[1]+" " + maxVal + " " + break_signs[2]
+							if(lyr.count) if(lyr.count == breaks.length-1){
+								breakLegend = (lyr.count == 1)? maxVal : minVal;
+							} 
 							ctx.fillText(breakLegend, dx, dy);
 							dy = breakPt*(i+1) + breakSpace*i;
 						} 
@@ -1810,6 +1814,7 @@
 			encoded_view += 'par=' + params['VIEWPARAMS'] + ',';
 			encoded_view += 'fun=' + viewlayer.envfun + ',';
 			encoded_view += 'env=' + params['env'] + ',';
+			encoded_view += 'count=' + viewlayer.count + ',';
 			encoded_view += 'sld=' + params['STYLES'] + ',';
 			encoded_view += 'q=' + ((this.selected_dsd.pid == pid)? true : false);
 			encoded_views.push(encoded_view);
@@ -1863,7 +1868,10 @@
 				var envfun = datasetDef.envfun;
 				$("#map-classtype-selector").val(envfun).trigger('change');
 				var envparams = datasetDef.envparams;
-				$("#map-classnb-selector").val(datasetDef.breaks.length-1).trigger('change');
+
+				var classnb = String(datasetDef.breaks.length-1);
+				if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
+				$("#map-classnb-selector").val(classnb).trigger('change');
 			} 		
 		});
 	}
@@ -1879,7 +1887,7 @@
 		var layerUrl = datasetDef.entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine
 			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
 		var layer = this.addLayer(1, datasetDef.pid, datasetDef.entry.title, layerUrl, layerName, true, true, 0.9, true, null,
-					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams);
+					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
 		this_.setLegendGraphic(layer, datasetDef.breaks);		
 	}
 
@@ -1919,11 +1927,12 @@
 				var viewparams = encoded_view_settings[1].split("par=")[1];
 				var envfun = encoded_view_settings[2].split("fun=")[1];
 				var envparams = encoded_view_settings[3].split("env=")[1];
-				var style = encoded_view_settings[4].split("sld=")[1];
-				var query = encoded_view_settings[5].split("q=")[1] == "true";
+				var count = encoded_view_settings[4].split("count=")[1];
+				var style = encoded_view_settings[5].split("sld=")[1];	
+				var query = encoded_view_settings[6].split("q=")[1] == "true";
 				var breaks = envparams.split(";"); breaks.splice(-1,1);
 				breaks = breaks.map(function(key){return parseFloat(key.split(":")[1])});
-				encoded_datasets.push({pid: pid, viewparams: viewparams, envfun: envfun, envparams: envparams, breaks: breaks, style: style, query: query});
+				encoded_datasets.push({pid: pid, viewparams: viewparams, envfun: envfun, envparams: envparams, count : count, breaks: breaks, style: style, query: query});
 			}
 
 			var metadata_promises = new Array();

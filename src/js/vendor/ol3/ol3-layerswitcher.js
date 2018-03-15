@@ -316,8 +316,12 @@ ol.control.LayerSwitcher.prototype.renderLegendGraphic_ = function(lyr, idx, li)
 			var legend = document.createElement('div');
 			var legendId = lyr.get('title').replace(' ', '-') + '_' + idx + "_legend";
 			legend.id = legendId;
-			legend.style.display = (lyr.getVisible()? "inline" : "none");
-			var img = '<img src="'+imgSrc+'" />';
+			var img = new Image();
+			img.src = imgSrc;
+			var smallLegend = img.width <= 32 && img.height <= 20;
+			var smallLegendCss = smallLegend? 'margin-top:-20px;' : '';
+			legend.style.display = (lyr.getVisible()? (smallLegend? "block": "inline") : "none");
+			var img = '<img src="'+imgSrc+'" style="'+smallLegendCss+'"/>';
 			legend.innerHTML = img;
 			li.appendChild(legend);
 		}
