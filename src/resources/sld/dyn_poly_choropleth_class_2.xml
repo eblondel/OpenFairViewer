@@ -50,13 +50,13 @@
                                   <ogc:Literal>500</ogc:Literal>
                                 </ogc:Function>
                             </ogc:PropertyIsGreaterThanOrEqualTo>
-                            <ogc:PropertyIsLessThan>
+                            <ogc:PropertyIsLessThanOrEqualTo>
                                 <ogc:PropertyName>value</ogc:PropertyName>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v3</ogc:Literal>
                                   <ogc:Literal>1000</ogc:Literal>
                                 </ogc:Function>
-                            </ogc:PropertyIsLessThan>
+                            </ogc:PropertyIsLessThanOrEqualTo>
                         </ogc:And>
                     </ogc:Filter>
                     <sld:PolygonSymbolizer>
