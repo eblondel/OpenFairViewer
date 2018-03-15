@@ -752,12 +752,12 @@
 							var dsd_component_id = "dsd-ui-dimension-" + dsd_component.serviceCode;
 							
 							//html
-							$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-codelist"></select>');
+							$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-codelist" title="Filter on '+dsd_component.name+'"></select>');
 							
 							//jquery widget
 							var formatItem = function(item) {
 							  if (!item.id) { return item.text; }
-							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > -1){
+							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > 0){
 								  var $item = $(
 									'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
 									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
@@ -883,7 +883,7 @@
 					
 					if(extra_time_dimensions.indexOf(dsd_component.serviceCode) != -1){
 						//html
-						$("#dsd-ui-col-2").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-codelist"></select>');
+						$("#dsd-ui-col-2").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-codelist" title="Filter on '+dsd_component.name+'"></select>');
 						//jquery widget
 						var formatItem = function(item) {
 						  if (!item.id) { return item.text; }
@@ -926,7 +926,7 @@
 				var dsd_component_id = "dsd-ui-dimension-aggregation_method";
 				//html
 				$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Aggregation method</label></p></div>');
-				$("#dsd-ui-col-2").append('<select id = "'+dsd_component_id+'" class="dsd-ui-dimension"></select>');
+				$("#dsd-ui-col-2").append('<select id = "'+dsd_component_id+'" class="dsd-ui-dimension" title="Select a time aggregation method"></select>');
 				
 				//jquery widget
 				var formatMethod = function(item) {
@@ -955,7 +955,7 @@
 					var map_classtype_id = "map-classtype-selector";
 					//html
 					$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Map options</label></p></div>');
-					$("#dsd-ui-col-2").append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension"></select>');
+					$("#dsd-ui-col-2").append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
 					//jquery widget
 					var formatClasstype = function(item) {
 						if (!item.id) { return item.text; }
@@ -978,7 +978,7 @@
 					//id
 					var map_classnb_id = "map-classnb-selector";
 					//html
-					$("#dsd-ui-col-2").append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension"></select>');
+					$("#dsd-ui-col-2").append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="Select the number of data intervals"></select>');
 					//jquery widget
 					var formatClassnb = function(item) {
 						if (!item.id) { return item.text; }
@@ -1024,7 +1024,7 @@
 					$('#dsd-ui-button-csv2').prop('disabled', true);
 					$('#dsd-ui-button-png').prop('disabled', true);
 				}
-				
+
 				deferred.resolve();
 			}
 		});
