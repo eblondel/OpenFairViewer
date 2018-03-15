@@ -1005,8 +1005,6 @@
 				
 				//download buttons
 				//------------------------------
-				$("#dsd-ui-col-2").append('<br><br>');
-				$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Download?</label></p></div>');
 				$("#dsd-ui-col-2").append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
 				var button_csv_aggregated = '<button id="dsd-ui-button-csv1" type="button" class="btn data-action-button data-csv-agg" title="Download aggregated data (CSV)" onclick="app.downloadDatasetCSV(true)"></button>';
 				$("#dsd-ui-buttons").append(button_csv_aggregated);
@@ -1711,7 +1709,7 @@
 			request += '&WIDTH=30';
 
 			//case of dynamic maps
-		 	if(source.getParams().VIEWPARAMS != "undefined" & this.options.map.styling.dynamic){
+		 	if(source.getParams().VIEWPARAMS & this.options.map.styling.dynamic){
 				var canvas = document.createElement('canvas');
 				document.body.appendChild(canvas);
 				var canvasHeight = breaks? (breaks.length-1) * 20 : 100;
@@ -1781,7 +1779,7 @@
 		//layers of interest
 		if(this.config.OGC_WMS_LAYERS){
 			for(var i=0;i<this.config.OGC_WMS_LAYERS.length;i++){
-				var layerDef = this.config.OGC_WMS_LAYERS[i];				
+				var layerDef = this.config.OGC_WMS_LAYERS[i];			
 				this_.addLayer(
 					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, layerDef.layer,
 					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter, layerDef.style

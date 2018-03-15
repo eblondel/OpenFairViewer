@@ -43,8 +43,8 @@ nav ul li.active { background-color: #0C71B8;}
 .data-dialog .ui-dialog-content, .query-dialog .ui-dialog-content { color:#000; border-top-right-radius: 12px; -moz-border-top-right-radius: 12px; -webkit-border-top-right-radius: 12px; padding: .5em .1em}
 .data-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;border-top-right-radius: 12px; -moz-border-top-right-radius: 12px; -webkit-border-top-right-radius: 12px;}
 
-#dataDialog {height: 100% !important; font-size: 12px !important;}
-#queryDialog {height: 92% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
+#dataDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
+#queryDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
 
 /** BROWSER **/
 #dataset-selection, #dataset-list { height:70%;}
@@ -76,8 +76,8 @@ nav ul li.active { background-color: #0C71B8;}
 .dataset-button-remove:hover {color:#fff;background-color:#c9302c;}
 
 /** QUERY **/
-#dsd-ui-wrapper { height:100%; }
-#dsd-ui { text-align: center; height:100%;}
+#dsd-ui-wrapper { }
+#dsd-ui { text-align: center;}
 .select2 {text-align: left; margin-top: 5px; }
 .selector-wrapper {position: relative; width: 100%; text-align: center;}
 .select2-search__field{ width: 100% !important;}
@@ -211,26 +211,7 @@ div.sidePanel:hover, .ol-unselectable.ol-control.layer-switcher.shown { box-shad
 } .layer-switcher-layergroup:nth-child(3) > label {
 }
 
-/* #layerswitcher {
-    position: absolute;
-	width: 200px;
-    z-index: 10;
-    top: 0px;
-    right: 0px;
-	width: 25%/2;
-	height: 100%;
-	font-size: 80%;
-    background-color:#1674B8;
-    opacity:0.8;
-    color: #fff;
-    border-color:rgba(255,255,255, 0.75);
-    border-left: 2px solid rgba(255,255,255, 0.75);
-    margin: 0px;
-	transition: opacity .25s ease-in-out;
-   	-moz-transition: opacity .25s ease-in-out;
-   	-webkit-transition: opacity .25s ease-in-out;
+.layer-switcher-layer div img {
+   float: right;
+   margin-top: -20px;
 }
-
-#layerswitcher:hover { opacity: 1;}
-#layerswitcher div { height: 100%; background-color: transparent; border: 0px !important;}
-#layerswitcher  ul { list-style: none; margin: 0px; padding: 0px;} */
