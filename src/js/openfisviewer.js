@@ -1459,7 +1459,9 @@
 							layerStyle = "dyn_poly_choropleth_class_" + classNb;
 						}
 						var breaks = this_.calculateBreaks(values, classType, classNb);
+						if(breaks.length == 1) breaks = [0, breaks[0]];
 						if(breaks.length == 2) breaks[0] = 0;
+						console.log(breaks);
 						var envparams = this_.buildEnvParams(breaks);
 						var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
 						this_.setLegendGraphic(layer, breaks);	
@@ -1503,7 +1505,9 @@
 						}
 						//update breaks
 						var breaks = this_.calculateBreaks(values, classType, classNb);
+						if(breaks.length == 1) breaks = [0, breaks[0]];
 						if(breaks.length == 2) breaks[0] = 0;
+						console.log(breaks);
 						var envparams = this_.buildEnvParams(breaks);
 
 						//update viewparams, envparams & legend
