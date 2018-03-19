@@ -757,7 +757,7 @@
 							//jquery widget
 							var formatItem = function(item) {
 							  if (!item.id) { return item.text; }
-							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > -1){
+							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > 0){
 								  var $item = $(
 									'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
 									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
@@ -1276,7 +1276,7 @@
 			params : layerParams,
 			wrapX: true,
 			serverType : 'geoserver',
-			crossOrigin: 'anonymous'
+			crossOrigin : 'anonymous'
 		}),
 		opacity : opacity,
                 visible: visible
@@ -1839,6 +1839,7 @@
 		this_.openQueryDialog();
 		this_.getDSD(datasetDef.pid).then(function(){					
 			this_.updateDatasetSelector();
+			this_.updateSelection();
 			if(datasetDef.query){
 				//view params
 				var viewparams = datasetDef.viewparams.split(";");
