@@ -1453,6 +1453,8 @@
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
 				this_.getDatasetValues(viewparams).then(function(values){
+					console.log("Data series values");
+					console.log(values);
 					if(values.length > 0){
 						if(values.length < classNb){
 							classNb = values.length;
@@ -1498,6 +1500,8 @@
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
 				this_.getDatasetValues(viewparams).then(function(values){
+					console.log("Data series values");
+					console.log(values);
 					if(values.length > 0){
 						if(values.length < classNb){
 							classNb = values.length;
@@ -1734,7 +1738,7 @@
 				    var dx = 36;
 				    var dy = breakPt;
 				    if(breaks){
-						if(breaks.length==5) breakSpace = 12;
+						if(breaks.length<5) breakSpace = 12;
 						var break_signs = this_.options.map.styling.breaks;
 						for(var i=1;i<breaks.length;i++){
 							var minVal = (Math.round(breaks[i-1] * 100) / 100);
