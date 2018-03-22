@@ -109,6 +109,13 @@
 		if(options.map.layergroups){
 			this.options.map.layergroups = options.map.layergroups;
 		}
+
+		//statistics layergroup
+		this.options.map.mainlayergroup = this.options.map.layergroups.length-1;
+		if(options.map.mainlayergroup){
+			this.options.map.mainlayergroup = options.map.mainlayergroup;
+		}
+
 		//styling
 		this.options.map.styling = {};
 		this.options.map.styling.dynamic = true;
@@ -757,7 +764,7 @@
 							//jquery widget
 							var formatItem = function(item) {
 							  if (!item.id) { return item.text; }
-							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > 0){
+							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > -1){
 								  var $item = $(
 									'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
 									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
@@ -1100,24 +1107,21 @@
 				'title': "Basemaps",
 				layers: [
 					new ol.layer.Tile({
-						title : "ESRI - Countries",
+						title : "Oceans imagery",
 						type: 'base',
-						source : new ol.source.XYZ({							
-							attributions: [
-								new ol.Attribution({
-									html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer">ArcGIS</a>'
-								})
-							],
-							projection: ol.proj.get(this_.options.map.projection),
-							tileSize: 512,
-											tileUrlFunction: function(tileCoord) {
-										return esri2Template.replace('{z}', (tileCoord[0] - 1).toString())
-													.replace('{x}', tileCoord[1].toString())
-													.replace('{y}', (-tileCoord[2] - 1).toString());
-									},
-							crossOrigin: 'anonymous',
-							wrapX: true
-										})
+						source : new ol.source.TileWMS({
+							url : "https://tunaatlas.d4science.org/geoserver/wms",
+							params : {
+									'LAYERS' : 'tunaatlas:bathymetry,tunaatlas:continent',
+									'VERSION': '1.1.1',
+									'FORMAT' : 'image/png',
+									'TILED'	 : true,
+									'TILESORIGIN' : [-180,-90].join(',')
+							},
+							wrapX: true,
+							serverType : 'geoserver',
+							crossOrigin: 'anonymous'
+						})
 					}),
 					new ol.layer.Tile({
 						title : "ESRI World Imagery",
@@ -1140,20 +1144,23 @@
 						})
 					}),
 					new ol.layer.Tile({
-						title : "Oceans imagery",
+						title : "ESRI - Countries",
 						type: 'base',
-						source : new ol.source.TileWMS({
-							url : "https://tunaatlas.d4science.org/geoserver/wms",
-							params : {
-									'LAYERS' : 'tunaatlas:bathymetry,tunaatlas:continent',
-									'VERSION': '1.1.1',
-									'FORMAT' : 'image/png',
-									'TILED'	 : true,
-									'TILESORIGIN' : [-180,-90].join(',')
-							},
-							wrapX: true,
-							serverType : 'geoserver',
-							crossOrigin: 'anonymous'
+						source : new ol.source.XYZ({							
+							attributions: [
+								new ol.Attribution({
+									html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer">ArcGIS</a>'
+								})
+							],
+							projection: ol.proj.get(this_.options.map.projection),
+							tileSize: 512,
+											tileUrlFunction: function(tileCoord) {
+										return esri2Template.replace('{z}', (tileCoord[0] - 1).toString())
+													.replace('{x}', tileCoord[1].toString())
+													.replace('{y}', (-tileCoord[2] - 1).toString());
+									},
+							crossOrigin: 'anonymous',
+							wrapX: true
 						})
 					})
 
@@ -1465,7 +1472,7 @@
 						if(breaks.length == 2) breaks[0] = 0;
 						console.log(breaks);
 						var envparams = this_.buildEnvParams(breaks);
-						var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
 						this_.setLegendGraphic(layer, breaks);	
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -1488,7 +1495,7 @@
 				});
 			}else{
 				//static styling
-				var layer = this_.addLayer(1, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, null, viewparams);
+				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, null, viewparams);
 				this_.map.changed();
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
