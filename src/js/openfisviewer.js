@@ -1435,6 +1435,19 @@
 	}
 
 	/**
+	 * OpenFisViewer.prototype.getDatasetViewTitle
+	 * @param baseTitle
+	 * @param viewparams
+	 */
+	OpenFisViewer.prototype.getDatasetViewTitle = function(baseTitle, viewparams){
+		var layerTitle = baseTitle;
+		layerTitle += '<br>';
+	    	layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>View parameters:</b> ' 
+				+ viewparams.replace(new RegExp(";", 'g'),"; ") + '</p>';
+		return layerTitle;
+	}
+
+	/**
 	 * OpenFisViewer.prototype.mapDataset
 	 */
 	OpenFisViewer.prototype.mapDataset = function(){
@@ -1449,10 +1462,7 @@
 	    var layer = this_.getLayerByProperty(this_.selected_dsd.pid, 'id');
 	    var viewparams = this_.getViewParams();
 	    
-	    var layerTitle = this_.selected_dsd.dataset.title;
-	    layerTitle += '<br>';
-	    layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>View parameters:</b> ' 
-		       + viewparams.replace(new RegExp(";", 'g'),"; ") + '</p>';	
+	    var layerTitle = this_.getDatasetViewTitle(this_.selected_dsd.dataset.title, viewparams);
 		
 	    //dynamic styling properties
 	    var classType = $("#map-classtype-selector").select2('val');
@@ -1967,8 +1977,8 @@
 			metadata_promises.forEach(function(promise, i){
 				$.when(promise).then(function(md_entry) {
 					var encoded_dataset = encoded_datasets[i];
-					encoded_dataset.entry = md_entry;				
-					console.log(encoded_dataset);
+					encoded_dataset.entry = md_entry;
+					encoded_dataset.entry.title = this_.getDatasetViewTitle(encoded_dataset.entry.title, encoded_dataset.viewparams);				
 					this_.selection.push(encoded_dataset.entry);	
 
 					//if it was the last dataset queried by user we fill the query interface with param values
