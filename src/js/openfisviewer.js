@@ -1920,7 +1920,7 @@
 		var layerName = datasetDef.pid + "_aggregated";
 		var layerUrl = datasetDef.entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine
 			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
-		var layer = this.addLayer(1, datasetDef.pid, datasetDef.entry.title, layerUrl, layerName, true, true, 0.9, true, null,
+		var layer = this.addLayer(1, datasetDef.pid, datasetDef.title, layerUrl, layerName, true, true, 0.9, true, null,
 					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
 		this_.setLegendGraphic(layer, datasetDef.breaks);		
 	}
@@ -1978,7 +1978,7 @@
 				$.when(promise).then(function(md_entry) {
 					var encoded_dataset = encoded_datasets[i];
 					encoded_dataset.entry = md_entry;
-					encoded_dataset.entry.title = this_.getDatasetViewTitle(encoded_dataset.entry.title, encoded_dataset.viewparams);				
+					encoded_dataset.title = this_.getDatasetViewTitle(encoded_dataset.entry.title, encoded_dataset.viewparams);				
 					this_.selection.push(encoded_dataset.entry);	
 
 					//if it was the last dataset queried by user we fill the query interface with param values
