@@ -1445,9 +1445,14 @@
 		$(".query-nodata").hide();
 
 	    //layer properties
-		var layerName = this_.selected_dsd.pid + "_aggregated";
-		var layer = this_.getLayerByProperty(this_.selected_dsd.pid, 'id');
+	    var layerName = this_.selected_dsd.pid + "_aggregated";
+	    var layer = this_.getLayerByProperty(this_.selected_dsd.pid, 'id');
 	    var viewparams = this_.getViewParams();
+	    
+	    var layerTitle = this_.selected_dsd.dataset.title;
+	    layerTitle += '<br>';
+	    layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>View parameters:</b> ' 
+		       + viewparams.replace(new RegExp(";", 'g'),"; ") + '</p>';	
 		
 	    //dynamic styling properties
 	    var classType = $("#map-classtype-selector").select2('val');
@@ -1472,7 +1477,7 @@
 						if(breaks.length == 2) breaks[0] = 0;
 						console.log(breaks);
 						var envparams = this_.buildEnvParams(breaks);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
 						this_.setLegendGraphic(layer, breaks);	
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -1495,7 +1500,7 @@
 				});
 			}else{
 				//static styling
-				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, this_.selected_dsd.dataset.title,layerUrl, layerName, true, true, 0.9, true, null, null, viewparams);
+				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, true, true, 0.9, true, null, null, viewparams);
 				this_.map.changed();
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
@@ -1522,6 +1527,7 @@
 						var envparams = this_.buildEnvParams(breaks);
 
 						//update viewparams, envparams & legend
+						layer.setProperties({title: layerTitle});
 						layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
 						layer.getSource().updateParams({'STYLES' : layerStyle});
 						layer.getSource().updateParams({'env' : envparams});
@@ -1549,6 +1555,7 @@
 				});
 			}else{
 				//static styling
+				layer.setProperties({title: layerTitle});
 				layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
 				this_.map.changed();
 				//actions o download buttons
