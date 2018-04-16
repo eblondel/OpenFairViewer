@@ -1334,11 +1334,11 @@
     OpenFisViewer.prototype.addLayerTooltip = function(layer){
 		var this_ = this;
 		//configure popup
-		var popup = new ol.Overlay.Popup({id: layer.id, isTooltip: true});
+		var popup = new ol.Overlay.Popup({id: layer.id});
 		this.map.addOverlay(popup);
 	
 		//display popup on mouse hover
-		this.map.on('pointermove', function(evt) {		
+		this.map.on('singleclick', function(evt) {		
 			var coords = evt.coordinate;
 			var viewResolution = this_.map.getView().getResolution();
 			var viewProjection = this_.map.getView().getProjection().getCode();
