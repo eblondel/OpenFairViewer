@@ -134,6 +134,29 @@
 				}			
 			}
 		}
+		
+		//tooltip
+		this.options.map.tooltip = {};
+		this.options.map.tooltip.enabled = true;
+		this.options.map.tooltip.handler = function(feature){
+			var props = feature.getProperties();
+			var html = "<ul style='padding:0px 2px;list-style-type:none;'>"
+			var propNames = Object.keys(props);
+			for(var i=0;i<propNames.length;i++){
+				var propName = propNames[i];
+				var prop = props[propName];
+				if(typeof prop != "undefined" && !(prop instanceof ol.geom.Geometry)){
+					html += "<li><b>" + propName + ":</b> " + prop + "</li>";
+				}
+			}
+			html += "</ul>";
+			console.log(html);
+			return html;
+		}
+		if(options.map) if(options.map.tooltip) {
+			if(options.map.tooltip.enabled) this.options.map.tooltip.enabled = options.map.tooltip.enabled;
+			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
+		}
 	}
 	
 	//Init
@@ -1290,7 +1313,7 @@
 	    });
             
 	    this.setLegendGraphic(layer);
-            layer.id = id;
+		layer.id = id;
 	    layer.envfun = envfun;
 	    layer.count = count;
 	    layer.showLegendGraphic = showLegend;
@@ -1304,6 +1327,40 @@
             return layer;
 	}
         
+    /**
+	 * OpenFisViewer.prototype.addLayerTooltip
+	 * @param layer
+	 */
+    OpenFisViewer.prototype.addLayerTooltip = function(layer){
+		var this_ = this;
+		//configure popup
+		var popup = new ol.Overlay.Popup({id: layer.id, isTooltip: true});
+		this.map.addOverlay(popup);
+	
+		//display popup on mouse hover
+		this.map.on('pointermove', function(evt) {		
+			var coords = evt.coordinate;
+			var viewResolution = this_.map.getView().getResolution();
+			var viewProjection = this_.map.getView().getProjection().getCode();
+			$.ajax({
+				url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"}),
+				contentType: 'application/xml',
+                type: 'GET',
+                success: function(response){
+					var gml = new ol.format.GML();
+					var features = gml.readFeatures(response);
+					if(features.length > 0){
+						var feature = features[0];
+						popup.show(coords, this_.options.map.tooltip.handler(feature));
+					}else{
+						popup.hide();
+					}
+				}
+			});
+		});
+	}
+
+	
     /**
 	 * OpenFisViewer.prototype.removeLayerByProperty Util method to remove a layer by property
 	 * @param layerProperty the property value
@@ -1359,10 +1416,11 @@
 	}
 
 	/**
-	 * OpenFisViewer.prototype.getDatasetValues
+	 * OpenFisViewer.prototype.getDatasetFeatures
+	 * @param viewparams
 	 * @returns a Jquery promise
 	 */
-	OpenFisViewer.prototype.getDatasetValues = function(viewparams){
+	OpenFisViewer.prototype.getDatasetFeatures = function(viewparams){
 	    var wfsRequest = this.getDatasetWFSLink(true, viewparams, "json") + "&propertyName=value";
 	    var deferred = $.Deferred();
 	    $.ajax({
@@ -1370,12 +1428,8 @@
                 contentType: 'application/json',
                 type: 'GET',
                 success: function(response){
-			var features = response.features;
-			var values = new Array();
-			if(features.length > 0){
-				values = features.map(function(f){return f.properties.value});
-			}			
-			deferred.resolve(values);
+			var features = response.features;			
+			deferred.resolve(features);
 		},
 		error: function(error){
 			console.log(error);
@@ -1384,6 +1438,19 @@
 	    });
 	    return deferred.promise();
 
+	}
+	
+	/**
+	 * OpenFisViewer.prototype.getDatasetValues
+	 * @param an array of features
+	 * @returns a array of values
+	 */
+	OpenFisViewer.prototype.getDatasetValues = function(features){
+		var values = new Array();
+		if(features.length > 0){
+			values = features.map(function(f){return f.properties.value});
+		}
+		return values;
 	}
 
 	/**
@@ -1474,8 +1541,11 @@
 			var layerUrl = this_.selected_dsd.dataset.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetValues(viewparams).then(function(values){
+				this_.getDatasetFeatures(viewparams).then(function(features){
+					console.log("Data series features");
+					console.log(features);
 					console.log("Data series values");
+					var values = this_.getDatasetValues(features);
 					console.log(values);
 					if(values.length > 0){
 						if(values.length < classNb){
@@ -1488,6 +1558,7 @@
 						console.log(breaks);
 						var envparams = this_.buildEnvParams(breaks);
 						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
+						this_.addLayerTooltip(layer);
 						this_.setLegendGraphic(layer, breaks);	
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -1521,8 +1592,11 @@
 			//UPDATE LAYER
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetValues(viewparams).then(function(values){
+				this_.getDatasetFeatures(viewparams).then(function(features){
+					console.log("Data series features");
+					console.log(features);
 					console.log("Data series values");
+					var values = this_.getDatasetValues(features);
 					console.log(values);
 					if(values.length > 0){
 						if(values.length < classNb){
@@ -1543,6 +1617,7 @@
 						layer.getSource().updateParams({'env' : envparams});
 						layer.envfun = classType;
 						layer.count = values.length;
+						this_.addLayerTooltip(layer);
 						this_.setLegendGraphic(layer, breaks);
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -1922,6 +1997,7 @@
 			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
 		var layer = this.addLayer(1, datasetDef.pid, datasetDef.title, layerUrl, layerName, true, true, 0.9, true, null,
 					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
+		this_.addLayerTooltip(layer);
 		this_.setLegendGraphic(layer, datasetDef.breaks);		
 	}
 
