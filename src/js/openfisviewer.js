@@ -1928,7 +1928,12 @@
 			encoded_views.push(encoded_view);
 		}
 		if(viewlayers.length > 0) url += '&views=' + encodeURIComponent(JSON.stringify(encoded_views));
-	
+		
+		//extent, center, zoom
+		url += '&extent=' + this.map.getView().calculateExtent(this.map.getSize()).join(',');
+		url += "&center=" + this.map.getView().getCenter().join(',');
+		url += "&zoom=" + this.map.getView().getZoom();
+		
 		document.getElementById('openfisviewer-link').value = url;
 	}
         
@@ -2010,6 +2015,7 @@
 		
 		//url params
 		var params = this_.getAllUrlParams();
+		console.log(params);
 		
 		//dynamic parameters
 		//embedded link feature 'dataset' decoding
@@ -2066,6 +2072,20 @@
 				});
 			});
 		}
+		
+		//extent, center, zoom
+		if(params.extent){
+			var extent = params.extent.split(",")
+			for (var i=0; i<extent.length; i++) { extent[i] = parseFloat(extent[i]); }
+			this.map.getView().fit(extent, this.map.getSize());
+		}
+		if(params.center){
+			var center = params.center.split(",");
+			center[0] = parseFloat(center[0]);
+			center[1] = parseFloat(center[1]);
+			this.map.getView().setCenter(center);
+		}
+		if(params.zoom) this.map.getView().setZoom(parseInt(params.zoom));
 	}
 	
 	//===========================================================================================
