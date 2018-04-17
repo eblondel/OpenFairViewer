@@ -561,6 +561,20 @@
 
 		return out;
 	}
+	
+	/**
+	 * OpenFisViewer.prototype.actionDataset
+	 * Action on a dataset
+	 * @param elm
+	**/
+	OpenFisViewer.prototype.actionDataset = function(elm){
+		var glyphicon = $($(elm).find("span")[0]).prop("class");
+		if(glyphicon == "glyphicon glyphicon-plus"){
+			this.selectDataset(elm);
+		}else if(glyphicon == "glyphicon glyphicon-minus"){
+			this.unselectDataset(elm);
+		}
+	}
          
 	/**
 	 * OpenFisViewer.prototype.updateSelection
@@ -573,15 +587,20 @@
 		$.each($("#dataDialog").find(".search-result"), function(idx, item){
 			$item = $(item);
 			var buttons = $item.find("button");
-			var adder = $(buttons[0]);
-			var remover = $(buttons[1]);
-			var pid = adder.attr("data-pid");
+			var action_button = $(buttons[0]);
+			var pid = action_button.attr("data-pid");
 			if(this_.selection.map(function(item){return item.pid}).indexOf(pid) != -1){
-				adder.prop("disabled", true);
-				remover.css("display", "block");
+				action_button.removeClass("dataset-button-add");
+				action_button.prop("title", "Remove from selection");
+				$(action_button.find("span")[0]).removeClass("glyphicon-plus");
+				action_button.addClass("dataset-button-remove");
+				$(action_button.find("span")[0]).addClass("glyphicon-minus");
 			}else{
-				adder.prop("disabled", false);
-				remover.css("display", "none");
+				action_button.removeClass("dataset-button-remove");
+				action_button.prop("title", "Add to selection");
+				$(action_button.find("span")[0]).removeClass("glyphicon-minus");
+				action_button.addClass("dataset-button-add");
+				$(action_button.find("span")[0]).addClass("glyphicon-plus");
 			}
 		})
             
