@@ -808,7 +808,7 @@
 							  if (!item.id) { return item.text; }
 							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > -1){
 								  var $item = $(
-									'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
+									'<img src="js/openfisviewer/img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
 									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
 								  );
 							  }else{
