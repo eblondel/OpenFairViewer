@@ -503,10 +503,10 @@
 			im.onerror = function(){
 				var theImage = $this;
 				$this.hide();
-				$this.css("background", "url('img/loading-error.svg')");
+				$this.css("background", "url('js/openfisviewer/img/loading-error.svg')");
 				$this.show();
 			}
-			$this.css("background", "url('img/loading.gif')");
+			$this.css("background", "url('js/openfisviewer/img/loading.gif')");
 			im.src = $this.data("mainsrc");
 		});
 	}
