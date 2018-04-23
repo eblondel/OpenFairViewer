@@ -1,5 +1,5 @@
 /**
- * openfisviewer - Data query & visualization of geo-referenced data series
+ * openfisviewer - Data query & visualization of geo-referenced data series – Version 1.0.0 (20180423)
  * Copyright (c) 2017 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
