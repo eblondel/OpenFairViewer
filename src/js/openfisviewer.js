@@ -57,6 +57,9 @@
 		//version
 		this.versioning = {VERSION: "1.1.0", DATE: new Date(2018,3,25)}
 		
+		//version
+		this.versioning = {VERSION: "1.0.0", DATE: new Date(2018,3,23)}
+		
 		if(!config.OGC_CSW_BASEURL){
 			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
 		}
