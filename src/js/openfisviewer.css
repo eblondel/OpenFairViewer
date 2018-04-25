@@ -40,12 +40,14 @@ nav ul li.active { background-color: #0C71B8;}
 .partner-logos{text-align:center;}
 .data-dialog { width: 400px !important; height: 85% !important; top: 15% !important; }
 .query-dialog { width: 400px; height: 85% !important; top: 15% !important; }
-.data-dialog, .query-dialog {border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000; border-top-right-radius: 12px; -moz-border-top-right-radius: 12px; -webkit-border-top-right-radius: 12px;}
-.data-dialog .ui-dialog-content, .query-dialog .ui-dialog-content { color:#000; border-top-right-radius: 12px; -moz-border-top-right-radius: 12px; -webkit-border-top-right-radius: 12px; padding: .5em .1em}
-.data-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;border-top-right-radius: 12px; -moz-border-top-right-radius: 12px; -webkit-border-top-right-radius: 12px;}
+.info-dialog { width: 100% !important; height: 100% !important; top: 0% !important; }
+.data-dialog, .query-dialog, .info-dialog {border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
+.data-dialog .ui-dialog-content, .query-dialog .ui-dialog-content , .info-dialog .ui-dialog-content{ color:#000; padding: .5em .1em}
+.data-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;}
 
 #dataDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
 #queryDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
+#infoDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
 
 /** BROWSER **/
 #dataset-selection, #dataset-list { height:70%;}
@@ -75,6 +77,8 @@ nav ul li.active { background-color: #0C71B8;}
 .dataset-button-remove {color:#c9302c;border-color:#c9302c;background-color:#fff;}
 .dataset-button-remove:disabled {color:#c9302c !important;border-color:#c9302c !important;background-color:#fff !important;opacity:0.5;}
 .dataset-button-remove:hover {color:#fff;background-color:#c9302c;}
+.dataset-button-info {border-color:#286090;background-color:#fff;color:#999999;right: 28px;}
+.dataset-button-info:hover {background-color:#286090;color:#fff;}
 
 /** QUERY **/
 #dsd-ui-wrapper { }

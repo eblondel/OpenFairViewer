@@ -1,5 +1,5 @@
 /**
- * openfisviewer - Data query & visualization of geo-referenced data series – Version 1.0.0 (20180423)
+ * openfisviewer - Data query & visualization of geo-referenced data series
  * Copyright (c) 2017 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -52,6 +52,10 @@
 	 * Function to instantiate an openfis-view
 	 */
 	OpenFisViewer = function(config, opt_options){
+		var this_ = this;
+		
+		//version
+		this.versioning = {VERSION: "1.1.0", DATE: new Date(2018,3,25)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
@@ -75,6 +79,19 @@
 		
 		//UI options
 		this.options.ui = {};
+		//UI browse options
+		this.options.ui.browse = {};
+		this.options.ui.browse.datasetInfoHandler = function(metadata){
+			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
+			window.open(datasetInfoUrl, '_blank');
+		}
+		if(options.ui) if (options.ui.browse) {
+			if(options.ui.browse.datasetInfoHandler){
+				this.options.ui.browse.datasetInfoHandler = options.ui.browse.datasetInfoHandler;
+			}
+		}
+		
+		//UI query options
 		this.options.ui.query = {};
 		this.options.ui.query.columns = 1;
 		this.options.ui.query.time = 'datePicker';
@@ -184,6 +201,7 @@
         this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0, null);
         this.initDialog("dataDialog", "Browse data catalogue", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ this_.updateSelection(); });
         this.initDialog("queryDialog", "Query a dataset", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){this_.updateDatasetSelector(); });
+		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3, 'info-sign', function(){});
         this.openAboutDialog();
 		
 		//resolve viewer from URL
@@ -355,6 +373,7 @@
 
 		//delete csw_result.value;
 		md_entry.pid = md_entry.metadata.fileIdentifier;
+		md_entry.pidinfo = md_entry.pid;
 		md_entry.title = md_entry.metadata.identificationInfo[0].abstractMDIdentification.citation.ciCitation.title;
 		md_entry.title_tooltip = md_entry.title;
 		md_entry.graphic_overview = md_entry.metadata.identificationInfo[0].abstractMDIdentification.graphicOverview[0].mdBrowseGraphic.fileName;
@@ -465,7 +484,8 @@
 					{ name: 'title_tooltip', attr: 'title' },
 					'_abstract',
 					{ name: 'graphic_overview', attr: 'data-mainSrc' },
-					{ name: 'pid', attr: 'data-pid'}
+					{ name: 'pid', attr: 'data-pid'},
+					{ name: 'pidinfo', attr: 'data-pid'}
 					
 				],
 				item: 'dataset-item',
@@ -510,8 +530,20 @@
 			im.src = $this.data("mainsrc");
 		});
 	}
-    
-         
+  
+	/**
+	 * OpenFisViewer.prototype.displayDatasetInfo
+	 * Display the metadata associated to a dataset
+	 * @param elm
+	 *
+	 **/
+	OpenFisViewer.prototype.displayDatasetInfo = function(elm){  
+		var pid = elm.getAttribute('data-pid');
+		console.log("Select dataset with pid = " + pid);
+		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
+		this.options.ui.browse.datasetInfoHandler(dataset.metadata);
+	}
+	  
 	/**
 	 * OpenFisViewer.prototype.selectDataset
 	 * Selects a dataset
@@ -587,7 +619,7 @@
 		$.each($("#dataDialog").find(".search-result"), function(idx, item){
 			$item = $(item);
 			var buttons = $item.find("button");
-			var action_button = $(buttons[0]);
+			var action_button = $(buttons[1]);
 			var pid = action_button.attr("data-pid");
 			if(this_.selection.map(function(item){return item.pid}).indexOf(pid) != -1){
 				action_button.removeClass("dataset-button-add");
@@ -2218,6 +2250,20 @@
 	*/
 	OpenFisViewer.prototype.closeQueryDialog = function(){
 		this.closeDialog("queryDialog");
+	}
+	
+	/**
+	* OpenFisViewer.prototype.openInfoDialog Open 'Info' dialog
+	*/
+	OpenFisViewer.prototype.openInfoDialog = function(){
+		this.openDialog("infoDialog");
+	}
+   
+   /**
+	* OpenFisViewer.prototype.closeInfoDialog Close 'Info' dialog
+	*/
+	OpenFisViewer.prototype.closeInfoDialog = function(){
+		this.closeDialog("infoDialog");
 	}
 
 }));
