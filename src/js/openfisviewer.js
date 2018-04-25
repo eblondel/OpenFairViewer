@@ -1,5 +1,5 @@
 /**
- * openfisviewer - Data query & visualization of geo-referenced data series – Version 1.0.0 (20180423)
+ * openfisviewer - Data query & visualization of geo-referenced data series
  * Copyright (c) 2017 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -52,6 +52,9 @@
 	 * Function to instantiate an openfis-view
 	 */
 	OpenFisViewer = function(config, opt_options){
+		
+		//version
+		this.versioning = {VERSION: "1.0.0", DATE: new Date(2018,3,23)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
