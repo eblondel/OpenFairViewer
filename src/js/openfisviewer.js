@@ -55,10 +55,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.1.0", DATE: new Date(2018,3,25)}
-		
-		//version
-		this.versioning = {VERSION: "1.0.0", DATE: new Date(2018,3,23)}
+		this.versioning = {VERSION: "1.1.1", DATE: new Date(2018,5,21)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
@@ -1030,15 +1027,39 @@
 					templateSelection: formatMethod,
 					matcher: codelistMatcher
 				});
+				
+				//MAP OPTIONS
+				$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Map options</label></p></div>');
+				
+				//5. Map type
+				//id
+				var map_type_id = "map-type-selector";
+				//html
+				$("#dsd-ui-col-2").append('<select id = "'+map_type_id+'" class="dsd-ui-dimension" title="Select the type of statistical map"></select>');
+				//jquery widget
+				var formatMaptype = function(item) {
+					if (!item.id) { return item.text; }
+					var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+					return $item;
+				};
+				var map_type_placeholder = 'Select a map type';
+				$("#" + map_type_id).select2({
+					theme: 'classic',
+					allowClear: false,
+					placeholder: map_type_placeholder,
+					data: [{id:'graduated', text: 'Graduated symbols map'},{id:'choropleth', text: 'Choropleth map'}],
+					templateResult: formatMaptype,
+					templateSelection: formatMaptype
+				});
+				$("#" + map_type_id).val("graduated").trigger("change");
 
-				//5. Map classifications
+				//6. Map classifications
 				if(this_.options.map.styling.dynamic){
 					//Classification type
 					//-------------------
 					//id
 					var map_classtype_id = "map-classtype-selector";
 					//html
-					$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Map options</label></p></div>');
 					$("#dsd-ui-col-2").append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
 					//jquery widget
 					var formatClasstype = function(item) {
@@ -1586,9 +1607,10 @@
 	    var layerTitle = this_.getDatasetViewTitle(this_.selected_dsd.dataset.title, viewparams);
 		
 	    //dynamic styling properties
+	    var mapType =  $("#map-type-selector").select2('val');
 	    var classType = $("#map-classtype-selector").select2('val');
 	    var classNb = $("#map-classnb-selector").select2('val');
-	    var layerStyle =  "dyn_poly_choropleth_class_" + classNb;
+	    var layerStyle =  "dyn_poly_" + mapType + "_class_" + classNb;
 
 		if(!layer){
 			//ADD LAYER
@@ -1604,7 +1626,7 @@
 					if(values.length > 0){
 						if(values.length < classNb){
 							classNb = values.length;
-							layerStyle = "dyn_poly_choropleth_class_" + classNb;
+							layerStyle = "dyn_poly_"+mapType+"_class_" + classNb;
 						}
 						var breaks = this_.calculateBreaks(values, classType, classNb);
 						if(breaks.length == 1) breaks = [0, breaks[0]];
@@ -1655,7 +1677,7 @@
 					if(values.length > 0){
 						if(values.length < classNb){
 							classNb = values.length;
-							layerStyle = "dyn_poly_choropleth_class_" + classNb;
+							layerStyle = "dyn_poly_" + mapType + "_class_" + classNb;
 						}
 						//update breaks
 						var breaks = this_.calculateBreaks(values, classType, classNb);
