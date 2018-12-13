@@ -1,2 +1,2 @@
-# openfisviewer
-openfisviewer – Open Fisheries viewer
+# OpenFairViewer
+OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer
