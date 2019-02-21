@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20181213)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20190221)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -55,7 +55,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.0", DATE: new Date(2018,12,13)}
+		this.versioning = {VERSION: "1.0.1", DATE: new Date(2019,02,21)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
@@ -104,10 +104,12 @@
 		
 		//MAP options
 		this.options.map = {};
+		//watermark
+		this.options.map.attribution = options.map.attribution? options.map.attribution : null;
 		//projection
-		this.options.map.projection = options.map.projection? options.map.projetion : 'EPSG:4326';
+		this.options.map.projection = options.map.projection? options.map.projection : 'EPSG:4326';
 		//zoom
-		this.options.map.zoom = options.map.zoom? options.map.zoom : 2.5;
+		this.options.map.zoom = options.map.zoom? options.map.zoom : 3;
 		//extent
 		this.options.map.extent = [-180, -90, 180, 90];
 		if(options.map.extent){
@@ -174,6 +176,12 @@
 			if(options.map.tooltip.enabled) this.options.map.tooltip.enabled = options.map.tooltip.enabled;
 			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
 		}
+		
+		//panels
+		this.options.panel = {}
+		if(options.panel) {
+				this.options.panel.welcome = options.panel.about? options.panel.about : 'aboutDialog2';				
+		}
 	}
 	
 	//Init
@@ -206,6 +214,8 @@
 		
 		//resolve viewer from URL
 		this.resolveViewer();
+		
+		this._copyright();
 	}
         
 	//Utils
@@ -1287,7 +1297,7 @@
 		}     
         
 	    //map
-            var mapId = id? id : 'map';
+		var mapId = id? id : 'map';
 	    $("#"+mapId).empty();
 		var map = new ol.Map({
 			id: mapId,
@@ -1323,6 +1333,32 @@
 		
 		if(main && this.options.map.zoom){
 			map.getView().setZoom(this.options.map.zoom);
+		}
+		
+		//Attribution
+		if(this.options.map.attribution){
+			console.log("YUPI");
+			
+			//create base attribution for handling the watermark
+			var baseAttribution = new ol.control.Attribution({
+				className: 'ol-attribution-map',
+				collapsible: false
+			});
+			map.addControl(baseAttribution);
+			
+			//manage the display of watermark (logo)
+			var attMaps = map.getTargetElement().getElementsByClassName("ol-attribution-map");
+			if( attMaps.length > 0) attMaps[0].getElementsByTagName("li")[0].innerHTML = this.options.map.attribution;
+			
+			//hack to remove the baselayer attribution that for some reason is also added to the ol-attribution-map
+			//while explicitely referenced on ol-attribution-baselayer (to investigate if there is a cleaner solution)
+			map.on('postrender', function() {
+				var attMaps = this.getTargetElement().getElementsByClassName("ol-attribution-map");
+				if( attMaps.length > 0){
+					var attLis = attMaps[0].getElementsByTagName("li");
+					if( attLis.length > 1) attLis[1].remove();
+				}
+			});
 		}
 		
 		//events
@@ -2289,6 +2325,13 @@
 	*/
 	OpenFairViewer.prototype.closeInfoDialog = function(){
 		this.closeDialog("infoDialog");
+	}
+	
+   /**
+	*
+	*/
+	OpenFairViewer.prototype._copyright = function(){
+		$("body").append("<footer><a href='https://doi.org/10.5281/zenodo.2249305'>&copy; OpenFairViewer <small>(version "+this.versioning.VERSION+")</small</a></footer>")
 	}
 
 }));

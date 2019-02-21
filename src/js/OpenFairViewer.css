@@ -1,4 +1,4 @@
-/** OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20181213) */
+/** OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20190221) */
 /* IMPORTS START */
 
 @import "../vendor/ol3/ol3.css";
@@ -11,8 +11,11 @@
 /** ----------- **/
 
 * { -webkit-overflow-scrolling: auto !important; overflow-scrolling: auto !important; }
-html, body, #map { overflow: hidden; min-height: 100% !important; height: 100% !important; font-family: "Montserrat", sans-serif !important;}
-
+html, body { overflow: hidden; min-height: 100% !important; height: 100% !important; font-family: "Montserrat", sans-serif !important;}
+#map {position: absolute;top: 0;left: 0;right: 0;bottom: 0;}
+/** Manage footer */
+footer {position: absolute;bottom: 0;left:5px;height: 20px; font-size:90%; text-shadow: 1px 1px 2px black, 0 0 1em blue, 0 0 0.2em blue;z-index:9999;}
+footer a {color:white !important;}
 .hwa { -webkit-transform: translate3d(0, 0, 0); -ms-transform: translate3d(0, 0, 0);	-o-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0);}
 .wrapper { min-height: 100% !important; height: 100% !important; margin: 0px !important; position: relative !important;}
 .pages { margin: 0px; padding: 0px; height: 100%; overflow: hidden; position: relative;}
@@ -222,4 +225,39 @@ div.sidePanel:hover, .ol-unselectable.ol-control.layer-switcher.shown { box-shad
 .ol-popup:after { border-top-color: rgba(255,255,255,.8); border-width: 10px; left: 48px; margin-left: -10px; }
 .ol-popup:before { border-top-color: transparent; border-width: 11px; left: 48px; margin-left: -11px; }
 .ol-popup-content { background-color: rgba(255,255,255,.8); border-radius: 8px; box-shadow: 2px 2px 2px rgba(0,0,0,.4); color: rgba(0,0,0,.8); font-family: Verdana, Geneva, Helvetica, Arial, sans-serif; font-size: 9px; max-height: 200px; min-width: 175px; overflow-x: auto; padding: 4px 8px; }
+/**
+* Atrribution control
+*/
+.ol-powered-by {-khtml-opacity: 0.7;-moz-opacity: 0.7;color: Blue;display: block;font-size: 12px;font-style: normal;opacity: 0.7;position: absolute;bottom: 0px;right: 0px;
+}
+/* attribution for map */
+.ol-attribution-map {text-align:left;bottom:.5em;right:.5em;max-width:calc(100% - 1.3em);font-size:12px;display:inherit;}
+.ol-attribution-map ul {margin:0;padding:0 .5em;color:#000;text-shadow:0 0 2px #fff;}
+.ol-attribution-map li {display:inline !important;list-style:none;line-height:inherit}
+.ol-attribution-map li:not(:last-child):after  {content:" "}
+.ol-attribution-map img {max-height:inherit;max-width:inherit;}
+.ol-attribution-map.ol-uncollapsible img{margin-top:-.2em;max-height:inherit;}
+.ol-attribution-map button,.ol-attribution-map ul {display:inline-block}
+.ol-attribution-map.ol-collapsed ul{display:none}
+.ol-attribution-map.ol-logo-only ul{display:block}
+.ol-attribution-map:not(.ol-collapsed){background: transparent; /*rgba(255,255,255,.8)*/}	
+.ol-attribution-map.ol-uncollapsible{bottom:0.5em;right:0.5em;border-radius:4px 0 0;height:1.1em;line-height:1em;display:inherit !important;}
+.ol-attribution-map.ol-logo-only{background:0 0;top:.4em;height:1.1em;line-height:1em}
+.ol-attribution-map.ol-uncollapsible img{margin-top:-.2em;max-height:inherit;}
+.ol-attribution-map.ol-logo-only button,.ol-attribution-map.ol-uncollapsible button{display:none}
 
+/* attribution for baselayer */
+.ol-attribution-baselayer {text-align:left;top:.3em;left:45px;max-width:calc(100% - 1.3em);font-size:12px;font-family: 'Liberation Sans', Arial, Helvetica, sans-serif;}
+.ol-attribution-baselayer ul {margin:0;padding:0;color:#000;text-shadow:0 0 2px #fff}
+.ol-attribution-baselayer li {margin:0;padding:0;display:inline;list-style:none;line-height:inherit}
+.ol-attribution-baselayer li:not(:last-child):after  {content:" "}
+.ol-attribution-baselayer img {max-height:2em;max-width:inherit}
+.ol-attribution-baselayer.ol-uncollapsible img{margin-top:-.2em;max-height:inherit;}
+.ol-attribution-baselayer button,.ol-attribution-baselayer ul {display:inline-block}
+.ol-attribution-baselayer.ol-collapsed ul{display:none}
+.ol-attribution-baselayer.ol-logo-only ul{display:block}
+.ol-attribution-baselayer:not(.ol-collapsed){background: transparent; /*rgba(255,255,255,.8)*/}
+.ol-attribution-baselayer.ol-uncollapsible{top:0.3em;left:45px;border-radius:4px 0 0;height:1.1em;line-height:1em}
+.ol-attribution-baselayer.ol-logo-only{background:0 0;top:.4em;height:1.1em;line-height:1em}
+.ol-attribution-baselayer.ol-uncollapsible img{margin-top:-.2em;max-height:1.6em}
+.ol-attribution-baselayer.ol-logo-only button,.ol-attribution-baselayer.ol-uncollapsible button{display:none}
