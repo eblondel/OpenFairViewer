@@ -55,7 +55,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.1", DATE: new Date(2019,02,21)}
+		this.versioning = {VERSION: "1.0.2", DATE: new Date(2019,05,08)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
@@ -1388,7 +1388,7 @@
 	 * @param envparams
 	 * @param count
 	 */
-	OpenFairViewer.prototype.addLayer = function(mainOverlayGroup, id, title, wmsUrl, layer, visible, showLegend, opacity, tiled,
+	OpenFairViewer.prototype.addLayer = function(mainOverlayGroup, id, title, wmsUrl, layer, hidden, visible, showLegend, opacity, tiled,
 											cql_filter, style, viewparams, envfun, envparams, count){
 		var this_ = this;
 		var layerParams = {
@@ -1407,11 +1407,12 @@
 		
 		if(cql_filter){ layerParams['CQL_FILTER'] = cql_filter; }
 		if(viewparams){ layerParams['VIEWPARAMS'] = viewparams; }
+		hidden = hidden? hidden : false;
 	    if(envparams){ layerParams['env'] = envparams; }
 	    if(style) layerParams['STYLES'] = style;
 	    var layer = new olLayerClass({
-		id : id,
-		title : title,
+		id : (hidden? undefined : id),
+		title : (hidden? undefined : title),
 		source : new olSourceClass({
 			url : wmsUrl,
 			params : layerParams,
@@ -1669,7 +1670,7 @@
 						if(breaks.length == 2) breaks[0] = 0;
 						console.log(breaks);
 						var envparams = this_.buildEnvParams(breaks);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, false, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
 						this_.addLayerTooltip(layer);
 						this_.setLegendGraphic(layer, breaks);	
 						this_.map.changed();
@@ -1693,7 +1694,7 @@
 				});
 			}else{
 				//static styling
-				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, true, true, 0.9, true, null, null, viewparams);
+				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, false, true, true, 0.9, true, null, null, viewparams);
 				this_.map.changed();
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
@@ -2005,7 +2006,7 @@
 			for(var i=0;i<this.config.OGC_WMS_LAYERS.length;i++){
 				var layerDef = this.config.OGC_WMS_LAYERS[i];			
 				this_.addLayer(
-					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, layerDef.layer,
+					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, layerDef.layer, layerDef.hidden,
 					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter, layerDef.style
 				);
 			}
@@ -2112,7 +2113,7 @@
 		var layerName = datasetDef.pid + "_aggregated";
 		var layerUrl = datasetDef.entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine
 			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
-		var layer = this.addLayer(1, datasetDef.pid, datasetDef.title, layerUrl, layerName, true, true, 0.9, true, null,
+		var layer = this.addLayer(1, datasetDef.pid, datasetDef.title, layerUrl, layerName, false, true, true, 0.9, true, null,
 					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
 		this_.addLayerTooltip(layer);
 		this_.setLegendGraphic(layer, datasetDef.breaks);		
