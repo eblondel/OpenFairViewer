@@ -320,7 +320,7 @@ ol.control.LayerSwitcher.prototype.renderLegendGraphic_ = function(lyr, idx, li)
 			img.src = imgSrc;
 			var smallLegend = img.width <= 32 && img.height <= 20;
 			var smallLegendCss = smallLegend? 'margin-top:-20px;' : '';
-			legend.style.display = (lyr.getVisible()? (smallLegend? "block": "inline") : "none");
+			legend.style.display = (lyr.getVisible()? (smallLegend? "block": "table") : "none"); //20190508 @eblondel change from 'inline' to 'table'
 			var img = '<img src="'+imgSrc+'" style="'+smallLegendCss+'"/>';
 			legend.innerHTML = img;
 			li.appendChild(legend);
