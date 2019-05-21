@@ -445,7 +445,6 @@
 			
 			//spatial filter
 			if(bbox){
-				console.log(bbox);
 				filter = filter.and(new Ows4js.Filter().BBOX(bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326'));
 			}
 			
@@ -1337,7 +1336,6 @@
 		
 		//Attribution
 		if(this.options.map.attribution){
-			console.log("YUPI");
 			
 			//create base attribution for handling the watermark
 			var baseAttribution = new ol.control.Attribution({
@@ -1438,12 +1436,40 @@
 
             return layer;
 	}
-        
-    /**
+
+    	/**
+	 * OpenFairViewer.prototype.getFeatureInfo
+	 * @param layer
+	 * @param coords
+	 */
+	OpenFairViewer.prototype.getFeatureInfo = function(layer, coords){
+		var this_ = this;
+		var viewResolution = this_.map.getView().getResolution();
+		var viewProjection = this_.map.getView().getProjection().getCode();
+		var popup = this.map.getOverlayById(layer.id);
+		$.ajax({
+			url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"}),
+			contentType: 'application/xml',
+                	type: 'GET',
+                	success: function(response){
+				var gml = new ol.format.GML();
+				var features = gml.readFeatures(response);
+				if(features.length > 0){
+					var feature = features[0];
+					popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
+					this_.popup = {id: layer.id, coords: coords};
+				}else{
+					popup.hide();
+					this_.popup = {};				}
+			}
+		});
+	}
+
+    	/**
 	 * OpenFairViewer.prototype.addLayerTooltip
 	 * @param layer
 	 */
-    OpenFairViewer.prototype.addLayerTooltip = function(layer){
+    	OpenFairViewer.prototype.addLayerTooltip = function(layer){
 		var this_ = this;
 		//configure popup
 		var popup = new ol.Overlay.Popup({id: layer.id});
@@ -1451,34 +1477,17 @@
 	
 		//display popup on mouse hover
 		this.map.on('singleclick', function(evt) {		
-			var coords = evt.coordinate;
-			var viewResolution = this_.map.getView().getResolution();
-			var viewProjection = this_.map.getView().getProjection().getCode();
-			$.ajax({
-				url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"}),
-				contentType: 'application/xml',
-                type: 'GET',
-                success: function(response){
-					var gml = new ol.format.GML();
-					var features = gml.readFeatures(response);
-					if(features.length > 0){
-						var feature = features[0];
-						popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
-					}else{
-						popup.hide();
-					}
-				}
-			});
+			this_.getFeatureInfo(layer, evt.coordinate);
 		});
 	}
 
 	
-    /**
+    	/**
 	 * OpenFairViewer.prototype.removeLayerByProperty Util method to remove a layer by property
 	 * @param layerProperty the property value
 	 * @param by the property 
 	 */
-    OpenFairViewer.prototype.removeLayerByProperty = function(layerProperty, by){
+    	OpenFairViewer.prototype.removeLayerByProperty = function(layerProperty, by){
 		console.log("Remove layer dataset with property "+by+" = " + layerProperty);
 		var removed = false;
 		if(!by) byTitle = false;
@@ -1501,15 +1510,35 @@
 	}
         
 	/**
+	 * OpenFairViewer.prototype.getDatasetUrlFromMetadataEntry
+	 * @param md_entry
+	 * @param layerName
+	 * @param protocol
+	 * @returns a WFS base URL
+	 */
+	OpenFairViewer.prototype.getDatasetUrlFromMetadataEntry = function(md_entry, layerName, protocol){
+		baseLayerUrl = md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
+		   function(item){
+			var filter = (item.ciOnlineResource.linkage.url.indexOf(protocol)!=-1 | item.ciOnlineResource.linkage.url.indexOf(protocol.toLowerCase())!=-1)
+						 && item.ciOnlineResource.name.endsWith(layerName);
+			if(filter) return item;
+		   }
+		)[0].ciOnlineResource.linkage.url;
+		return baseLayerUrl;
+	};
+	
+
+	/**
 	 * OpenFairViewer.prototype.getDatasetFeatures
+	 * @param layerUrl
 	 * @param layerName
 	 * @param viewparams
 	 * @param cql_filter
 	 * @param propertyNames
 	 * @returns a Jquery promise
 	 */
-	OpenFairViewer.prototype.getDatasetFeatures = function(layerName, viewparams, cql_filter, propertyNames){
-	    var wfsRequest = this.getDatasetWFSLink(layerName, viewparams, cql_filter, propertyNames, "json");
+	OpenFairViewer.prototype.getDatasetFeatures = function(layerUrl, layerName, viewparams, cql_filter, propertyNames){
+	    var wfsRequest = this.getDatasetWFSLink(layerUrl, layerName, viewparams, cql_filter, propertyNames, "json");
 	    var deferred = $.Deferred();
 	    $.ajax({
                 url: wfsRequest,
@@ -1627,13 +1656,13 @@
 	    var classType = $("#map-classtype-selector").select2('val');
 	    var classNb = $("#map-classnb-selector").select2('val');
 	    var layerStyle =  "dyn_poly_" + mapType + "_class_" + classNb;
-
+	    var baseWfsUrl = this_.getDatasetUrlFromMetadataEntry(this_.selected_dsd.dataset, layerName, "WFS");
+	    var baseWmsUrl = this_.getDatasetUrlFromMetadataEntry(this_.selected_dsd.dataset, layerName, "WMS");
 		if(!layer){
 			//ADD LAYER
-			var layerUrl = this_.selected_dsd.dataset.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetFeatures(this_.selected_dsd.pid + "_aggregated", viewparams, null, ["value"]).then(function(features){
+				this_.getDatasetFeatures(baseWfsUrl, layerName, viewparams, null, ["value"]).then(function(features){
 					console.log("Data series features");
 					console.log(features);
 					console.log("Data series values");
@@ -1649,7 +1678,8 @@
 						if(breaks.length == 2) breaks[0] = 0;
 						console.log(breaks);
 						var envparams = this_.buildEnvParams(breaks);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, false, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
+						layer.baseDataUrl = baseWfsUrl.replace("_aggregated", "");
 						this_.addLayerTooltip(layer);
 						this_.setLegendGraphic(layer, breaks);	
 						this_.map.changed();
@@ -1673,7 +1703,7 @@
 				});
 			}else{
 				//static styling
-				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle,layerUrl, layerName, false, true, true, 0.9, true, null, null, viewparams);
+				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, null, viewparams);
 				this_.map.changed();
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
@@ -1684,7 +1714,7 @@
 			//UPDATE LAYER
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetFeatures(this_.selected_dsd.pid + "_aggregated", viewparams, null, ["value"]).then(function(features){
+				this_.getDatasetFeatures(baseWfsUrl, this_.selected_dsd.pid + "_aggregated", viewparams, null, ["value"]).then(function(features){
 					console.log("Data series features");
 					console.log(features);
 					console.log("Data series values");
@@ -1703,6 +1733,7 @@
 						var envparams = this_.buildEnvParams(breaks);
 
 						//update viewparams, envparams & legend
+						layer.baseDataUrl = baseWfsUrl.replace("_aggregated", "");
 						layer.setProperties({title: layerTitle});
 						layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
 						layer.getSource().updateParams({'STYLES' : layerStyle});
@@ -1734,6 +1765,7 @@
 				//static styling
 				layer.setProperties({title: layerTitle});
 				layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
+				layer.baseDataUrl = baseWfsUrl.replace("_aggregated", "");
 				this_.map.changed();
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
@@ -1745,21 +1777,15 @@
 
 	/**
 	 * OpenFairViewer.prototype.getDatasetWFSLink
+	 * @param layerUrl
+	 * @param layerName
 	 * @param viewparams query viewparams
 	 * @param cql_filter a cql filter to filter out the dataset
 	 * @param propertyNames
    	 * @param format optional format to be specified, by default it will provide a CSV
 	 * @return the WFS layer URL
 	 */
-	OpenFairViewer.prototype.getDatasetWFSLink = function(layerName, viewparams, cql_filter, propertyNames, format){
-		var layerUrl = this.selected_dsd.dataset.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
-		   function(item){
-			var filter = item.ciOnlineResource.linkage.url.indexOf('WFS')!=-1
-						 && item.ciOnlineResource.linkage.url.indexOf(layerName) !=-1;
-			if(filter) return item;
-		   }
-		)[0].ciOnlineResource.linkage.url;
-		//if(!aggregated) layerUrl += "&propertyName=" + ;
+	OpenFairViewer.prototype.getDatasetWFSLink = function(layerUrl, layerName, viewparams, cql_filter, propertyNames, format){
 	    if(viewparams) layerUrl += "&VIEWPARAMS=" + viewparams;
 	    if(cql_filter) layerUrl += "&CQL_FILTER=" + encodeURI(cql_filter);
 	    if(propertyNames) layerUrl += "&propertyName=" + propertyNames.join(",");
@@ -1846,7 +1872,8 @@
 		var this_ = this;
 		var layerName = this.selected_dsd.pid;
 		if(aggregated) layerName += "_aggregated";
-		var layerUrl = this.getDatasetWFSLink(layerName, this.getViewParams(), null, null, 'json');
+		var baseLayerUrl = this_.getDatasetUrlFromMetadataEntry(this_.selected_dsd.dataset, layerName, "WFS");
+		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, layerName, this.getViewParams(), null, null, 'json');
 		$.getJSON(layerUrl, function(response){
 			var features = new ol.format.GeoJSON().readFeatures(response);
 			var featuresToExport = new Array();
@@ -1859,7 +1886,6 @@
 				props.geometry = geomwkt;
 				featuresToExport.push(props);
 			}
-			console.log(features);
 			var csv = this_.json2csv(featuresToExport);
 			var fileName = this_.selected_dsd.pid;
 			if(aggregated) fileName += "_aggregated";
@@ -2028,7 +2054,13 @@
 		url += '&extent=' + this.map.getView().calculateExtent(this.map.getSize()).join(',');
 		url += "&center=" + this.map.getView().getCenter().join(',');
 		url += "&zoom=" + this.map.getView().getZoom();
-		
+
+		//popup coords
+		if(this.popup) {
+			if(this.popup.id) url += '&popup_id=' + this.popup.id; 
+			if(this.popup.coords) url += '&popup_coords=' + this.popup.coords.join(',');
+		}
+
 		document.getElementById('OpenFairViewer-link').value = url;
 	}
         
@@ -2097,6 +2129,8 @@
 			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
 		var layer = this.addLayer(1, datasetDef.pid, datasetDef.title, layerUrl, layerName, false, true, true, 0.9, true, null,
 					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
+		var baseWfsUrl = this_.getDatasetUrlFromMetadataEntry(datasetDef.entry, layerName, "WFS");
+		layer.baseDataUrl = baseWfsUrl.replace("_aggregated","");
 		this_.addLayerTooltip(layer);
 		this_.setLegendGraphic(layer, datasetDef.breaks);		
 	}
@@ -2121,7 +2155,7 @@
 			   	   && md_entry.metadata.contentInfo){
 					datasetDef.entry = md_entry;
 					this_.selection.push(datasetDef.entry);	
-					this_.resolveDatasetForQuery(datasetDef);			
+					this_.resolveDatasetForQuery(datasetDef);		
 				}
 			});
 		}
@@ -2163,6 +2197,17 @@
 					
 					//resolve map
 					this_.resolveDatasetForMap(encoded_dataset);
+
+					//popup coords
+					if(params.popup_id) if(params.popup_id == encoded_dataset.pid) {
+						if(params.popup_coords){
+							var layer = this_.getLayerByProperty(encoded_dataset.pid, "id");
+							var coords = params.popup_coords.split(",");
+							this_.getFeatureInfo(layer, coords);
+						}
+					}
+
+
 					this_.map.changed();
 				});
 			});
@@ -2181,6 +2226,7 @@
 			this.map.getView().setCenter(center);
 		}
 		if(params.zoom) this.map.getView().setZoom(parseInt(params.zoom));
+
 	}
 	
 	//===========================================================================================
