@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20190221)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20190521)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -55,7 +55,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.2", DATE: new Date(2019,05,08)}
+		this.versioning = {VERSION: "1.0.3", DATE: new Date(2019,05,21)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
@@ -157,7 +157,7 @@
 		//tooltip
 		this.options.map.tooltip = {};
 		this.options.map.tooltip.enabled = true;
-		this.options.map.tooltip.handler = function(feature){
+		this.options.map.tooltip.handler = function(layer, feature){
 			var props = feature.getProperties();
 			var html = "<ul style='padding:0px 2px;list-style-type:none;'>"
 			var propNames = Object.keys(props);
@@ -1463,7 +1463,7 @@
 					var features = gml.readFeatures(response);
 					if(features.length > 0){
 						var feature = features[0];
-						popup.show(coords, this_.options.map.tooltip.handler(feature));
+						popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
 					}else{
 						popup.hide();
 					}
@@ -1501,39 +1501,15 @@
 	}
         
 	/**
-	 * OpenFairViewer.prototype.getDatasetMaxValue
-	 * @deprecated OpenFairViewer.getDatasetValues is used
-	 * @param viewparams
-	 * @returns a JQuery promise
-	 */
-	OpenFairViewer.prototype.getDatasetMaxValue = function(viewparams){
-	    var maxValueRequest = this.getDatasetWFSLink(true, viewparams, "GML2") + "&sortBy=value+D&maxFeatures=1";
-	    var deferred = $.Deferred();
-	    $.ajax({
-                url: maxValueRequest,
-                contentType: 'application/xml',
-                type: 'GET',
-                success: function(response){
-			var maxValue = NaN;
-			var children = response.childNodes[0].childNodes;
-			if(children.length > 1) maxValue = parseFloat(children[1].childNodes[0].childNodes[1].textContent);
-			deferred.resolve(maxValue);
-		},
-		error: function(error){
-			console.log(error);
-			deferred.reject(error);
-		}
-	    });
-	    return deferred.promise();
-	}
-
-	/**
 	 * OpenFairViewer.prototype.getDatasetFeatures
+	 * @param layerName
 	 * @param viewparams
+	 * @param cql_filter
+	 * @param propertyNames
 	 * @returns a Jquery promise
 	 */
-	OpenFairViewer.prototype.getDatasetFeatures = function(viewparams){
-	    var wfsRequest = this.getDatasetWFSLink(true, viewparams, "json") + "&propertyName=value";
+	OpenFairViewer.prototype.getDatasetFeatures = function(layerName, viewparams, cql_filter, propertyNames){
+	    var wfsRequest = this.getDatasetWFSLink(layerName, viewparams, cql_filter, propertyNames, "json");
 	    var deferred = $.Deferred();
 	    $.ajax({
                 url: wfsRequest,
@@ -1555,12 +1531,15 @@
 	/**
 	 * OpenFairViewer.prototype.getDatasetValues
 	 * @param an array of features
+	 * @param propertyName
 	 * @returns a array of values
 	 */
-	OpenFairViewer.prototype.getDatasetValues = function(features){
+	OpenFairViewer.prototype.getDatasetValues = function(features, propertyName){
 		var values = new Array();
 		if(features.length > 0){
-			values = features.map(function(f){return f.properties.value});
+			values = features.map(function(f){
+				return (propertyName? f.properties[propertyName] : f.properties)
+			});
 		}
 		return values;
 	}
@@ -1654,11 +1633,11 @@
 			var layerUrl = this_.selected_dsd.dataset.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetFeatures(viewparams).then(function(features){
+				this_.getDatasetFeatures(this_.selected_dsd.pid + "_aggregated", viewparams, null, ["value"]).then(function(features){
 					console.log("Data series features");
 					console.log(features);
 					console.log("Data series values");
-					var values = this_.getDatasetValues(features);
+					var values = this_.getDatasetValues(features, "value");
 					console.log(values);
 					if(values.length > 0){
 						if(values.length < classNb){
@@ -1705,11 +1684,11 @@
 			//UPDATE LAYER
 			if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetFeatures(viewparams).then(function(features){
+				this_.getDatasetFeatures(this_.selected_dsd.pid + "_aggregated", viewparams, null, ["value"]).then(function(features){
 					console.log("Data series features");
 					console.log(features);
 					console.log("Data series values");
-					var values = this_.getDatasetValues(features);
+					var values = this_.getDatasetValues(features, "value");
 					console.log(values);
 					if(values.length > 0){
 						if(values.length < classNb){
@@ -1766,14 +1745,13 @@
 
 	/**
 	 * OpenFairViewer.prototype.getDatasetWFSLink
-	 * @param aggregated true if aggregated, false otherwise
 	 * @param viewparams query viewparams
+	 * @param cql_filter a cql filter to filter out the dataset
+	 * @param propertyNames
    	 * @param format optional format to be specified, by default it will provide a CSV
 	 * @return the WFS layer URL
 	 */
-	OpenFairViewer.prototype.getDatasetWFSLink = function(aggregated, viewparams, format){
-		var layerName = this.selected_dsd.pid;
-		if(aggregated) layerName += "_aggregated";
+	OpenFairViewer.prototype.getDatasetWFSLink = function(layerName, viewparams, cql_filter, propertyNames, format){
 		var layerUrl = this.selected_dsd.dataset.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
 		   function(item){
 			var filter = item.ciOnlineResource.linkage.url.indexOf('WFS')!=-1
@@ -1783,6 +1761,8 @@
 		)[0].ciOnlineResource.linkage.url;
 		//if(!aggregated) layerUrl += "&propertyName=" + ;
 	    if(viewparams) layerUrl += "&VIEWPARAMS=" + viewparams;
+	    if(cql_filter) layerUrl += "&CQL_FILTER=" + encodeURI(cql_filter);
+	    if(propertyNames) layerUrl += "&propertyName=" + propertyNames.join(",");
 	    if(format) layerUrl = layerUrl.replace("CSV", format);
  	    return layerUrl;	
 	}	
@@ -1864,7 +1844,9 @@
 	 */
 	OpenFairViewer.prototype.downloadDatasetCSV = function(aggregated){
 		var this_ = this;
-		var layerUrl = this.getDatasetWFSLink(aggregated, this.getViewParams(), 'json');
+		var layerName = this.selected_dsd.pid;
+		if(aggregated) layerName += "_aggregated";
+		var layerUrl = this.getDatasetWFSLink(layerName, this.getViewParams(), null, null, 'json');
 		$.getJSON(layerUrl, function(response){
 			var features = new ol.format.GeoJSON().readFeatures(response);
 			var featuresToExport = new Array();
