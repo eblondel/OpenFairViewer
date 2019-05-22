@@ -1501,6 +1501,8 @@
 				var condition  = by? (layer.get(by) === layerProperty) : (layer.getSource().getParams()["LAYERS"] === layerProperty);
 				if(condition){
 					this.layers.overlays[i-1].getLayers().remove(layer);
+					var related_overlay = this.map.getOverlayById(layer.id)
+					if(related_overlay) this.map.removeOverlay(related_overlay);
 					removed = true;
 					break;
 				}
@@ -1740,7 +1742,6 @@
 						layer.getSource().updateParams({'env' : envparams});
 						layer.envfun = classType;
 						layer.count = values.length;
-						this_.addLayerTooltip(layer);
 						this_.setLegendGraphic(layer, breaks);
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
