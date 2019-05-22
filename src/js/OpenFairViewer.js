@@ -177,6 +177,9 @@
 			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
 		}
 		
+		//events
+		this.mapEvents = new Array();
+
 		//panels
 		this.options.panel = {}
 		if(options.panel) {
@@ -1476,12 +1479,36 @@
 		this.map.addOverlay(popup);
 	
 		//display popup on mouse hover
-		this.map.on('singleclick', function(evt) {		
+		var featureInfoEvent = this.map.on('singleclick', function(evt) {		
 			this_.getFeatureInfo(layer, evt.coordinate);
 		});
+		featureInfoEvent.id = layer.id;
+		this.mapEvents.push(featureInfoEvent);
 	}
 
+    	/**
+	 * OpenFairViewer.prototype.removeMapEventByProperty Util method to remove a map event by property
+	 * @param eventProperty the property value
+	 * @param by the property 
+	 */
+    	OpenFairViewer.prototype.removeMapEventByProperty = function(eventProperty, by){
+		console.log("Remove map event with property "+by+" = " + eventProperty);
+		var removed = false;
+		var target = undefined;
+		var events = this.mapEvents;
+		for(var i=0;i<events.length;i++){
+			var event = events[i];
+			if(event[by] === eventProperty){
+				this.map.unByKey(event);
+				removed = true;
+				break;
+			}
+		}
+		this.mapEvents = this.mapEvents.filter(function(value, index, arr){return value.id != eventProperty});
+		return removed;
+	}
 	
+
     	/**
 	 * OpenFairViewer.prototype.removeLayerByProperty Util method to remove a layer by property
 	 * @param layerProperty the property value
@@ -1503,6 +1530,7 @@
 					this.layers.overlays[i-1].getLayers().remove(layer);
 					var related_overlay = this.map.getOverlayById(layer.id)
 					if(related_overlay) this.map.removeOverlay(related_overlay);
+					this.removeMapEventByProperty(layer.id, "id");
 					removed = true;
 					break;
 				}
