@@ -2157,7 +2157,7 @@
 		var layerName = datasetDef.pid + "_aggregated";
 		var layerUrl = datasetDef.entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine
 			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
-		var layer = this.addLayer(1, datasetDef.pid, datasetDef.title, layerUrl, layerName, false, true, true, 0.9, true, null,
+		var layer = this.addLayer(this.options.map.mainlayergroup, datasetDef.pid, datasetDef.title, layerUrl, layerName, false, true, true, 0.9, true, null,
 					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
 		var baseWfsUrl = this_.getDatasetUrlFromMetadataEntry(datasetDef.entry, layerName, "WFS");
 		layer.baseDataUrl = baseWfsUrl.replace("_aggregated","");
