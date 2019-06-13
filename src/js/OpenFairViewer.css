@@ -6,6 +6,7 @@
 @import "../vendor/ol3/ol3-zoomtomaxextent.css";
 @import "../vendor/ol3/ol3-layerswitcher.css";
 @import "../vendor/ol3/ol3-tooltip.css";
+@import "../vendor/ol3/ol3-popup.css";
 
 /** Main layout **/
 /** ----------- **/
@@ -225,6 +226,7 @@ div.sidePanel:hover, .ol-unselectable.ol-control.layer-switcher.shown { box-shad
 .ol-popup:after { border-top-color: rgba(255,255,255,.8); border-width: 10px; left: 48px; margin-left: -10px; }
 .ol-popup:before { border-top-color: transparent; border-width: 11px; left: 48px; margin-left: -11px; }
 .ol-popup-content { background-color: rgba(255,255,255,.8); border-radius: 8px; box-shadow: 2px 2px 2px rgba(0,0,0,.4); color: rgba(0,0,0,.8); font-family: Verdana, Geneva, Helvetica, Arial, sans-serif; font-size: 9px; max-height: 200px; min-width: 175px; overflow-x: auto; padding: 4px 8px; }
+.ol-popup-closer { font-size:100% !important; }
 /**
 * Atrribution control
 */
