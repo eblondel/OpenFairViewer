@@ -389,7 +389,8 @@
 		md_entry.pidinfo = md_entry.pid;
 		md_entry.title = md_entry.metadata.identificationInfo[0].abstractMDIdentification.citation.ciCitation.title;
 		md_entry.title_tooltip = md_entry.title;
-		md_entry.graphic_overview = md_entry.metadata.identificationInfo[0].abstractMDIdentification.graphicOverview[0].mdBrowseGraphic.fileName;
+		var graphicOverviews = md_entry.metadata.identificationInfo[0].abstractMDIdentification.graphicOverview
+		if(graphicOverviews) if(graphicOverviews.length > 0) md_entry.graphic_overview = graphicOverviews[0].mdBrowseGraphic.fileName;
 		md_entry._abstract = md_entry.metadata.identificationInfo[0].abstractMDIdentification._abstract;
 		var extents = md_entry.metadata.identificationInfo[0].abstractMDIdentification.extent; 
 		if(extents[0].exExtent.temporalElement){                          
@@ -2062,7 +2063,7 @@
 		
 		//views
 		var encoded_views = new Array();
-		var viewlayers = this.layers.overlays[1].getLayers().getArray();
+		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray();
 		for(var i=0;i<viewlayers.length;i++){
 			var encoded_view = "";
 			var viewlayer = viewlayers[i];
