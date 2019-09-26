@@ -1321,6 +1321,7 @@
 			extent	: extent? extent : defaultMapExtent,
 			zoom	: defaultMapZoom
 		}));
+		map.addControl( new ol.control.Snapshot({dpi: 300}) );
 		
 		if(main){
 			map.addControl( new ol.control.LayerSwitcher({
@@ -1551,7 +1552,7 @@
 		baseLayerUrl = md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
 		   function(item){
 			var filter = (item.ciOnlineResource.linkage.url.indexOf(protocol)!=-1 | item.ciOnlineResource.linkage.url.indexOf(protocol.toLowerCase())!=-1)
-						 && item.ciOnlineResource.name.endsWith(layerName);
+						 && (item.ciOnlineResource.linkage.url.indexOf(layerName) != -1 | item.ciOnlineResource.name.endsWith(layerName));
 			if(filter) return item;
 		   }
 		)[0].ciOnlineResource.linkage.url;
@@ -1993,7 +1994,14 @@
 						for(var i=1;i<breaks.length;i++){
 							var minVal = (Math.round(breaks[i-1] * 100) / 100);
 							var maxVal = (Math.round(breaks[i] * 100) / 100);
-							var breakLegend = break_signs[0]+" " + minVal + " "+break_signs[1]+" " + maxVal + " " + break_signs[2]
+							var class_start = break_signs[0];
+							var class_sep = break_signs[1];
+							var class_end = break_signs[2];
+							if(i==breaks.length-1){
+								if(class_end == "[") class_end = "]";
+								if(class_end == "(") class_end = ")";
+							}
+							var breakLegend = class_start+" " + minVal + " "+class_sep+" " + maxVal + " " + class_end;
 							if(lyr.count) if(lyr.count == breaks.length-1){
 								breakLegend = (lyr.count == 1)? maxVal : minVal;
 							} 

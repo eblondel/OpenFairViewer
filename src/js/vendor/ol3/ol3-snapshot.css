@@ -1,0 +1,22 @@
+/**
+ * Snapshot control
+ */
+
+.ol-snapshot{
+	top:7em;
+	left:.5em;
+	-webkit-border-radius: 16px;
+	-moz-border-radius: 16px;
+	border-radius: 16px;
+}
+
+.ol-snapshot button{
+	-webkit-border-radius: 16px;
+	-moz-border-radius: 16px;
+	border-radius: 16px;
+}
+
+.ol-snapshot img{
+	width:inherit;
+	height:inherit;
+}
