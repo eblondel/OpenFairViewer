@@ -2215,9 +2215,9 @@
 		});
 		
 		//layers of interest
-		if(this.config.OGC_WMS_LAYERS){
-			for(var i=0;i<this.config.OGC_WMS_LAYERS.length;i++){
-				var layerDef = this.config.OGC_WMS_LAYERS[i];			
+		if(this.map){
+			for(var i=0;i<this.options.map.overlays.length;i++){
+				var layerDef = this.options.map.overlays[i];			
 				this_.addLayer(
 					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, layerDef.layer, layerDef.hidden,
 					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter, layerDef.style
