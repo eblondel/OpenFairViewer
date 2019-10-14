@@ -60,17 +60,16 @@
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
 		}
-		if(!config.OGC_CSW_SCHEMA){
-			alert("OpenFairViewer cannot be instantiated. Missing CSW metadata schema")	
-		}
 		this.config = config;
+		this.config.OGC_CSW_SCHEMA = "http://www.isotc211.org/2005/gmd";
+		this.config.OGC_CSW_MAXRECORDS = 10;
 		
 		var options = opt_options || {};
 		this.options = {};
 		
 		//CATALOG options
 		this.options.catalog = {};
-		this.options.catalog.maxitems = 50;
+		this.options.catalog.maxitems = null;
 		this.options.catalog.filters = [];
 		if(options.catalog){
 			if(options.catalog.maxitems) this.options.catalog.maxitems = options.catalog.maxitems;
@@ -260,21 +259,22 @@
 		var this_ = this;
 		this.selection = new Array();
 		this.initDataCatalogue();
+			
 		this.initDataViewer();
-		
+	
 		//get Datasets from CSW
 		this.displayDatasets();
 		$("#dataset-form").submit(function() {
 			this_.displayDatasets();
 			return false;
 		});
-                
-        //init widgets
-        this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0, null);
-        this.initDialog("browseDialog", "Browse", {"ui-dialog": "browse-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ });
-        this.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){ });
+				
+		//init widgets
+		this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0, null);
+		this.initDialog("browseDialog", "Browse", {"ui-dialog": "browse-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ });
+		this.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){ });
 		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3, 'info-sign', function(){});
-        this.openAboutDialog();
+		this.openAboutDialog();
 		
 		//resolve viewer from URL
 		this.resolveViewer();
@@ -431,7 +431,6 @@
 				mappingStyle : 'standard'
 			}
 		];
-
 		this.csw = new Ows4js.Csw(this.config.OGC_CSW_BASEURL, cswConfig);
 		return this.csw;
 	}
@@ -459,8 +458,9 @@
 		var extents = md_entry.metadata.identificationInfo[0].abstractMDIdentification.extent; 
 		if(extents[0].exExtent.temporalElement){                          
 			var temporalExtent = extents[0].exExtent.temporalElement[0].exTemporalExtent.extent.abstractTimePrimitive;
-			md_entry.time_start = temporalExtent.beginPosition.value[0];
-			md_entry.time_end = temporalExtent.endPosition.value[0];
+			if(temporalExtent.beginPosition) md_entry.time_start = temporalExtent.beginPosition.value[0];
+			if(temporalExtent.endPosition) md_entry.time_end = temporalExtent.endPosition.value[0];
+			if(temporalExtent.timePosition) md_entry.time_position = temporalExtent.timePosition.value; //TODO to see how to deal with that
 		}
 		//content information
 		if(md_entry.metadata.contentInfo){
@@ -474,21 +474,42 @@
 		md_entry.queryable = md_entry.wms.length > 0;
 		return md_entry;
 	}
+	
+	/**
+	 * OpenFairViewer.prototype.getRecords
+	 * @param Page
+	 */
+	OpenFairViewer.prototype.getRecords = function(pageItem, filter){
+		var deferred = $.Deferred();
+		var this_ = this;
+		console.log("Get CSW Records for page "+pageItem.page+" (ie from index "+pageItem.first+" to "+pageItem.last+" ...");
+		this.csw.GetRecords(pageItem.first, this.config.OGC_CSW_MAXRECORDS, filter, this.config.OGC_CSW_SCHEMA).then(function(result){				 
+			var csw_results = result.value.searchResults.any;
+			var datasets = new Array();	
+			//post-process results
+			for(var i=0;i<csw_results.length;i++){
+				var csw_result = csw_results[i];    
+				var md_entry = this_.createMetadataEntry(csw_result.value);
+				var add = this_.options.ui.browse.filterByContentInfo? md_entry.metadata.contentInfo : true;
+				if(add) datasets.push(md_entry);
+			}                       
+			  
+			deferred.resolve(datasets);
+		});
+		return deferred.promise();
+	 };
 		
+
 	/**
 	 * OpenFairViewer.prototype.getDatasetsFromCSW
-	 * @param maxNb maximum number of records
 	 * @param bbox
 	 */
-	OpenFairViewer.prototype.getDatasetsFromCSW = function(maxNb, bbox){
+	OpenFairViewer.prototype.getDatasetsFromCSW = function(bbox){
 		
 		var this_ = this;
 		var deferred = $.Deferred();
 		if(!this.csw) deferred.reject("CSW endpoint is not instantiated!");
 		if(this.csw){
-			
-			//nb of records
-			if(!maxNb) maxNb = this_.options.catalog.maxitems;
 			
 			//base filter
 			var filter;
@@ -520,22 +541,45 @@
 				filter = filter.and(new Ows4js.Filter().BBOX(bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326'));
 			}
 			
-			this.csw.GetRecords(1, maxNb, filter, this.config.OGC_CSW_SCHEMA).then(function(result){
-
-				var datasets = new Array();
-				if(result.value.searchResults.numberOfRecordsMatched > 0){                 
-					var csw_results = result.value.searchResults.any;
-					
-					//post-process results
-					for(var i=0;i<csw_results.length;i++){
-						var csw_result = csw_results[i];    
-						var md_entry = this_.createMetadataEntry(csw_result.value);
-						var add = this_.options.ui.browse.filterByContentInfo? md_entry.metadata.contentInfo : true;
-						if(add) datasets.push(md_entry);
-					}                       
+			//get 1st record to get numberOfRecordsMatched
+			this.csw.GetRecords(1,1, filter, this.config.OGC_CSW_SCHEMA).then(function(response){
+				var numberOfRecordsMatched = response.value.searchResults.numberOfRecordsMatched;
+				console.log("CSW GetRecords matched "+numberOfRecordsMatched+" records");
+				var maxNb = numberOfRecordsMatched;
+				if(this_.options.catalog.maxitems && numberOfRecordsMatched > this_.options.catalog.maxitems){
+					console.log("Max items option set. Restraining number of records retrieved to "+this_.options.catalog.maxitems+" records");
+					maxNb = this_.options.catalog.maxitems;
 				}
-				  
-				deferred.resolve(datasets);
+				//GetRecords with pagination
+				if(numberOfRecordsMatched > 0){
+					var firstIdx = 1; 
+					var lastIdx = this_.config.OGC_CSW_MAXRECORDS;
+					var page = 1;
+					var indexes = new Array();
+					indexes.push({page: 1, first: 1, last: this_.config.OGC_CSW_MAXRECORDS});
+					while(lastIdx < maxNb){
+						page = page+1;
+						firstIdx = lastIdx+1;
+						lastIdx = this_.config.OGC_CSW_MAXRECORDS*page;
+						if(lastIdx>maxNb) lastIdx = maxNb;
+						indexes.push({page: page, first: firstIdx, last: lastIdx});	
+					}
+					var getrecords_promises = new Array();
+					for(var i=0;i<indexes.length;i++){
+						getrecords_promises.push( this_.getRecords(indexes[i], filter) );
+					}
+					var datasets = new Array();
+					var count = 0;
+					getrecords_promises.forEach(function(promise, i){
+						$.when(promise).then(function(records) {
+							console.log(records);
+							for(var j=0;j<records.length;j++){ datasets.push(records[j]) };
+							count += 1;
+							if(count==getrecords_promises.length) deferred.resolve(datasets);
+						});
+					});
+					
+				}
 			});
 		}
 		return deferred.promise();
@@ -556,7 +600,7 @@
 		if($("#dataset-search-bbox").prop("checked") && !bbox){
 			bbox = this.map.getView().calculateExtent(this.map.getSize());
 		}
-		this.getDatasetsFromCSW(false, bbox).then(function(results){
+		this.getDatasetsFromCSW(bbox).then(function(results){
 			console.log(results);
 			var options = {
 				valueNames: [
@@ -1566,7 +1610,7 @@
 			if(filter) return item;
 		   }
 		);
-		if(onLines.length == 0) console.warn("No Dataset URL from metadata entry");
+		//if(onLines.length == 0) console.warn("No Dataset URL from metadata entry");
 		if(onLines.length > 0){
 			for(var i=0;i<onLines.length;i++){
 				layerUrl = onLines[i].ciOnlineResource.linkage.url;
