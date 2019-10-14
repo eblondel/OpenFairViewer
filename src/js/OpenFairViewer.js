@@ -602,28 +602,31 @@
 		}
 		this.getDatasetsFromCSW(bbox).then(function(results){
 			console.log(results);
-			var options = {
-				valueNames: [
-					'title',
-					{ name: 'title_tooltip', attr: 'title' },
-					'_abstract',
-					{ name: 'graphic_overview', attr: 'data-mainSrc' },
-					{ name: 'pid', attr: 'data-pid'},
-					{ name: 'pidinfo', attr: 'data-pid'}
-					 
-				],
-				item: 'dataset-item',
-				pagination: true,
-				page: 5
-			};
 			$("#dataset-loader").hide();
 			this_.datasets = results;
-			var datasetList = new List('dataset-list', options, results);
+			
+			//display based on templates
+			var template = $('#datasetTpl').html();
+			var dataContainer = $("#dataset-articles");
+			dataContainer.empty();
+			var container = $("#dataset-pages");
+			container.pagination({
+				dataSource: this_.datasets,
+				pageSize: 5,
+				autoHidePrevious: true,
+				autoHideNext: true,
+				callback: function(data, pagination) {
+					var dataHtml = '<section class="col-xs-12 col-sm-12 col-md-12">';
+					$.each(data, function (index, item) {
+					  var item_html = Mustache.to_html(template, item);
+					  dataHtml += item_html;
+					});
+					dataHtml += '</section>';
+					dataContainer.html(dataHtml);
+				}
+			});
+			//add datasets counting
 			$("#dataset-count").html(this_.datasets.length + " datasets");
-			this_.displayGraphicOverviews();
-			datasetList.on("updated", function(evt){
-				this_.displayGraphicOverviews();
-			});;
 		});
 	}
 	 
@@ -2589,7 +2592,7 @@
 		this.openDialog("queryDialog");
 	}
    
-   /**
+   	/**
 	* OpenFairViewer.prototype.closeQueryDialog Close 'Query' dialog
 	*/
 	OpenFairViewer.prototype.closeQueryDialog = function(){
@@ -2603,14 +2606,14 @@
 		this.openDialog("infoDialog");
 	}
    
-   /**
+   	/**
 	* OpenFairViewer.prototype.closeInfoDialog Close 'Info' dialog
 	*/
 	OpenFairViewer.prototype.closeInfoDialog = function(){
 		this.closeDialog("infoDialog");
 	}
 	
-   /**
+  	/**
 	*
 	*/
 	OpenFairViewer.prototype._copyright = function(){
