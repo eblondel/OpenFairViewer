@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20190613)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191014)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -55,13 +55,13 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.3", DATE: new Date(2019,06,13)}
+		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,10,14)}
 		
 		if(!config.OGC_CSW_BASEURL){
-			alert("FisViewer instance cannot be instantiated. Missing CSW endpoint")
+			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
 		}
 		if(!config.OGC_CSW_SCHEMA){
-			alert("FisViewer instance cannot be instantiated. Missing CSW metadata schema")	
+			alert("OpenFairViewer cannot be instantiated. Missing CSW metadata schema")	
 		}
 		this.config = config;
 		
@@ -81,14 +81,14 @@
 		this.options.ui = {};
 		//UI browse options
 		this.options.ui.browse = {};
+		this.options.ui.browse.filterByContentInfo = false;
 		this.options.ui.browse.datasetInfoHandler = function(metadata){
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
 			window.open(datasetInfoUrl, '_blank');
 		}
 		if(options.ui) if (options.ui.browse) {
-			if(options.ui.browse.datasetInfoHandler){
-				this.options.ui.browse.datasetInfoHandler = options.ui.browse.datasetInfoHandler;
-			}
+			if(options.ui.browse.datasetInfoHandler) this.options.ui.browse.datasetInfoHandler = options.ui.browse.datasetInfoHandler;
+			if(options.ui.browse.filterByContentInfo) this.options.ui.browse.filterByContentInfo = options.ui.browse.filterByContentInfo
 		}
 		
 		//UI query options
@@ -128,11 +128,75 @@
 		if(options.map.layergroups){
 			this.options.map.layergroups = options.map.layergroups;
 		}
-
 		//statistics layergroup
 		this.options.map.mainlayergroup = this.options.map.layergroups.length-1;
 		if(options.map.mainlayergroup){
 			this.options.map.mainlayergroup = options.map.mainlayergroup;
+		}
+		//baselayers
+		this.options.map.baselayers = [
+			new ol.layer.Tile({
+				title : "World Imagery",
+				type: 'base',
+				source : new ol.source.XYZ({
+					projection: ol.proj.get(this_.options.map.projection),
+					tileSize: 512,
+					tileUrlFunction: function(tileCoord) {
+						var esriUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/{z}/{y}/{x}';
+						return esriUrl.replace('{z}', (tileCoord[0] - 1).toString())
+								.replace('{x}', tileCoord[1].toString())
+								.replace('{y}', (-tileCoord[2] - 1).toString());
+					},
+					crossOrigin: 'anonymous',
+					wrapX: true
+				})
+			}),
+			new ol.layer.Tile({
+				title : "UN Clear Map (Plain)",
+				type: 'base',
+				source : new ol.source.TileArcGISRest({							
+					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Plain/MapServer',
+					crossOrigin: 'anonymous',
+					wrapX: true
+				})
+			}),
+			new ol.layer.Tile({
+				title : "UN Clear Map (Dark)",
+				type: 'base',
+				source : new ol.source.TileArcGISRest({							
+					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Dark/MapServer',
+					crossOrigin: 'anonymous',
+					wrapX: true
+				})
+			}),
+			new ol.layer.Tile({
+				title : "UN Clear Map (Gray)",
+				type: 'base',
+				source : new ol.source.TileArcGISRest({							
+					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Gray/MapServer',
+					crossOrigin: 'anonymous',
+					wrapX: true
+				})
+			}),
+			new ol.layer.Tile({
+				title : "UN Clear Map (Topo)",
+				type: 'base',
+				source : new ol.source.TileArcGISRest({							
+					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Topo/MapServer',
+					crossOrigin: 'anonymous',
+					wrapX: true
+				})
+			})
+		];
+		if(options.map.baselayers) this.options.map.baselayers = options.map.baselayers;
+		//overlays
+		this.options.map.overlays = [];
+		if(options.map.overlays) this.options.map.overlays = options.map.overlays;
+		
+		//aggregate
+		this.options.map.aggregated_layer_suffix = "_aggregated";
+		if(options.map.aggregated_layer_suffix){
+			this.options.map.aggregated_layer_suffix = options.map.aggregated_layer_suffix;
 		}
 
 		//styling
@@ -204,14 +268,11 @@
 			this_.displayDatasets();
 			return false;
 		});
-	
-		this.updateSelection();
-		this.updateDatasetSelector(true);
                 
         //init widgets
         this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0, null);
-        this.initDialog("dataDialog", "Browse data catalogue", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ this_.updateSelection(); });
-        this.initDialog("queryDialog", "Query a dataset", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){this_.updateDatasetSelector(); });
+        this.initDialog("browseDialog", "Browse", {"ui-dialog": "browse-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ });
+        this.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){ });
 		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3, 'info-sign', function(){});
         this.openAboutDialog();
 		
@@ -387,23 +448,30 @@
 		//delete csw_result.value;
 		md_entry.pid = md_entry.metadata.fileIdentifier;
 		md_entry.pidinfo = md_entry.pid;
+		//title
 		md_entry.title = md_entry.metadata.identificationInfo[0].abstractMDIdentification.citation.ciCitation.title;
 		md_entry.title_tooltip = md_entry.title;
+		//graphic overviews
 		var graphicOverviews = md_entry.metadata.identificationInfo[0].abstractMDIdentification.graphicOverview
 		if(graphicOverviews) if(graphicOverviews.length > 0) md_entry.graphic_overview = graphicOverviews[0].mdBrowseGraphic.fileName;
 		md_entry._abstract = md_entry.metadata.identificationInfo[0].abstractMDIdentification._abstract;
+		//extents
 		var extents = md_entry.metadata.identificationInfo[0].abstractMDIdentification.extent; 
 		if(extents[0].exExtent.temporalElement){                          
 			var temporalExtent = extents[0].exExtent.temporalElement[0].exTemporalExtent.extent.abstractTimePrimitive;
 			md_entry.time_start = temporalExtent.beginPosition.value[0];
 			md_entry.time_end = temporalExtent.endPosition.value[0];
 		}
-		
+		//content information
 		if(md_entry.metadata.contentInfo){
 			md_entry.dsd = md_entry.metadata.contentInfo[0].abstractMDContentInformation.featureCatalogueCitation[0].ciCitation.citedResponsibleParty[0].ciResponsibleParty.contactInfo.ciContact.onlineResource.ciOnlineResource.linkage.url;
 			md_entry.dsd = md_entry.dsd.replace("catalog.search#/metadata/","xml.metadata.get?uuid=");
 			md_entry.dsd = this_.rewriteURL(md_entry.dsd);
 		}
+		//distribution information
+		md_entry.wms = this.getDataProtocolsFromMetadataEntry(md_entry, "WMS");
+		md_entry.wfs = this.getDataProtocolsFromMetadataEntry(md_entry, "WFS");
+		md_entry.queryable = md_entry.wms.length > 0;
 		return md_entry;
 	}
 		
@@ -462,9 +530,8 @@
 					for(var i=0;i<csw_results.length;i++){
 						var csw_result = csw_results[i];    
 						var md_entry = this_.createMetadataEntry(csw_result.value);
-						if(md_entry.metadata.contentInfo){
-							datasets.push(md_entry);
-						}
+						var add = this_.options.ui.browse.filterByContentInfo? md_entry.metadata.contentInfo : true;
+						if(add) datasets.push(md_entry);
 					}                       
 				}
 				  
@@ -499,7 +566,7 @@
 					{ name: 'graphic_overview', attr: 'data-mainSrc' },
 					{ name: 'pid', attr: 'data-pid'},
 					{ name: 'pidinfo', attr: 'data-pid'}
-					
+					 
 				],
 				item: 'dataset-item',
 				pagination: true,
@@ -512,9 +579,7 @@
 			this_.displayGraphicOverviews();
 			datasetList.on("updated", function(evt){
 				this_.displayGraphicOverviews();
-				this_.updateSelection();
-			});
-			this_.updateSelection();
+			});;
 		});
 	}
 	 
@@ -545,33 +610,42 @@
 	}
   
 	/**
-	 * OpenFairViewer.prototype.displayDatasetInfo
+	 * OpenFairViewer.prototype.displayDatasetMetadata
 	 * Display the metadata associated to a dataset
 	 * @param elm
 	 *
 	 **/
-	OpenFairViewer.prototype.displayDatasetInfo = function(elm){  
+	OpenFairViewer.prototype.displayDatasetMetadata = function(elm){  
 		var pid = elm.getAttribute('data-pid');
-		console.log("Select dataset with pid = " + pid);
+		console.log("Display metadata dataset with pid = " + pid);
 		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
 		this.options.ui.browse.datasetInfoHandler(dataset.metadata);
 	}
 	  
 	/**
-	 * OpenFairViewer.prototype.selectDataset
-	 * Selects a dataset
+	 * OpenFairViewer.prototype.displayDatasetQueryForm
+	 * Displays a dataset query form
 	 * @param elm
 	 *
-	 **/
-	OpenFairViewer.prototype.selectDataset = function(elm){
+	 **/  
+	OpenFairViewer.prototype.displayDatasetQueryForm = function(elm){
 		var pid = elm.getAttribute('data-pid');
+		console.log("Display query form dataset with pid = " + pid);
+		this.handleQueryForm(pid);
+	}
+	  
+	/**
+	 * OpenFairViewer.prototype.selectDataset
+	 * Selects a dataset
+	 * @param pid
+	 *
+	 **/
+	OpenFairViewer.prototype.selectDataset = function(pid){
 		console.log("Select dataset with pid = " + pid);
 		var out =false;
 		if(this.selection.map(function(i){return i.pid}).indexOf(pid) == -1){
 			var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
 			this.selection.push(dataset);
-			this.updateSelection();
-			this.updateDatasetSelector();
 			out = true;   
 		}
 		return out;
@@ -590,127 +664,20 @@
 		this.selection = this.selection.filter(function(i,data){if(data.pid != pid){return data}});
 		var len2 =  this.selection.length;
 		out = len2<len1;
-		
-		this.updateSelection();
 
 		//clear dsd interface in case selected dataset
-		if(this.selected_dsd) if(this.selected_dsd.pid == pid){
+		if(this.dataset_on_query) if(this.dataset_on_query.pid == pid){
 			$("#dsd-ui").empty();
-			this.selected_dsd = null;
-			$("#datasetSelector").val('').trigger('change');
+			this.dataset_on_query = null;
 		}
 		
-		this.updateDatasetSelector();
 		this.removeLayerByProperty(pid, "id");
 		this.map.changed();
+		this.openBrowseDialog();
 
 		return out;
 	}
-	
-	/**
-	 * OpenFairViewer.prototype.actionDataset
-	 * Action on a dataset
-	 * @param elm
-	**/
-	OpenFairViewer.prototype.actionDataset = function(elm){
-		var glyphicon = $($(elm).find("span")[0]).prop("class");
-		if(glyphicon == "glyphicon glyphicon-plus"){
-			this.selectDataset(elm);
-		}else if(glyphicon == "glyphicon glyphicon-minus"){
-			this.unselectDataset(elm);
-		}
-	}
-         
-	/**
-	 * OpenFairViewer.prototype.updateSelection
-	 * Actions performed when updating the dataset selection
-	 */
-	OpenFairViewer.prototype.updateSelection = function(){
-		var this_ = this;
-		
-		//update Data list UI
-		$.each($("#dataDialog").find(".search-result"), function(idx, item){
-			$item = $(item);
-			var buttons = $item.find("button");
-			var action_button = $(buttons[1]);
-			var pid = action_button.attr("data-pid");
-			if(this_.selection.map(function(item){return item.pid}).indexOf(pid) != -1){
-				action_button.removeClass("dataset-button-add");
-				action_button.prop("title", "Remove from selection");
-				$(action_button.find("span")[0]).removeClass("glyphicon-plus");
-				action_button.addClass("dataset-button-remove");
-				$(action_button.find("span")[0]).addClass("glyphicon-minus");
-			}else{
-				action_button.removeClass("dataset-button-remove");
-				action_button.prop("title", "Add to selection");
-				$(action_button.find("span")[0]).removeClass("glyphicon-minus");
-				action_button.addClass("dataset-button-add");
-				$(action_button.find("span")[0]).addClass("glyphicon-plus");
-			}
-		})
-            
-		//update Data selection UI
-		$($("#dataset-selection").find("section")[0]).empty();
-		if(this_.selection.length > 0){
-			var options = {
-				valueNames: [
-					'title',
-					{ name: 'title_tooltip', attr: 'title' },
-					'_abstract',
-					{ name: 'pid', attr: 'data-pid'}
-					
-				],
-				item: 'dataset-item-selection'
-			};
-			var datasetSelection = new List('dataset-selection', options, this_.selection);
-			this_.displayGraphicOverviews();
-			//datasetSelection.on("updated", function(evt){});
-		}else{
-			$($("#dataset-selection").find("section")[0]).html('<p style="font-style:italic;font-size:12px;text-align:center;">No dataset selected</p>');
-		}
-	}
-         
-	/**
-	 * OpenFairViewer.prototype.updateDatasetSelector
-	 */
-	OpenFairViewer.prototype.updateDatasetSelector = function(init){
-		var this_ = this;
-		var formatDatasetSelection = function(dataset) {
-		  if (!dataset.id) { return dataset.text; }
-		  var $dataset = $(
-			'<span class="dataset-subtitle" >' + dataset.id + '</span>'
-		  );
-		  return $dataset;
-		};
-		var formatDatasetResult = function(dataset) {
-		  if (!dataset.id) { return dataset.text; }
-		  var $dataset = $(
-			'<span class="dataset-subtitle" >' + dataset.id + '</span>'+
-			'<br><span class="dataset-title"> ' + dataset.text + '</span>'
-		  );
-		  return $dataset;
-		};
-		
-		$("#datasetSelector").empty().append("<option></option>");
-		$("#datasetSelector").select2({
-			theme: "classic",
-			placeholder: "Select a dataset",
-			data: this_.selection.map(function(item){ return { id: item.pid, text: item.title}}),
-			templateResult: formatDatasetResult,
-			templateSelection: formatDatasetSelection
-		});
-		if(this_.selected_dsd) $("#datasetSelector").val(this_.selected_dsd.pid).trigger('change');
-		if(init){
-			$("#datasetSelector").on("select2:select", function (e) {
-				this_.getDSD(e.params.data.id);
-				$("#datasetMapper").show();
-			});
-			$("#datasetSelector").on("select2:unselect", function (e) {
-				this_.selected_dsd = null;
-				$("#datasetMapper").hide();
-			});   
-		}
-	}
+
 	
 	/**
 	 * OpenFairViewer.prototype.getCSWRecord
@@ -734,11 +701,11 @@
 	}	 
          
 	/**
-	 * OpenFairViewer.prototype.parseDSD
+	 * OpenFairViewer.prototype.parseFeatureCatalogue
 	 * @param response
 	 * @returns a DSD json object
 	 */
-	OpenFairViewer.prototype.parseDSD = function(response){
+	OpenFairViewer.prototype.parseFeatureCatalogue = function(response){
 
 		//artisanal parsing of feature catalog XML
 		//TODO keep investigating ogc-schemas extension for gfc.xsd with jsonix!!!!
@@ -784,19 +751,182 @@
 		return dsd;
 	}
 	
+
 	/**
-	 * OpenFairViewer.prototype.getDSD
+	 * OpenFairViewer.prototype.handleQueryForm
+	 * @param pid
+	 * @param dsd
+	 */
+	OpenFairViewer.prototype.handleQueryForm = function(pid){
+		$("#dsd-ui").empty();
+		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
+		if(dataset.length>0) dataset = dataset[0];
+		if(dataset.dsd){
+			console.log("Handle DSD Query Form for dataset with pid = " + pid );
+			return this.handleDSD(pid);
+		}else{ 
+			console.log("Handle Filter Query Form for dataset with pid = " + pid );
+			return this.handleFilter(pid);
+		};		
+	}
+
+	/**
+	 * OpenFairViewer.prototype.handleQueryFormButtons
+	 * @param columnIdx
+	 */
+	OpenFairViewer.prototype.handleQueryFormButtons = function(columnIdx){
+		var this_ = this;
+		//Query and mapbutton
+		//------------------------------
+		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
+		$("#dsd-ui-col-"+columnIdx).append('<button type="button" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary" onclick="app.mapDataset()">Query & Map</button>');
+		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">Ups! There is no data for this query...</span>');
+				
+		//download buttons
+		//------------------------------
+		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
+		var button_csv_aggregated = '<button id="dsd-ui-button-csv1" type="button" class="btn data-action-button data-csv-agg" title="Download aggregated data (CSV)" onclick="app.downloadDatasetCSV(true)"></button>';
+		$("#dsd-ui-buttons").append(button_csv_aggregated);
+		var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="app.downloadDatasetCSV(false)"></button>';
+		$("#dsd-ui-buttons").append(button_csv_raw);
+		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="app.downloadMapPNG()"></button>';
+		$("#dsd-ui-buttons").append(button_png_map);
+				
+		var layerName = this_.dataset_on_query.pid;
+		var layer = this_.getLayerByProperty(this_.dataset_on_query.pid, 'id');
+		if(layer){
+			$('#dsd-ui-button-csv1').prop('disabled', false);
+			$('#dsd-ui-button-csv2').prop('disabled', false);
+			$('#dsd-ui-button-png').prop('disabled', false);
+		}else{
+			$('#dsd-ui-button-csv1').prop('disabled', true);
+			$('#dsd-ui-button-csv2').prop('disabled', true);
+			$('#dsd-ui-button-png').prop('disabled', true);
+		}
+	}
+	
+	/**
+	 * OpenFairViewer.prototype.handleQueryMapOptions
+	 * @param columnIdx
+	 */
+	OpenFairViewer.prototype.handleQueryMapOptions = function(columnIdx){		
+		var this_ = this;
+		//id
+		var map_type_id = "map-type-selector";
+		//html
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_type_id+'" class="dsd-ui-dimension" title="Select the type of statistical map"></select>');
+		//jquery widget
+		var formatMaptype = function(item) {
+			if (!item.id) { return item.text; }
+			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+			return $item;
+		};
+		var map_type_placeholder = 'Select a map type';
+		$("#" + map_type_id).select2({
+			theme: 'classic',
+			allowClear: false,
+			placeholder: map_type_placeholder,
+			data: [{id:'graduated', text: 'Graduated symbols map'},{id:'choropleth', text: 'Choropleth map'}],
+			templateResult: formatMaptype,
+			templateSelection: formatMaptype
+		});
+		$("#" + map_type_id).val("graduated").trigger("change");
+
+		//6. Map classifications
+		if(this_.options.map.styling.dynamic){
+			//Classification type
+			//-------------------
+			//id
+			var map_classtype_id = "map-classtype-selector";
+			//html
+			$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
+			//jquery widget
+			var formatClasstype = function(item) {
+				if (!item.id) { return item.text; }
+				var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+				return $item;
+			};
+			var map_classtype_placeholder = 'Select a classification';
+			$("#" + map_classtype_id).select2({
+				theme: 'classic',
+				allowClear: false,
+				placeholder: map_classtype_placeholder,
+				data: [{id:'ckmeans', text: 'Ckmeans clustering'},{id:'equal', text: 'Equal intervals'},{id:'quantile', text: 'Quantiles'}],
+				templateResult: formatClasstype,
+				templateSelection: formatClasstype
+			});
+			$("#" + map_classtype_id).val("ckmeans").trigger("change");
+
+			//Number of class intervals
+			//-------------------------
+			//id
+			var map_classnb_id = "map-classnb-selector";
+			//html
+			$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="Select the number of data intervals"></select>');
+			//jquery widget
+			var formatClassnb = function(item) {
+				if (!item.id) { return item.text; }
+				var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+				return $item;
+			};
+			var map_classnb_placeholder = 'Select the number of intervals';
+			$("#" + map_classnb_id).select2({
+				theme: 'classic',
+				allowClear: false,
+				placeholder: map_classnb_placeholder,
+				data: [{id: '4', text: '4'}, {id: '5', text: '5'}],
+				templateResult: formatClassnb,
+				templateSelection: formatClassnb
+			});
+			$("#" + map_classnb_id).val("5").trigger("change");
+		}
+	}
+
+	/**
+	 * OpenFairViewer.prototype.handleFilter
 	 * @param pid
 	 */
-	OpenFairViewer.prototype.getDSD = function(pid){
+	OpenFairViewer.prototype.handleFilter = function(pid){
+		
+		var deferred = $.Deferred();
+		
+		var this_ = this;
+		var target = this.datasets.filter(function(data){if(data.pid == pid){return data}});
+		if(target.length>0) target = target[0];
+		this.dataset_on_query = {pid: pid, entry: target, strategy: "ogc_filters", dsd: null, query: null};
+		$("#datasetSelector").val(this_.dataset_on_query.pid).trigger('change');
+				
+		//build UI
+		var bootstrapClass = "col-md-" + 12/this_.options.ui.query.columns;
+
+		$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
+		$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
+
+		//id
+		var ogcfilter_component_id = "ui-ogc_filter";
+		//html
+		$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Filter</label></p></div>');
+		$("#dsd-ui-col-1").append('<input type="text" id = "'+ogcfilter_component_id+'" class="dsd-ui-dimension" title="Filter data with CQL"></select>');
+		
+		//query form buttons
+		this.handleQueryFormButtons(1);
+		
+		deferred.resolve();
+		return deferred.promise();
+	}
+
+	/**
+	 * OpenFairViewer.prototype.handleDSD
+	 * @param pid
+	 */
+	OpenFairViewer.prototype.handleDSD = function(pid){
 
 	    var deferred = $.Deferred();	
           
-		$("#dsd-ui").empty();
 		$("#dsd-loader").show();
 	  
 		var this_ = this;
-		var target = this.selection.filter(function(data){if(data.pid == pid){return data}});
+		var target = this.datasets.filter(function(data){if(data.pid == pid){return data}});
 		if(target.length>0) target = target[0];
 		$.ajax({
 			url: target.dsd,
@@ -806,14 +936,10 @@
 				$("#dsd-loader").hide();
 				
 				//parse DSD
-				this_.selected_dsd = {
-					pid: pid,
-					dataset: target,
-					dsd: this_.parseDSD(response),
-					query: null
-				};
+				//TODO later get 'type' value from FeatureCatalogue. This type will condition all underlying services (url params for WMS, app, etc)
+				this_.dataset_on_query = { pid: pid, entry: target, strategy: "ogc_viewparams", dsd: this_.parseFeatureCatalogue(response), query: null };
 				
-				$("#datasetSelector").val(this_.selected_dsd.pid).trigger('change');
+				$("#datasetSelector").val(this_.dataset_on_query.pid).trigger('change');
 				
 				//build UI
 				var bootstrapClass = "col-md-" + 12/this_.options.ui.query.columns;
@@ -838,8 +964,8 @@
 				$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
 				$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 				$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Fishery dimensions</label></p></div>');
-				for(var i=0;i<this_.selected_dsd.dsd.length;i++){
-					var dsd_component = this_.selected_dsd.dsd[i];
+				for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
+					var dsd_component = this_.dataset_on_query.dsd[i];
 					if(dsd_component.serviceType == "Dimension"){
 						if(dsd_component.values){
 							//id
@@ -888,8 +1014,8 @@
 				
 				//for time dimension
 				//year extent extracted from metadata, information always available
-				var year_start = parseInt(this_.selected_dsd.dataset.time_start.substring(0,4));
-				var year_end = parseInt(this_.selected_dsd.dataset.time_end.substring(0,4));
+				var year_start = parseInt(this_.dataset_on_query.entry.time_start.substring(0,4));
+				var year_end = parseInt(this_.dataset_on_query.entry.time_end.substring(0,4));
 				
 				$("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				
@@ -897,8 +1023,8 @@
 				//-----------------------------------------
 				this_.timeWidget = this_.options.ui.time? this_.options.ui.time : 'slider';
 				var dsd_time_dimensions = ["time_start", "time_end"];
-				var timeDimensions = this_.selected_dsd.dsd.filter(function(item){if(dsd_time_dimensions.indexOf(item.serviceCode) != -1) return item});
-				var timeDimTypeList = this_.selected_dsd.dsd.filter(function(i){if(i.serviceType=="TimeDimension"){return(i)}}).map(function(i){return(i.primitiveType)});
+				var timeDimensions = this_.dataset_on_query.dsd.filter(function(item){if(dsd_time_dimensions.indexOf(item.serviceCode) != -1) return item});
+				var timeDimTypeList = this_.dataset_on_query.dsd.filter(function(i){if(i.serviceType=="TimeDimension"){return(i)}}).map(function(i){return(i.primitiveType)});
 				this_.timeDimensionType = "";
 				var timeDimTypes = new Array();
 				for(var i=0;i<timeDimTypeList.length;i++){ 
@@ -964,14 +1090,15 @@
 						$("#dsd-ui-col-2").append('</p></div>');
 					}
 				}else{
-					alert("OpenFairViewer doesn't support yet data services with a single time parameter")
+					alert("OpenFairViewer doesn't support yet data services with a single time parameter");
+					//this is the main one
 				}
 				
 				//3. Other time dimensions
 				//-------------------------
 				var extra_time_dimensions = ['year', 'semester', 'quarter', 'month'];
-				for(var i=0;i<this_.selected_dsd.dsd.length;i++){
-					var dsd_component = this_.selected_dsd.dsd[i];
+				for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
+					var dsd_component = this_.dataset_on_query.dsd[i];
 					//id
 					var dsd_component_id = "dsd-ui-dimension-" + dsd_component.serviceCode;
 					
@@ -1016,12 +1143,12 @@
 				
 				//4. Aggregation method
 				//------------------------------
+				
 				//id
 				var dsd_component_id = "dsd-ui-dimension-aggregation_method";
 				//html
 				$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Aggregation method</label></p></div>');
 				$("#dsd-ui-col-2").append('<select id = "'+dsd_component_id+'" class="dsd-ui-dimension" title="Select a time aggregation method"></select>');
-				
 				//jquery widget
 				var formatMethod = function(item) {
 				  if (!item.id) { return item.text; }
@@ -1040,108 +1167,15 @@
 					templateSelection: formatMethod,
 					matcher: codelistMatcher
 				});
-				
+
 				//MAP OPTIONS
 				$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Map options</label></p></div>');
 				
 				//5. Map type
-				//id
-				var map_type_id = "map-type-selector";
-				//html
-				$("#dsd-ui-col-2").append('<select id = "'+map_type_id+'" class="dsd-ui-dimension" title="Select the type of statistical map"></select>');
-				//jquery widget
-				var formatMaptype = function(item) {
-					if (!item.id) { return item.text; }
-					var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
-					return $item;
-				};
-				var map_type_placeholder = 'Select a map type';
-				$("#" + map_type_id).select2({
-					theme: 'classic',
-					allowClear: false,
-					placeholder: map_type_placeholder,
-					data: [{id:'graduated', text: 'Graduated symbols map'},{id:'choropleth', text: 'Choropleth map'}],
-					templateResult: formatMaptype,
-					templateSelection: formatMaptype
-				});
-				$("#" + map_type_id).val("graduated").trigger("change");
-
-				//6. Map classifications
-				if(this_.options.map.styling.dynamic){
-					//Classification type
-					//-------------------
-					//id
-					var map_classtype_id = "map-classtype-selector";
-					//html
-					$("#dsd-ui-col-2").append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
-					//jquery widget
-					var formatClasstype = function(item) {
-						if (!item.id) { return item.text; }
-						var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
-						return $item;
-					};
-					var map_classtype_placeholder = 'Select a classification';
-					$("#" + map_classtype_id).select2({
-						theme: 'classic',
-						allowClear: false,
-						placeholder: map_classtype_placeholder,
-						data: [{id:'ckmeans', text: 'Ckmeans clustering'},{id:'equal', text: 'Equal intervals'},{id:'quantile', text: 'Quantiles'}],
-						templateResult: formatClasstype,
-						templateSelection: formatClasstype
-					});
-					$("#" + map_classtype_id).val("ckmeans").trigger("change");
-
-					//Number of class intervals
-					//-------------------------
-					//id
-					var map_classnb_id = "map-classnb-selector";
-					//html
-					$("#dsd-ui-col-2").append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="Select the number of data intervals"></select>');
-					//jquery widget
-					var formatClassnb = function(item) {
-						if (!item.id) { return item.text; }
-						var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
-						return $item;
-					};
-					var map_classnb_placeholder = 'Select the number of intervals';
-					$("#" + map_classnb_id).select2({
-						theme: 'classic',
-						allowClear: false,
-						placeholder: map_classnb_placeholder,
-						data: [{id: '4', text: '4'}, {id: '5', text: '5'}],
-						templateResult: formatClassnb,
-						templateSelection: formatClassnb
-					});
-					$("#" + map_classnb_id).val("5").trigger("change");
-				}
+				this_.handleQueryMapOptions(2);
 				
-				//Query and mapbutton
-				//------------------------------
-				$("#dsd-ui-col-2").append('<br><br>');
-				$("#dsd-ui-col-2").append('<button type="button" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary" onclick="app.mapDataset()">Query & Map</button>');
-				$("#dsd-ui-col-2").append('<br><span class="query-nodata" style="display:none;">Ups! There is no data for this query...</span>');
-				
-				//download buttons
-				//------------------------------
-				$("#dsd-ui-col-2").append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
-				var button_csv_aggregated = '<button id="dsd-ui-button-csv1" type="button" class="btn data-action-button data-csv-agg" title="Download aggregated data (CSV)" onclick="app.downloadDatasetCSV(true)"></button>';
-				$("#dsd-ui-buttons").append(button_csv_aggregated);
-				var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="app.downloadDatasetCSV(false)"></button>';
-				$("#dsd-ui-buttons").append(button_csv_raw);
-				var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="app.downloadMapPNG()"></button>';
-				$("#dsd-ui-buttons").append(button_png_map);
-				
-				var layerName = this_.selected_dsd.pid + "_aggregated";
-				var layer = this_.getLayerByProperty(this_.selected_dsd.pid, 'id');
-				if(layer){
-					$('#dsd-ui-button-csv1').prop('disabled', false);
-					$('#dsd-ui-button-csv2').prop('disabled', false);
-					//$('#dsd-ui-button-png').prop('disabled', false);
-				}else{
-					$('#dsd-ui-button-csv1').prop('disabled', true);
-					$('#dsd-ui-button-csv2').prop('disabled', true);
-					$('#dsd-ui-button-png').prop('disabled', true);
-				}
+				//query form buttons
+				this_.handleQueryFormButtons(2);
 
 				deferred.resolve();
 			}
@@ -1152,44 +1186,78 @@
 	}
 	
 	/**
-	 * OpenFairViewer.prototype.getViewParams
+	 * OpenFairViewer.prototype.getStrategyParams
 	 */
-	 OpenFairViewer.prototype.getViewParams = function(){
+	 OpenFairViewer.prototype.getStrategyParams = function(stringify){
 		var this_ = this;
-		var data_query = "";
+		var data_query = new Array();
+		var tostring = stringify? stringify : false;
 		
-		//grab codelist values (including extra time codelists)
-		$.each($(".dsd-ui-dimension-codelist"), function(i,item){
-			var values = $("#"+item.id).val();
-			if(values) if(values.length > 0){
-				var data_component_query = item.id.split('dsd-ui-dimension-')[1] + ':' + values.join('+');
-				data_query += data_component_query + ";";
-			}
-		})
+		switch(this_.dataset_on_query.strategy){
+		    case "ogc_filters":
+				//Get params according to 'filters' strategy
+				var filter = $("#ui-ogc_filter").val();
+				if(filter) data_query.push({CQL_FILTER : filter});
+				break;
+
+		    case "ogc_dimensions":
+				//Get params according to 'dimensions' strategy
+				//TODO strategy params
+				break;
 		
-		//grab time dimension (time_start/time_end)
-		var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
-		if(this_.timeWidget == 'slider'){
-			var values = $("#dsd-ui-time").slider('values');
-			var time_start = values[0]
-			if(this_.timeDimensionType == 'datetime') time_start = new Date(new Date(values[0], 1 - 1, 1) - tzoffset).toISOString().split('T')[0];
-			var time_end = values[1];
-			if(this_.timeDimensionType == 'datetime') time_end = new Date(new Date(values[1], 11, 31) - tzoffset).toISOString().split('T')[0];
-			var data_component_query = 'time_start:' + time_start + ';' + 'time_end:' + time_end;
-			data_query += data_component_query + ';';
+		    case "ogc_viewparams":
+				//Get params according to 'viewparams' strategy
+				//grab codelist values (including extra time codelists)
+				$.each($(".dsd-ui-dimension-codelist"), function(i,item){ 
+					var values = $("#"+item.id).val();
+					if(values) if(values.length > 0){
+						var data_component_query = new Object();
+						data_component_query[item.id.split('dsd-ui-dimension-')[1]] = values.join('+');
+						data_query.push(data_component_query);
+					}
+				})
 			
-		}else if(this_.timeWidget == 'datepicker'){
-			var time_start = $($(".dsd-ui-dimension-datepicker")[0]).datepicker( "getDate" );
-			if(!time_start) time_start = new Date(new Date(this.selected_dsd.dataset.time_start) - tzoffset).toISOString().split('T')[0];
-			var time_end = $($(".dsd-ui-dimension-datepicker")[1]).datepicker( "getDate" );
-			if(!time_end) time_end = new Date(new Date(this.selected_dsd.dataset.time_end) - tzoffset).toISOString().split('T')[0];
-			var data_component_query = 'time_start:' + time_start + ';' + 'time_end:' + time_end;
-			data_query += data_component_query +';';
+				//grab time dimension (time_start/time_end)
+				var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+				if(this_.timeWidget == 'slider'){
+					var values = $("#dsd-ui-time").slider('values');
+					var time_start = values[0]
+					if(this_.timeDimensionType == 'datetime') time_start = new Date(new Date(values[0], 1 - 1, 1) - tzoffset).toISOString().split('T')[0];
+					var time_end = values[1];
+					if(this_.timeDimensionType == 'datetime') time_end = new Date(new Date(values[1], 11, 31) - tzoffset).toISOString().split('T')[0];
+					var data_component_query_timestart = new Object();
+					data_component_query_timestart['time_start'] = time_start;
+					data_query.push(data_component_query_timestart);
+					var data_component_query_timeend = new Object();
+					data_component_query_timeend['time_end'] = time_end;
+					data_query.push(data_component_query_timeend);
+				
+				}else if(this_.timeWidget == 'datepicker'){
+					var time_start = $($(".dsd-ui-dimension-datepicker")[0]).datepicker( "getDate" );
+					if(!time_start) time_start = new Date(new Date(this.dataset_on_query.entry.time_start) - tzoffset).toISOString().split('T')[0];
+					var time_end = $($(".dsd-ui-dimension-datepicker")[1]).datepicker( "getDate" );
+					if(!time_end) time_end = new Date(new Date(this.dataset_on_query.entry.time_end) - tzoffset).toISOString().split('T')[0];
+					var data_component_query_timestart = new Object();
+					data_component_query_timestart['time_start'] = time_start;
+					data_query.push(data_component_query_timestart);
+					var data_component_query_timeend = new Object();
+					data_component_query_timeend['time_end'] = time_end;
+					data_query.push(data_component_query_timeend);
+				}
+			
+				//grab aggregation method
+				var aggregation_method = $("#dsd-ui-dimension-aggregation_method").select2('val');
+				var data_component_query_method = new Object();
+				data_component_query_method['aggregation_method'] = aggregation_method;
+				data_query.push(data_component_query_method);
+				break;
+
 		}
-		
-		//grab aggregation method
-		var aggregation_method = $("#dsd-ui-dimension-aggregation_method").select2('val');
-		data_query += "aggregation_method:" + aggregation_method;
+
+		//Stringify
+		if(tostring){		
+			data_query = data_query.map(function(item){return Object.keys(item) + ':' + item[Object.keys(item)]}).join(';');		
+		}
 
 		return data_query;
 	}
@@ -1211,71 +1279,10 @@
 		this_.layers = new Object();
 		
 		//baselayers
-		var esri1Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/{z}/{y}/{x}';
-		var esri2Template = 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer/tile/{z}/{y}/{x}';
 		baseLayers = [
 			new ol.layer.Group({
 				'title': "Basemaps",
-				layers: [
-					new ol.layer.Tile({
-						title : "Oceans imagery",
-						type: 'base',
-						source : new ol.source.TileWMS({
-							url : "https://tunaatlas.d4science.org/geoserver/wms",
-							params : {
-									'LAYERS' : 'tunaatlas:bathymetry,tunaatlas:continent',
-									'VERSION': '1.1.1',
-									'FORMAT' : 'image/png',
-									'TILED'	 : true,
-									'TILESORIGIN' : [-180,-90].join(',')
-							},
-							wrapX: true,
-							serverType : 'geoserver',
-							crossOrigin: 'anonymous'
-						})
-					}),
-					new ol.layer.Tile({
-						title : "ESRI World Imagery",
-						type: 'base',
-						source : new ol.source.XYZ({
-							attributions: [
-								new ol.Attribution({
-									html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer">ArcGIS</a>'
-								})
-							],
-							projection: ol.proj.get(this_.options.map.projection),
-							tileSize: 512,
-							tileUrlFunction: function(tileCoord) {
-										return esri1Template.replace('{z}', (tileCoord[0] - 1).toString())
-													.replace('{x}', tileCoord[1].toString())
-													.replace('{y}', (-tileCoord[2] - 1).toString());
-									},
-							crossOrigin: 'anonymous',
-							wrapX: true
-						})
-					}),
-					new ol.layer.Tile({
-						title : "ESRI - Countries",
-						type: 'base',
-						source : new ol.source.XYZ({							
-							attributions: [
-								new ol.Attribution({
-									html: 'Tiles © <a href="http://services.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer">ArcGIS</a>'
-								})
-							],
-							projection: ol.proj.get(this_.options.map.projection),
-							tileSize: 512,
-											tileUrlFunction: function(tileCoord) {
-										return esri2Template.replace('{z}', (tileCoord[0] - 1).toString())
-													.replace('{x}', tileCoord[1].toString())
-													.replace('{y}', (-tileCoord[2] - 1).toString());
-									},
-							crossOrigin: 'anonymous',
-							wrapX: true
-						})
-					})
-
-				]
+				layers: this_.options.map.baselayers
 			})
 		];
 
@@ -1299,7 +1306,7 @@
 			this.defaultMapZoom = defaultMapZoom;
 		}     
         
-	    //map
+	    //mapgetLa
 		var mapId = id? id : 'map';
 	    $("#"+mapId).empty();
 		var map = new ol.Map({
@@ -1434,12 +1441,11 @@
 	    layer.showLegendGraphic = showLegend;
 			
  	    if(mainOverlayGroup > this.layers.overlays.length-1){
-		alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
+			alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
 	    }
 	    layer.overlayGroup = this.options.map.layergroups[mainOverlayGroup];
-            this.layers.overlays[mainOverlayGroup].getLayers().push(layer);
-
-            return layer;
+		this.layers.overlays[mainOverlayGroup].getLayers().push(layer);
+		return layer;
 	}
 
     	/**
@@ -1465,7 +1471,8 @@
 					this_.popup = {id: layer.id, coords: coords};
 				}else{
 					popup.hide();
-					this_.popup = {};				}
+					this_.popup = {};				
+				}
 			}
 		});
 	}
@@ -1542,21 +1549,33 @@
 	}
         
 	/**
-	 * OpenFairViewer.prototype.getDatasetUrlFromMetadataEntry
+	 * OpenFairViewer.prototype.getDataProtocolsFromMetadataEntry
 	 * @param md_entry
-	 * @param layerName
 	 * @param protocol
+	 * @param layerSuffix
 	 * @returns a WFS base URL
 	 */
-	OpenFairViewer.prototype.getDatasetUrlFromMetadataEntry = function(md_entry, layerName, protocol){
-		baseLayerUrl = md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
+	OpenFairViewer.prototype.getDataProtocolsFromMetadataEntry = function(md_entry, protocol, layerSuffix){
+		var out = new Array();
+		var onLines = md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
 		   function(item){
-			var filter = (item.ciOnlineResource.linkage.url.indexOf(protocol)!=-1 | item.ciOnlineResource.linkage.url.indexOf(protocol.toLowerCase())!=-1)
-						 && (item.ciOnlineResource.linkage.url.indexOf(layerName) != -1 | item.ciOnlineResource.name.endsWith(layerName));
+			if(!item.ciOnlineResource.linkage.url) return;
+			var protocolFilter = item.ciOnlineResource.linkage.url.indexOf(protocol)!=-1 | item.ciOnlineResource.linkage.url.indexOf(protocol.toLowerCase())!=-1;
+			var layerFilter = layerSuffix? item.ciOnlineResource.name.endsWith(layerSuffix) : true;
+			var filter = protocolFilter && layerFilter;
 			if(filter) return item;
 		   }
-		)[0].ciOnlineResource.linkage.url;
-		return baseLayerUrl;
+		);
+		if(onLines.length == 0) console.warn("No Dataset URL from metadata entry");
+		if(onLines.length > 0){
+			for(var i=0;i<onLines.length;i++){
+				layerUrl = onLines[i].ciOnlineResource.linkage.url;
+				layerName = onLines[i].ciOnlineResource.name;
+				if(layerSuffix) layerName = layerName + layerSuffix;
+				out.push({url : layerUrl, name: layerName});
+			}
+		}
+		return out;
 	};
 	
 
@@ -1655,14 +1674,34 @@
 
 	/**
 	 * OpenFairViewer.prototype.getDatasetViewTitle
-	 * @param baseTitle
-	 * @param viewparams
+	 * @param dataset
+	 * @param strategyparams
 	 */
-	OpenFairViewer.prototype.getDatasetViewTitle = function(baseTitle, viewparams){
-		var layerTitle = baseTitle;
-		layerTitle += '<br>';
-	    	layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>View parameters:</b> ' 
-				+ viewparams.replace(new RegExp(";", 'g'),"; ") + '</p>';
+	OpenFairViewer.prototype.getDatasetViewTitle = function(dataset, strategyparams){
+		var layerTitle = dataset.entry.title;
+		layerTitle += '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="Remove from map" '
+		layerTitle += 'onclick="app.unselectDataset(this)"> X </button>';
+
+		if(strategyparams) if(strategyparams.length > 0){
+			var strategyName;
+			switch(dataset.strategy){
+				case "ogc_filters": strategyName = 'Filter'; break;
+				case "ogc_dimensions": strategyName = 'Dimensions'; break;
+				case "ogc_viewparams": strategyName = 'View parameters'; break;
+			}
+			layerTitle += '</br>';
+			layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>'+strategyName+':</b></br>';
+			if(dataset.strategy == "ogc_filters"){
+				layerTitle += strategyparams[0].CQL_FILTER;
+			}else{
+				for(var i=0;i<strategyparams.length;i++){
+					var strategyparam = strategyparams[i];
+					var key = Object.keys(strategyparam)[0];
+					layerTitle += '&#8226; ' + key + ': '+ strategyparam[key] + '</br>';
+				}
+			}
+			layerTitle += '</p>';
+		}
 		return layerTitle;
 	}
 
@@ -1672,81 +1711,152 @@
 	OpenFairViewer.prototype.mapDataset = function(){
 		var this_ = this;
 
+		var pid = this_.dataset_on_query.pid;
+		
 		$("#datasetMapper").prop('disabled', true);
 		$("#datasetMapper").bootstrapBtn('loading');
 		$(".query-nodata").hide();
 
 	    //layer properties
-	    var layerName = this_.selected_dsd.pid + "_aggregated";
-	    var layer = this_.getLayerByProperty(this_.selected_dsd.pid, 'id');
-	    var viewparams = this_.getViewParams();
-	    
-	    var layerTitle = this_.getDatasetViewTitle(this_.selected_dsd.dataset.title, viewparams);
+		var baseWfsUrl = undefined;
+		var baseWmsUrl = undefined;
+		var layerName = undefined;
+		if(this_.dataset_on_query.entry.wfs.length > 0){
+			var baseWFS = this_.dataset_on_query.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
+			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = this_.dataset_on_query.entry.wfs[0] };
+			baseWfsUrl = baseWFS.url;
+		}
+		if(this_.dataset_on_query.entry.wms.length > 0){
+			var baseWMS = this_.dataset_on_query.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
+			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = this_.dataset_on_query.entry.wms[0] };
+			baseWmsUrl = baseWMS.url;
+			layerName = baseWMS.name;
+		}
 		
-	    //dynamic styling properties
-	    var mapType =  $("#map-type-selector").select2('val');
-	    var classType = $("#map-classtype-selector").select2('val');
-	    var classNb = $("#map-classnb-selector").select2('val');
-	    var layerStyle =  "dyn_poly_" + mapType + "_class_" + classNb;
-	    var baseWfsUrl = this_.getDatasetUrlFromMetadataEntry(this_.selected_dsd.dataset, layerName, "WFS");
-	    var baseWmsUrl = this_.getDatasetUrlFromMetadataEntry(this_.selected_dsd.dataset, layerName, "WMS");
+	    var layer = this_.getLayerByProperty(this_.dataset_on_query.entry.pid, 'id');
+		var strategyparams = this_.getStrategyParams(false);
+		var strategyparams_str = this_.getStrategyParams(true);
+	    var layerTitle = this_.getDatasetViewTitle(this_.dataset_on_query, strategyparams);
+		
+		//dynamic styling properties
+		var mapType =  $("#map-type-selector").select2('val');
+		var classType = $("#map-classtype-selector").select2('val');
+		var classNb = $("#map-classnb-selector").select2('val');
+		var layerStyle =  "dyn_poly_" + mapType + "_class_" + classNb;
+
 		if(!layer){
-			//ADD LAYER
-			if(this_.options.map.styling.dynamic){
-				//dynamic styling
-				this_.getDatasetFeatures(baseWfsUrl, layerName, viewparams, null, ["value"]).then(function(features){
-					console.log("Data series features");
-					console.log(features);
-					console.log("Data series values");
-					var values = this_.getDatasetValues(features, "value");
-					console.log(values);
-					if(values.length > 0){
-						if(values.length < classNb){
-							classNb = values.length;
-							layerStyle = "dyn_poly_"+mapType+"_class_" + classNb;
-						}
-						var breaks = this_.calculateBreaks(values, classType, classNb);
-						if(breaks.length == 1) breaks = [0, breaks[0]];
-						if(breaks.length == 2) breaks[0] = 0;
-						console.log(breaks);
-						var envparams = this_.buildEnvParams(breaks);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, layerStyle, viewparams, classType, envparams, values.length);
-						layer.baseDataUrl = baseWfsUrl.replace("_aggregated", "");
-						this_.addLayerTooltip(layer);
-						this_.setLegendGraphic(layer, breaks);	
-						this_.map.changed();
-						$("#datasetMapper").bootstrapBtn('reset');
-						$("#datasetMapper").prop('disabled', false);
-	    					
-						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', false);
-						$('#dsd-ui-button-csv2').prop('disabled', false);
-						$('#dsd-ui-button-png').prop('disabled', false);
-					}else{
-						console.log("Actions on no data");
-						$("#datasetMapper").bootstrapBtn('reset');
-						$("#datasetMapper").prop('disabled', false);
-						$(".query-nodata").show();
-						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', true);
-						$('#dsd-ui-button-csv2').prop('disabled', true);
-						$('#dsd-ui-button-png').prop('disabled', true);
-					}
-				});
-			}else{
-				//static styling
-				var layer = this_.addLayer(this_.options.map.mainlayergroup, this_.selected_dsd.pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, null, viewparams);
-				this_.map.changed();
+			console.log("Adding new layer");
+		    //ADD LAYER
+		    switch(this_.dataset_on_query.strategy){
+			 case "ogc_filters":
+				var cql_filter = null;
+				if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
+				console.log(cql_filter);
+				this_.selectDataset(pid);
+				var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, cql_filter, null, null, null, null, null);
+				layer.strategy = this_.dataset_on_query.strategy;
+				layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+				this_.addLayerTooltip(layer);
+				$("#datasetMapper").bootstrapBtn('reset');
+				$("#datasetMapper").prop('disabled', false);
 				//actions o download buttons
 				$('#dsd-ui-button-csv1').prop('disabled', false);
 				$('#dsd-ui-button-csv2').prop('disabled', false);
 				$('#dsd-ui-button-png').prop('disabled', false);
-			}	     
-		}else{
-			//UPDATE LAYER
-			if(this_.options.map.styling.dynamic){
+				break;
+				
+			 case "ogc_dimensions":
+				//TODO
+				break;
+				
+			 case "ogc_viewparams":
+			    if(this_.options.map.styling.dynamic){
+					//dynamic styling
+					this_.getDatasetFeatures(baseWfsUrl, layerName, strategyparams_str, null, ["value"]).then(function(features){
+						console.log("Data series features");
+						console.log(features);
+						console.log("Data series values");
+						var values = this_.getDatasetValues(features, "value");
+						console.log(values);
+						if(values.length > 0){
+							if(values.length < classNb){
+								classNb = values.length;
+								layerStyle = "dyn_poly_"+mapType+"_class_" + classNb;
+							}
+							var breaks = this_.calculateBreaks(values, classType, classNb);
+							if(breaks.length == 1) breaks = [0, breaks[0]];
+							if(breaks.length == 2) breaks[0] = 0;
+							console.log(breaks);
+							var envparams = this_.buildEnvParams(breaks);
+							this_.selectDataset(pid);
+							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, layerStyle, strategyparams_str, classType, envparams, values.length);
+							layer.strategy = this_.dataset_on_query.strategy;
+							layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+							layer.envfun = classType;
+							layer.envmaptype = mapType;
+							layer.count = values.length;
+							this_.addLayerTooltip(layer);
+							this_.setLegendGraphic(layer, breaks);	
+							this_.map.changed();
+							$("#datasetMapper").bootstrapBtn('reset');
+							$("#datasetMapper").prop('disabled', false);
+								
+							//actions o download buttons
+							$('#dsd-ui-button-csv1').prop('disabled', false);
+							$('#dsd-ui-button-csv2').prop('disabled', false);
+							$('#dsd-ui-button-png').prop('disabled', false);
+						}else{
+							console.log("Actions on no data");
+							$("#datasetMapper").bootstrapBtn('reset');
+							$("#datasetMapper").prop('disabled', false);
+							$(".query-nodata").show();
+							//actions o download buttons
+							$('#dsd-ui-button-csv1').prop('disabled', true);
+							$('#dsd-ui-button-csv2').prop('disabled', true);
+							$('#dsd-ui-button-png').prop('disabled', true);
+						}
+					});
+			    }else{
+					//static styling
+					this_.selectDataset(pid);
+					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, null,strategyparams_str);
+					layer.strategy = this_.dataset_on_query.strategy;
+					layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+					this_.map.changed();
+					//actions o download buttons
+					$('#dsd-ui-button-csv1').prop('disabled', false);
+					$('#dsd-ui-button-csv2').prop('disabled', false);
+					$('#dsd-ui-button-png').prop('disabled', false);
+			    }
+			    break;
+			}    
+		}else{ 
+			console.log("Updating existing layer");
+		    //UPDATE LAYER
+		    switch(this_.dataset_on_query.strategy){
+			case "ogc_filters":
+			    //update 
+				var cql_filter = null;
+				if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
+				layer.strategy = this_.dataset_on_query.strategy;
+				layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+				layer.setProperties({title: layerTitle});
+				layer.getSource().updateParams({'CQL_FILTER': cql_filter});
+				this_.map.changed();
+				$("#datasetMapper").bootstrapBtn('reset');
+				$("#datasetMapper").prop('disabled', false);
+				//actions o download buttons
+				$('#dsd-ui-button-csv1').prop('disabled', false);
+				$('#dsd-ui-button-csv2').prop('disabled', false);
+				$('#dsd-ui-button-png').prop('disabled', false);
+			    break;
+			case "ogc_dimensions":
+			    //TODO
+			    break;
+			case "ogc_viewparams":
+			    if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetFeatures(baseWfsUrl, this_.selected_dsd.pid + "_aggregated", viewparams, null, ["value"]).then(function(features){
+				this_.getDatasetFeatures(baseWfsUrl, pid, strategyparams_str, null, ["value"]).then(function(features){
 					console.log("Data series features");
 					console.log(features);
 					console.log("Data series values");
@@ -1765,12 +1875,14 @@
 						var envparams = this_.buildEnvParams(breaks);
 
 						//update viewparams, envparams & legend
-						layer.baseDataUrl = baseWfsUrl.replace("_aggregated", "");
+						layer.strategy = this_.dataset_on_query.strategy;
+						layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 						layer.setProperties({title: layerTitle});
-						layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
+						layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 						layer.getSource().updateParams({'STYLES' : layerStyle});
 						layer.getSource().updateParams({'env' : envparams});
 						layer.envfun = classType;
+						layer.envmaptype = mapType;
 						layer.count = values.length;
 						this_.setLegendGraphic(layer, breaks);
 						this_.map.changed();
@@ -1781,7 +1893,7 @@
 						$('#dsd-ui-button-csv2').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
 					}else{
-						this_.removeLayerByProperty(this_.selected_dsd.pid, "id");
+						this_.removeLayerByProperty(pid, "id");
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
@@ -1792,16 +1904,19 @@
 						$('#dsd-ui-button-png').prop('disabled', true);
 					}
 				});
-			}else{
-				//static styling
-				layer.setProperties({title: layerTitle});
-				layer.getSource().updateParams({'VIEWPARAMS' : viewparams});
-				layer.baseDataUrl = baseWfsUrl.replace("_aggregated", "");
-				this_.map.changed();
-				//actions o download buttons
-				$('#dsd-ui-button-csv1').prop('disabled', false);
-				$('#dsd-ui-button-csv2').prop('disabled', false);
-				$('#dsd-ui-button-png').prop('disabled', false);
+			    }else{
+					//static styling
+					layer.setProperties({title: layerTitle});
+					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
+					layer.strategy = this_.dataset_on_query.strategy;
+					layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+					this_.map.changed();
+					//actions o download buttons
+					$('#dsd-ui-button-csv1').prop('disabled', false);
+					$('#dsd-ui-button-csv2').prop('disabled', false);
+					$('#dsd-ui-button-png').prop('disabled', false);
+			    }
+			    break;
 			}
 		}
 	}
@@ -1810,80 +1925,85 @@
 	 * OpenFairViewer.prototype.getDatasetWFSLink
 	 * @param layerUrl
 	 * @param layerName
-	 * @param viewparams query viewparams
+	 * @param strategyparams_str
 	 * @param cql_filter a cql filter to filter out the dataset
 	 * @param propertyNames
    	 * @param format optional format to be specified, by default it will provide a CSV
 	 * @return the WFS layer URL
 	 */
-	OpenFairViewer.prototype.getDatasetWFSLink = function(layerUrl, layerName, viewparams, cql_filter, propertyNames, format){
-	    if(viewparams) layerUrl += "&VIEWPARAMS=" + viewparams;
+	OpenFairViewer.prototype.getDatasetWFSLink = function(layerUrl, layerName, strategyparams_str, cql_filter, propertyNames, format){		
+		if(layerUrl.indexOf("ows?service=WFS")>-1) layerUrl = layerUrl.split("ows?service=WFS")[0] + "ows?service=WFS";
+		if(layerUrl.indexOf("wfs?")>-1) layerUrl = layerUrl.split("wfs?")[0] + "ows?service=WFS";
+		layerUrl += "&version=1.0.0";
+		layerUrl += "&request=GetFeature";
+		layerUrl += "&typeName=" + layerName;
+	    if(strategyparams_str) layerUrl += "&VIEWPARAMS=" + strategyparams_str;
 	    if(cql_filter) layerUrl += "&CQL_FILTER=" + encodeURI(cql_filter);
 	    if(propertyNames) layerUrl += "&propertyName=" + propertyNames.join(",");
-	    if(format) layerUrl = layerUrl.replace("CSV", format);
+	    if(format) layerUrl += "&outputFormat=" + format;
  	    return layerUrl;	
 	}	
 
 	
-		/**
-		 * Simple json2csv util
-		 * @param objArray
-		 * @returns a string representive the CSV
-		 */
-		OpenFairViewer.prototype.json2csv = function(objArray) {
-			var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-			var str = '';
-			var line = '';
+	/**
+	 * Simple json2csv util
+	 * @param objArray
+	 * @returns a string representive the CSV
+	 */
+	OpenFairViewer.prototype.json2csv = function(objArray) {
+		var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+		var str = '';
+		var line = '';
 
-			//add colnames
-			var head = array[0];
-				for (var index in array[0]) {
-					line += index + ',';
+		//add colnames
+		var head = array[0];
+			for (var index in array[0]) {
+				line += index + ',';
+			}
+		line = line.slice(0, -1);
+		str += line + '\r\n';
+		
+		//add data
+		for (var i = 0; i < array.length; i++) {
+			var line = '';
+				for (var index in array[i]) {
+			val = array[i][index];
+			if(typeof val == 'string') val = '"' + val + '"';
+					line += val + ',';
 				}
 			line = line.slice(0, -1);
 			str += line + '\r\n';
-			
-			//add data
-			for (var i = 0; i < array.length; i++) {
-				var line = '';
-					for (var index in array[i]) {
-				val = array[i][index];
-				if(typeof val == 'string') val = '"' + val + '"';
-						line += val + ',';
-					}
-				line = line.slice(0, -1);
-				str += line + '\r\n';
-			}
-			return str;
 		}
+		return str;
+	}
 
-		/**
-		 * Download CSV
-		 * @param content csv string
-		 * @param fileName
-		 * @param mimeType
-		 */
-		OpenFairViewer.prototype.downloadCSV = function(content, fileName, mimeType) {
-			if(!mimeType) mimeType <- 'text/csv;charset=utf-8;';
-  			var a = document.createElement('a');
-  			mimeType = mimeType || 'application/octet-stream';
+	/**
+	 * Download CSV
+	 * @param content csv string
+	 * @param fileName
+	 * @param mimeType
+	 */
+	OpenFairViewer.prototype.downloadCSV = function(content, fileName, mimeType) {
+		if(!mimeType) mimeType <- 'text/csv;charset=utf-8;';
+		var a = document.createElement('a');
+		mimeType = mimeType || 'application/octet-stream';
 
-  			if (navigator.msSaveBlob) { // IE10
-    				navigator.msSaveBlob(new Blob([content], {
-    				  type: mimeType
-    				}), fileName);
-  			} else if (URL && 'download' in a) { //html5 A[download]
-    				a.href = URL.createObjectURL(new Blob([content], {
-      					type: mimeType
-    				}));
-    				a.setAttribute('download', fileName);
-    				document.body.appendChild(a);
-    				a.click();
-    				document.body.removeChild(a);
-  			} else {
-    				location.href = 'data:application/octet-stream,' + encodeURIComponent(content); // only this mime type is supported
-  			}
-		}	
+		if (navigator.msSaveBlob) { // IE10
+				navigator.msSaveBlob(new Blob([content], {
+				  type: mimeType
+				}), fileName);
+		} else if (URL && 'download' in a) { //html5 A[download]
+				a.href = URL.createObjectURL(new Blob([content], {
+					type: mimeType
+				}));
+				a.setAttribute('download', fileName);
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+		} else {
+				location.href = 'data:application/octet-stream,' + encodeURIComponent(content); // only this mime type is supported
+		}
+	}	
 	
 	
 	/**
@@ -1901,10 +2021,10 @@
 	 */
 	OpenFairViewer.prototype.downloadDatasetCSV = function(aggregated){
 		var this_ = this;
-		var layerName = this.selected_dsd.pid;
-		if(aggregated) layerName += "_aggregated";
-		var baseLayerUrl = this_.getDatasetUrlFromMetadataEntry(this_.selected_dsd.dataset, layerName, "WFS");
-		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, layerName, this.getViewParams(), null, null, 'json');
+		var layerName = this.dataset_on_query.pid;
+		var baseWFS = this_.getDataProtocolsFromMetadataEntry(this_.dataset_on_query.entry, "WFS", layerName)[0];
+		var baseLayerUrl = baseWFS.url;
+		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, layerName, this.getStrategyParams(true), null, null, 'json');
 		$.getJSON(layerUrl, function(response){
 			var features = new ol.format.GeoJSON().readFeatures(response);
 			var featuresToExport = new Array();
@@ -1918,8 +2038,8 @@
 				featuresToExport.push(props);
 			}
 			var csv = this_.json2csv(featuresToExport);
-			var fileName = this_.selected_dsd.pid;
-			if(aggregated) fileName += "_aggregated";
+			var fileName = this_.dataset_on_query.pid;
+			if(aggregated) fileName += this_.options.map.aggregated_layer_suffix;
 			fileName += "_"+ this_.getDateTimeString(new Date()) + ".csv";
 			this_.downloadCSV(csv, fileName); 
 		});
@@ -1933,7 +2053,7 @@
 		var this_ = this;
 		this.map.once('postcompose', function(event) {
 			var canvas = event.context.canvas;
-			var fileName = this_.selected_dsd.pid +"_"+ this_.getDateTimeString(new Date()) + ".png";
+			var fileName = this_.dataset_on_query.pid +"_"+ this_.getDateTimeString(new Date()) + ".png";
 			if (navigator.msSaveBlob) {
 				navigator.msSaveBlob(canvas.msToBlob(), fileName);
 			} else {
@@ -2066,8 +2186,8 @@
 		if ( ! ( document.getElementById ) ) return void(0);
 		var url = location.href.replace(/#.*$/,'').replace(/\?.*$/,'');
 		
-		//dataset
-		if(this.selected_dsd) url += '?dataset=' + this.selected_dsd.pid;
+		//dataset on query
+		if(this.dataset_on_query) url += '?dataset=' + this.dataset_on_query.pid;
 		
 		//views
 		var encoded_views = new Array();
@@ -2077,13 +2197,28 @@
 			var viewlayer = viewlayers[i];
 			var params = viewlayer.getSource().getParams();
 			var pid = viewlayer.id;
+			var strategy = viewlayer.strategy;
 			encoded_view += 'pid=' + pid + ',';
-			encoded_view += 'par=' + params['VIEWPARAMS'] + ',';
-			encoded_view += 'fun=' + viewlayer.envfun + ',';
-			encoded_view += 'env=' + params['env'] + ',';
-			encoded_view += 'count=' + viewlayer.count + ',';
-			encoded_view += 'sld=' + params['STYLES'] + ',';
-			encoded_view += 'q=' + ((this.selected_dsd.pid == pid)? true : false);
+			encoded_view += 'strategy=' + strategy + ',';
+			
+			switch(strategy){
+				case "ogc_filters":
+					break;
+				case "ogc_dimensions":
+					//TODO
+					break;
+				case "ogc_viewparams":
+					encoded_view += 'par=' + params['VIEWPARAMS'] + ',';
+					//map options
+					encoded_view += 'fun=' + viewlayer.envfun + ',';
+					encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
+					encoded_view += 'env=' + params['env'] + ',';
+					encoded_view += 'count=' + viewlayer.count + ',';
+					encoded_view += 'sld=' + params['STYLES'] + ',';
+					break;
+			}	
+			
+			encoded_view += 'q=' + ((this.dataset_on_query.pid == pid)? true : false);
 			encoded_views.push(encoded_view);
 		}
 		if(viewlayers.length > 0) url += '&views=' + encodeURIComponent(JSON.stringify(encoded_views));
@@ -2114,43 +2249,46 @@
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
 		this_.openQueryDialog();
-		this_.getDSD(datasetDef.pid).then(function(){					
-			this_.updateDatasetSelector();
-			this_.updateSelection();
+		this_.handleQueryForm(datasetDef.pid).then(function(){					
+
 			if(datasetDef.query){
 				//view params
-				var viewparams = datasetDef.viewparams.split(";");
-				var timeparams = new Array();
-				for(var i=0;i<viewparams.length;i++){
-					var viewparam = viewparams[i];
-					var kvp = viewparam.split(":");
-					var key = kvp[0];
-					if(!key.match("time")){
-						var values = kvp[1].split("+");
-						$("#dsd-ui-dimension-"+key).val(values).trigger('change');
-					}else{
-				 		timeparams.push({key: kvp[0], value: kvp[1]});
+				var viewparams = datasetDef.viewparams;
+				if(viewparams){
+					var timeparams = new Array();
+					for(var i=0;i<viewparams.length;i++){
+						var viewparam = viewparams[i];
+						var key = Object.keys(viewparam)[0];
+						var value = viewparam[key];
+						if(!key.match("time")){
+							var values = value.split("+");
+							$("#dsd-ui-dimension-"+key).val(values).trigger('change');
+						}else{
+							timeparams.push({key: key, value: value});
+						}
+					}
+					//time params
+					if(timeparams.length==2){
+						if(this_.timeWidget == "slider"){
+							$("#dsd-ui-time").slider('values', [parseInt(timeparams[0].value.substring(0,4)), parseInt(timeparams[1].value.substring(0,4))]);
+							$("#dsd-ui-time-range").val($("#dsd-ui-time").slider( "values", 0 ) + " - " +  $("#dsd-ui-time").slider( "values", 1 ));
+						}else if(this_.timeWidget == "datepicker"){
+							$("#dsd-ui-time_start").datepicker('setDate', timeparams[0].value);
+							$("#dsd-ui-time_end").datepicker('setDate', timeparams[1].value);
+						}
 					}
 				}
-				//time params
-				if(timeparams.length==2){
-					if(this_.timeWidget == "slider"){
-						$("#dsd-ui-time").slider('values', [parseInt(timeparams[0].value.substring(0,4)), parseInt(timeparams[1].value.substring(0,4))]);
-						$("#dsd-ui-time-range").val($("#dsd-ui-time").slider( "values", 0 ) + " - " +  $("#dsd-ui-time").slider( "values", 1 ));
-					}else if(this_.timeWidget == "datepicker"){
-						$("#dsd-ui-time_start").datepicker('setDate', timeparams[0].value);
-						$("#dsd-ui-time_end").datepicker('setDate', timeparams[1].value);
-					}
-				}
-
+				
 				//map options
 				var envfun = datasetDef.envfun;
-				$("#map-classtype-selector").val(envfun).trigger('change');
-				var envparams = datasetDef.envparams;
-
-				var classnb = String(datasetDef.breaks.length-1);
-				if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
-				$("#map-classnb-selector").val(classnb).trigger('change');
+				if(envfun) $("#map-classtype-selector").val(envfun).trigger('change');
+				var envmaptype = datasetDef.envmaptype;
+				if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change'); 
+				if(datasetDef.breaks){
+					var classnb = String(datasetDef.breaks.length-1);
+					if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
+					$("#map-classnb-selector").val(classnb).trigger('change');
+				}
 			} 		
 		});
 	}
@@ -2162,13 +2300,26 @@
 	OpenFairViewer.prototype.resolveDatasetForMap = function(datasetDef){
 		console.log("Resolving map for pid = '"+datasetDef.pid+"'");
 		var this_ = this;
-		var layerName = datasetDef.pid + "_aggregated";
-		var layerUrl = datasetDef.entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine
-			.filter(function(item){if(item.ciOnlineResource.linkage.url.indexOf('wms')!=-1) return item})[0].ciOnlineResource.linkage.url;
-		var layer = this.addLayer(this.options.map.mainlayergroup, datasetDef.pid, datasetDef.title, layerUrl, layerName, false, true, true, 0.9, true, null,
+		
+		//layer properties
+		var baseWfsUrl = undefined;
+		var baseWmsUrl = undefined;
+		var layerName = undefined;
+		if(datasetDef.entry.wfs.length > 0){
+			var baseWFS = datasetDef.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
+			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = datasetDef.entry.wfs[0] };
+			baseWfsUrl = baseWFS.url;
+		}
+		if(datasetDef.entry.wms.length > 0){
+			var baseWMS = datasetDef.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
+			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = datasetDef.entry.wms[0] };
+			baseWmsUrl = baseWMS.url;
+			layerName = baseWMS.name;
+		}
+		
+		var layer = this.addLayer(this.options.map.mainlayergroup, datasetDef.pid, datasetDef.title, baseWmsUrl, layerName, false, true, true, 0.9, true, null,
 					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
-		var baseWfsUrl = this_.getDatasetUrlFromMetadataEntry(datasetDef.entry, layerName, "WFS");
-		layer.baseDataUrl = baseWfsUrl.replace("_aggregated","");
+		layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 		this_.addLayerTooltip(layer);
 		this_.setLegendGraphic(layer, datasetDef.breaks);		
 	}
@@ -2189,9 +2340,10 @@
 		if(params.dataset && !params.views){
 			var datasetDef = {pid: params.dataset};
 			this_.getCSWRecord(datasetDef.pid).then(function(md_entry){
-				if(this_.selection.map(function(i){return i.pid}).indexOf(pid) == -1
-			   	   && md_entry.metadata.contentInfo){
+				if(this_.selection.map(function(i){return i.pid}).indexOf(pid) == -1){
+					console.log("we should add the dataset to the selection here");
 					datasetDef.entry = md_entry;
+					datasetDef.strategy = md_entry.metadata.contentInfo? "ogc_viewparams" : "ogc_filters";
 					this_.selection.push(datasetDef.entry);	
 					this_.resolveDatasetForQuery(datasetDef);		
 				}
@@ -2205,36 +2357,56 @@
 			var encoded_datasets = new Array();
 			for(var i=0;i<encoded_views.length;i++){
 				var encoded_view = encoded_views[i];
-				var encoded_view_settings = encoded_view.split(",");
-				var pid = encoded_view_settings[0].split("pid=")[1];
-				var viewparams = encoded_view_settings[1].split("par=")[1];
-				var envfun = encoded_view_settings[2].split("fun=")[1];
-				var envparams = encoded_view_settings[3].split("env=")[1];
-				var count = encoded_view_settings[4].split("count=")[1];
-				var style = encoded_view_settings[5].split("sld=")[1];	
-				var query = encoded_view_settings[6].split("q=")[1] == "true";
-				var breaks = envparams.split(";"); breaks.splice(-1,1);
-				breaks = breaks.map(function(key){return parseFloat(key.split(":")[1])});
-				encoded_datasets.push({pid: pid, viewparams: viewparams, envfun: envfun, envparams: envparams, count : count, breaks: breaks, style: style, query: query});
+				var encoded_view_settings = encoded_view.split(",").map(function(item){var elems = item.split("="); var out = new Object(); out[elems[0]] = elems[1]; return out});
+				var encoded_view_obj = new Object();
+				for(var j=0;j<encoded_view_settings.length;j++){
+					var setting = encoded_view_settings[j];
+					var setting_key = Object.keys(setting)[0];
+					encoded_view_obj[setting_key] = setting[setting_key];
+				}
+				var pid = encoded_view_obj.pid;
+				var strategy = encoded_view_obj.strategy;
+				var viewparams = encoded_view_obj.par;
+				if(viewparams) viewparams = viewparams.split(";").map(function(item){var elems = item.split(":"); var out = new Object(); out[elems[0]] = elems[1]; return out});
+				var envfun = encoded_view_obj.fun;
+				var envmaptype = encoded_view_obj.maptype;
+				var envparams = encoded_view_obj.env;
+				var count = encoded_view_obj.count;
+				var style = encoded_view_obj.style;	
+				var query = encoded_view_obj.q == "true";
+				var breaks = undefined;
+				if(envparams){
+					breaks = envparams.split(";"); breaks.splice(-1,1);
+					breaks = breaks.map(function(key){return parseFloat(key.split(":")[1])});
+				}
+				encoded_datasets.push({
+					pid: pid, strategy: strategy, viewparams: viewparams, 
+					envfun: envfun, envmaptype: envmaptype, envparams: envparams, count : count, breaks: breaks, style: style, 
+					query: query
+				});
 			}
 
 			var metadata_promises = new Array();
 			for(var i=0;i<encoded_datasets.length;i++){
 				metadata_promises.push( this_.getCSWRecord(encoded_datasets[i].pid) );
 			}
+			console.log(encoded_datasets);
 			console.log("Sending "+metadata_promises.length+" metadata record request(s)...");
 			metadata_promises.forEach(function(promise, i){
 				$.when(promise).then(function(md_entry) {
 					var encoded_dataset = encoded_datasets[i];
 					encoded_dataset.entry = md_entry;
-					encoded_dataset.title = this_.getDatasetViewTitle(encoded_dataset.entry.title, encoded_dataset.viewparams);				
-					this_.selection.push(encoded_dataset.entry);	
-
-					//if it was the last dataset queried by user we fill the query interface with param values
-					if(encoded_dataset.query) this_.resolveDatasetForQuery(encoded_dataset);
+					encoded_dataset.title = this_.getDatasetViewTitle(encoded_dataset, encoded_dataset.viewparams);
+					encoded_dataset.dsd = encoded_dataset.entry.dsd;
+					console.log(encoded_dataset);
+					this_.selection.push(encoded_dataset);	
 					
 					//resolve map
 					this_.resolveDatasetForMap(encoded_dataset);
+					
+					//if it was the last dataset queried by user we fill the query interface with param values
+					if(encoded_dataset.query) this_.resolveDatasetForQuery(encoded_dataset);
+					
 
 					//popup coords
 					if(params.popup_id) if(params.popup_id == encoded_dataset.pid) {
@@ -2336,7 +2508,7 @@
      * OpenFairViewer.prototype.openAboutDialog Open 'About' dialog
      */
 	OpenFairViewer.prototype.openAboutDialog = function(){
-		this.closeDataDialog();
+		this.closeBrowseDialog();
 		this.closeQueryDialog();
 		this.openDialog("aboutDialog");
 	}
@@ -2349,19 +2521,19 @@
 	}
    
     /**
-	 * OpenFairViewer.prototype.openDataDialog Open 'Data' dialog
+	 * OpenFairViewer.prototype.openBrowseDialog Open 'Data' dialog
 	 */
-	OpenFairViewer.prototype.openDataDialog = function(){
+	OpenFairViewer.prototype.openBrowseDialog = function(){
 		this.closeAboutDialog();
 		this.closeQueryDialog();
-		this.openDialog("dataDialog");
+		this.openDialog("browseDialog");
 	}
    
     /**
-	* OpenFairViewer.prototype.closeDataDialog Close 'Data' dialog
+	* OpenFairViewer.prototype.closeBrowseDialog Close 'Data' dialog
 	*/
-	OpenFairViewer.prototype.closeDataDialog = function(){
-		this.closeDialog("dataDialog");
+	OpenFairViewer.prototype.closeBrowseDialog = function(){
+		this.closeDialog("browseDialog");
 	}
 	
 	/**
@@ -2369,7 +2541,7 @@
 	*/
 	OpenFairViewer.prototype.openQueryDialog = function(){
 		this.closeAboutDialog();
-		this.closeDataDialog();
+		this.closeBrowseDialog();
 		this.openDialog("queryDialog");
 	}
    
