@@ -196,9 +196,11 @@
 	    <button class="btn btn-xs dataset-button dataset-button-info"
 		    data-pid="{{pid}}" title="Access dataset metadata"
 		    onclick="app.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>
+            {{#queryable}}
 	    <button class="btn btn-xs dataset-button dataset-button-add pid"
 		    data-pid="{{pid}}" title="Query & Map dataset"
 		    onclick="app.openQueryDialog();app.displayDatasetQueryForm(this);"><span class="glyphicon glyphicon-globe"></span></button>
+	    {{/queryable}}
         </div>
       </article>
     </script>
