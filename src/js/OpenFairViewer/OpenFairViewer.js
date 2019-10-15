@@ -681,7 +681,10 @@
 	OpenFairViewer.prototype.displayDatasetQueryForm = function(elm){
 		var pid = elm.getAttribute('data-pid');
 		console.log("Display query form dataset with pid = " + pid);
-		this.handleQueryForm(pid);
+		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
+		if(dataset.length>0) dataset = dataset[0];
+		console.log(dataset);
+		this.handleQueryForm(dataset);
 	}
 	  
 	/**
@@ -804,19 +807,16 @@
 
 	/**
 	 * OpenFairViewer.prototype.handleQueryForm
-	 * @param pid
-	 * @param dsd
+	 * @param dataset
 	 */
-	OpenFairViewer.prototype.handleQueryForm = function(pid){
+	OpenFairViewer.prototype.handleQueryForm = function(dataset){
 		$("#dsd-ui").empty();
-		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
-		if(dataset.length>0) dataset = dataset[0];
 		if(dataset.dsd){
-			console.log("Handle DSD Query Form for dataset with pid = " + pid );
-			return this.handleDSD(pid);
+			console.log("Handle DSD Query Form for dataset with pid = " + dataset.pid );
+			return this.handleDSD(dataset);
 		}else{ 
-			console.log("Handle Filter Query Form for dataset with pid = " + pid );
-			return this.handleFilter(pid);
+			console.log("Handle Filter Query Form for dataset with pid = " + dataset.pid );
+			return this.handleFilter(dataset);
 		};		
 	}
 
@@ -829,7 +829,7 @@
 		//Query and mapbutton
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
-		$("#dsd-ui-col-"+columnIdx).append('<button type="button" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary" onclick="app.mapDataset()">Query & Map</button>');
+		$("#dsd-ui-col-"+columnIdx).append('<button type="button" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary" onclick="app.mapDataset(app.dataset_on_query, true)">Query & Map</button>');
 		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">Ups! There is no data for this query...</span>');
 				
 		//download buttons
@@ -936,15 +936,14 @@
 	 * OpenFairViewer.prototype.handleFilter
 	 * @param pid
 	 */
-	OpenFairViewer.prototype.handleFilter = function(pid){
+	OpenFairViewer.prototype.handleFilter = function(dataset){
 		
 		var deferred = $.Deferred();
 		
 		var this_ = this;
-		var target = this.datasets.filter(function(data){if(data.pid == pid){return data}});
-		if(target.length>0) target = target[0];
-		this.dataset_on_query = {pid: pid, entry: target, strategy: "ogc_filters", dsd: null, query: null};
-		$("#datasetSelector").val(this_.dataset_on_query.pid).trigger('change');
+		var pid = dataset.pid;
+		var entry = dataset.entry? dataset.entry : dataset;
+		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null};
 				
 		//build UI
 		var bootstrapClass = "col-md-" + 12/this_.options.ui.query.columns;
@@ -967,19 +966,19 @@
 
 	/**
 	 * OpenFairViewer.prototype.handleDSD
-	 * @param pid
+	 * @param dataset
 	 */
-	OpenFairViewer.prototype.handleDSD = function(pid){
+	OpenFairViewer.prototype.handleDSD = function(dataset){
 
 	    var deferred = $.Deferred();	
           
 		$("#dsd-loader").show();
 	  
 		var this_ = this;
-		var target = this.datasets.filter(function(data){if(data.pid == pid){return data}});
-		if(target.length>0) target = target[0];
+		var pid = dataset.pid;
+		var entry = dataset.entry? dataset.entry : dataset;
 		$.ajax({
-			url: target.dsd,
+			url: dataset.dsd,
 			contentType: 'application/xml',
 			type: 'GET',
 			success: function(response){
@@ -987,9 +986,7 @@
 				
 				//parse DSD
 				//TODO later get 'type' value from FeatureCatalogue. This type will condition all underlying services (url params for WMS, app, etc)
-				this_.dataset_on_query = { pid: pid, entry: target, strategy: "ogc_viewparams", dsd: this_.parseFeatureCatalogue(response), query: null };
-				
-				$("#datasetSelector").val(this_.dataset_on_query.pid).trigger('change');
+				this_.dataset_on_query = { pid: pid, entry: entry, strategy: "ogc_viewparams", dsd: this_.parseFeatureCatalogue(response), query: null };
 				
 				//build UI
 				var bootstrapClass = "col-md-" + 12/this_.options.ui.query.columns;
@@ -1237,13 +1234,15 @@
 	
 	/**
 	 * OpenFairViewer.prototype.getStrategyParams
+	 * @param dataset
+	 * @param stringify
 	 */
-	 OpenFairViewer.prototype.getStrategyParams = function(stringify){
+	 OpenFairViewer.prototype.getStrategyParams = function(dataset, stringify){
 		var this_ = this;
 		var data_query = new Array();
 		var tostring = stringify? stringify : false;
 		
-		switch(this_.dataset_on_query.strategy){
+		switch(dataset.strategy){
 		    case "ogc_filters":
 				//Get params according to 'filters' strategy
 				var filter = $("#ui-ogc_filter").val();
@@ -1284,9 +1283,9 @@
 				
 				}else if(this_.timeWidget == 'datepicker'){
 					var time_start = $($(".dsd-ui-dimension-datepicker")[0]).datepicker( "getDate" );
-					if(!time_start) time_start = new Date(new Date(this.dataset_on_query.entry.time_start) - tzoffset).toISOString().split('T')[0];
+					if(!time_start) time_start = new Date(new Date(dataset.entry.time_start) - tzoffset).toISOString().split('T')[0];
 					var time_end = $($(".dsd-ui-dimension-datepicker")[1]).datepicker( "getDate" );
-					if(!time_end) time_end = new Date(new Date(this.dataset_on_query.entry.time_end) - tzoffset).toISOString().split('T')[0];
+					if(!time_end) time_end = new Date(new Date(dataset.entry.time_end) - tzoffset).toISOString().split('T')[0];
 					var data_component_query_timestart = new Object();
 					data_component_query_timestart['time_start'] = time_start;
 					data_query.push(data_component_query_timestart);
@@ -1757,11 +1756,13 @@
 
 	/**
 	 * OpenFairViewer.prototype.mapDataset
+	 * @param dataset
+	 * @param from_query_form
 	 */
-	OpenFairViewer.prototype.mapDataset = function(){
+	OpenFairViewer.prototype.mapDataset = function(dataset, from_query_form){
 		var this_ = this;
 
-		var pid = this_.dataset_on_query.pid;
+		var pid = dataset.pid;
 		
 		$("#datasetMapper").prop('disabled', true);
 		$("#datasetMapper").bootstrapBtn('loading');
@@ -1771,40 +1772,41 @@
 		var baseWfsUrl = undefined;
 		var baseWmsUrl = undefined;
 		var layerName = undefined;
-		if(this_.dataset_on_query.entry.wfs.length > 0){
-			var baseWFS = this_.dataset_on_query.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = this_.dataset_on_query.entry.wfs[0] };
+		if(dataset.entry.wfs.length > 0){
+			var baseWFS = dataset.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
+			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = dataset.entry.wfs[0] };
 			baseWfsUrl = baseWFS.url;
 		}
-		if(this_.dataset_on_query.entry.wms.length > 0){
-			var baseWMS = this_.dataset_on_query.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = this_.dataset_on_query.entry.wms[0] };
+		if(dataset.entry.wms.length > 0){
+			var baseWMS = dataset.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
+			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = dataset.entry.wms[0] };
 			baseWmsUrl = baseWMS.url;
 			layerName = baseWMS.name;
 		}
 		
-	    var layer = this_.getLayerByProperty(this_.dataset_on_query.entry.pid, 'id');
-		var strategyparams = this_.getStrategyParams(false);
-		var strategyparams_str = this_.getStrategyParams(true);
-	    var layerTitle = this_.getDatasetViewTitle(this_.dataset_on_query, strategyparams);
+	    var layer = this_.getLayerByProperty(dataset.entry.pid, 'id');
+		var strategyparams = from_query_form? this_.getStrategyParams(dataset, false) : dataset.viewparams;
+		var strategyparams_str = strategyparams? strategyparams.map(function(item){return Object.keys(item) + ':' + item[Object.keys(item)]}).join(';') : null;
+	    var layerTitle = this_.getDatasetViewTitle(dataset, strategyparams);
 		
 		//dynamic styling properties
-		var mapType =  $("#map-type-selector").select2('val');
-		var classType = $("#map-classtype-selector").select2('val');
-		var classNb = $("#map-classnb-selector").select2('val');
+		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
+		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
+		
+		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="") return item}).length-1 : null);
 		var layerStyle =  "dyn_poly_" + mapType + "_class_" + classNb;
 
 		if(!layer){
 			console.log("Adding new layer");
 		    //ADD LAYER
-		    switch(this_.dataset_on_query.strategy){
+		    switch(dataset.strategy){
 			 case "ogc_filters":
 				var cql_filter = null;
-				if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
+				if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 				console.log(cql_filter);
 				this_.selectDataset(pid);
 				var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, cql_filter, null, null, null, null, null);
-				layer.strategy = this_.dataset_on_query.strategy;
+				layer.strategy = dataset.strategy;
 				layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 				this_.addLayerTooltip(layer);
 				$("#datasetMapper").bootstrapBtn('reset');
@@ -1840,7 +1842,7 @@
 							var envparams = this_.buildEnvParams(breaks);
 							this_.selectDataset(pid);
 							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, layerStyle, strategyparams_str, classType, envparams, values.length);
-							layer.strategy = this_.dataset_on_query.strategy;
+							layer.strategy = dataset.strategy;
 							layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
@@ -1870,7 +1872,7 @@
 					//static styling
 					this_.selectDataset(pid);
 					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, null,strategyparams_str);
-					layer.strategy = this_.dataset_on_query.strategy;
+					layer.strategy = dataset.strategy;
 					layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 					this_.map.changed();
 					//actions o download buttons
@@ -1883,12 +1885,12 @@
 		}else{ 
 			console.log("Updating existing layer");
 		    //UPDATE LAYER
-		    switch(this_.dataset_on_query.strategy){
+		    switch(dataset.strategy){
 			case "ogc_filters":
 			    //update 
 				var cql_filter = null;
 				if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
-				layer.strategy = this_.dataset_on_query.strategy;
+				layer.strategy = dataset.strategy;
 				layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 				layer.setProperties({title: layerTitle});
 				layer.getSource().updateParams({'CQL_FILTER': cql_filter});
@@ -1906,7 +1908,7 @@
 			case "ogc_viewparams":
 			    if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetFeatures(baseWfsUrl, pid, strategyparams_str, null, ["value"]).then(function(features){
+				this_.getDatasetFeatures(baseWfsUrl, layerName, strategyparams_str, null, ["value"]).then(function(features){
 					console.log("Data series features");
 					console.log(features);
 					console.log("Data series values");
@@ -1925,7 +1927,7 @@
 						var envparams = this_.buildEnvParams(breaks);
 
 						//update viewparams, envparams & legend
-						layer.strategy = this_.dataset_on_query.strategy;
+						layer.strategy = dataset.strategy;
 						layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 						layer.setProperties({title: layerTitle});
 						layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
@@ -1958,7 +1960,7 @@
 					//static styling
 					layer.setProperties({title: layerTitle});
 					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
-					layer.strategy = this_.dataset_on_query.strategy;
+					layer.strategy = dataset.strategy;
 					layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 					this_.map.changed();
 					//actions o download buttons
@@ -2074,7 +2076,7 @@
 		var layerName = this.dataset_on_query.pid;
 		var baseWFS = this_.getDataProtocolsFromMetadataEntry(this_.dataset_on_query.entry, "WFS", layerName)[0];
 		var baseLayerUrl = baseWFS.url;
-		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, layerName, this.getStrategyParams(true), null, null, 'json');
+		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, layerName, this.getStrategyParams(this.dataset_on_query, true), null, null, 'json');
 		$.getJSON(layerUrl, function(response){
 			var features = new ol.format.GeoJSON().readFeatures(response);
 			var featuresToExport = new Array();
@@ -2300,7 +2302,7 @@
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
 		this_.openQueryDialog();
-		this_.handleQueryForm(datasetDef.pid).then(function(){					
+		this_.handleQueryForm(datasetDef).then(function(){					
 
 			if(datasetDef.query){
 				//view params
@@ -2346,33 +2348,12 @@
 
 	/**
 	 * OpenFairViewer.prototype.resolveDatasetForMap
-	 * @param datasetDef
+	 * @param dataset
 	 */
-	OpenFairViewer.prototype.resolveDatasetForMap = function(datasetDef){
-		console.log("Resolving map for pid = '"+datasetDef.pid+"'");
-		var this_ = this;
-		
-		//layer properties
-		var baseWfsUrl = undefined;
-		var baseWmsUrl = undefined;
-		var layerName = undefined;
-		if(datasetDef.entry.wfs.length > 0){
-			var baseWFS = datasetDef.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = datasetDef.entry.wfs[0] };
-			baseWfsUrl = baseWFS.url;
-		}
-		if(datasetDef.entry.wms.length > 0){
-			var baseWMS = datasetDef.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = datasetDef.entry.wms[0] };
-			baseWmsUrl = baseWMS.url;
-			layerName = baseWMS.name;
-		}
-		
-		var layer = this.addLayer(this.options.map.mainlayergroup, datasetDef.pid, datasetDef.title, baseWmsUrl, layerName, false, true, true, 0.9, true, null,
-					  datasetDef.style, datasetDef.viewparams, datasetDef.envfun, datasetDef.envparams, datasetDef.count);
-		layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
-		this_.addLayerTooltip(layer);
-		this_.setLegendGraphic(layer, datasetDef.breaks);		
+	OpenFairViewer.prototype.resolveDatasetForMap = function(dataset){
+		console.log("Resolving map for pid = '"+dataset.pid+"'");
+		console.log(dataset);
+		this.mapDataset(dataset, false);		
 	}
 
 	/**
