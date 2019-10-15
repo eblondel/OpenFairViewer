@@ -2148,6 +2148,7 @@
 				canvas.width = '200';
 				var ctx = canvas.getContext('2d');
 				var palette = new Image();
+				palette.crossOrigin = "anonymous";
 				palette.src = request;
 				palette.onload = function() {
 				    //draw color palette
