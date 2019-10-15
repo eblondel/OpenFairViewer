@@ -30,6 +30,8 @@ $(document).ready(function(){
 		},
 		ui 	: {
 			browse: {
+				filterByWMS: false,
+				filterByContentInfo: false,
 				datasetInfoHandler : function(metadata){
 					var datasetInfoUrl = "http://localhost:8080/geonetwork/srv/eng/catalog.search#/metadata/" + metadata.fileIdentifier;
 					$('#datasetInfo').empty().html('<iframe src="'+datasetInfoUrl+'" style="overflow: hidden; height: 100%; width: 100%; position: absolute;"> frameborder="0" marginheight="0"></iframe>');

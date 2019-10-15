@@ -81,13 +81,15 @@
 		//UI browse options
 		this.options.ui.browse = {};
 		this.options.ui.browse.filterByContentInfo = false;
+		this.options.ui.browse.filterByWMS = false;
 		this.options.ui.browse.datasetInfoHandler = function(metadata){
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
 			window.open(datasetInfoUrl, '_blank');
 		}
 		if(options.ui) if (options.ui.browse) {
 			if(options.ui.browse.datasetInfoHandler) this.options.ui.browse.datasetInfoHandler = options.ui.browse.datasetInfoHandler;
-			if(options.ui.browse.filterByContentInfo) this.options.ui.browse.filterByContentInfo = options.ui.browse.filterByContentInfo
+			if(options.ui.browse.filterByContentInfo) this.options.ui.browse.filterByContentInfo = options.ui.browse.filterByContentInfo;
+			if(options.ui.browse.filterByWMS) this.options.ui.browse.filterByWMS = options.ui.browse.filterByWMS;
 		}
 		
 		//UI query options
@@ -490,7 +492,8 @@
 			for(var i=0;i<csw_results.length;i++){
 				var csw_result = csw_results[i];    
 				var md_entry = this_.createMetadataEntry(csw_result.value);
-				var add = this_.options.ui.browse.filterByContentInfo? md_entry.metadata.contentInfo : true;
+				var add = this_.options.ui.browse.filterByWMS? md_entry.queryable : true;
+				add = add && (this_.options.ui.browse.filterByContentInfo? md_entry.metadata.contentInfo : true);
 				if(add) datasets.push(md_entry);
 			}                       
 			  
