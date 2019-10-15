@@ -458,14 +458,14 @@
 		md_entry._abstract = md_entry.metadata.identificationInfo[0].abstractMDIdentification._abstract;
 		//extents
 		var extents = md_entry.metadata.identificationInfo[0].abstractMDIdentification.extent; 
-		if(extents[0].exExtent.temporalElement){                          
+		if(extents) if(extents[0].exExtent.temporalElement){                          
 			var temporalExtent = extents[0].exExtent.temporalElement[0].exTemporalExtent.extent.abstractTimePrimitive;
 			if(temporalExtent.beginPosition) md_entry.time_start = temporalExtent.beginPosition.value[0];
 			if(temporalExtent.endPosition) md_entry.time_end = temporalExtent.endPosition.value[0];
 			if(temporalExtent.timePosition) md_entry.time_position = temporalExtent.timePosition.value; //TODO to see how to deal with that
 		}
 		//content information
-		if(md_entry.metadata.contentInfo){
+		if(md_entry.metadata.contentInfo) if(md_entry.metadata.contentInfo[0].abstractMDContentInformation.featureCatalogueCitation){
 			md_entry.dsd = md_entry.metadata.contentInfo[0].abstractMDContentInformation.featureCatalogueCitation[0].ciCitation.citedResponsibleParty[0].ciResponsibleParty.contactInfo.ciContact.onlineResource.ciOnlineResource.linkage.url;
 			md_entry.dsd = md_entry.dsd.replace("catalog.search#/metadata/","xml.metadata.get?uuid=");
 			md_entry.dsd = this_.rewriteURL(md_entry.dsd);
@@ -1606,6 +1606,8 @@
 	 */
 	OpenFairViewer.prototype.getDataProtocolsFromMetadataEntry = function(md_entry, protocol, layerSuffix){
 		var out = new Array();
+		if(!md_entry.metadata.distributionInfo.mdDistribution.transferOptions) return out;
+		if(!md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine) return out;
 		var onLines = md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
 		   function(item){
 			if(!item.ciOnlineResource.linkage.url) return;
@@ -1805,7 +1807,7 @@
 				if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 				console.log(cql_filter);
 				this_.selectDataset(pid);
-				var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, cql_filter, null, null, null, null, null);
+				var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, cql_filter, null, null, null, null, null);
 				layer.strategy = dataset.strategy;
 				layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 				this_.addLayerTooltip(layer);
@@ -1841,7 +1843,7 @@
 							console.log(breaks);
 							var envparams = this_.buildEnvParams(breaks);
 							this_.selectDataset(pid);
-							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, layerStyle, strategyparams_str, classType, envparams, values.length);
+							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, values.length);
 							layer.strategy = dataset.strategy;
 							layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 							layer.envfun = classType;
@@ -1871,7 +1873,7 @@
 			    }else{
 					//static styling
 					this_.selectDataset(pid);
-					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, true, null, null,strategyparams_str);
+					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
 					this_.map.changed();
