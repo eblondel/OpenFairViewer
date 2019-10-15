@@ -48,6 +48,31 @@
   	    };
 	}
 
+	//Ows.js overwriten functions
+	//===========================================================================================
+	Ows4js.Filter.prototype.BBOX = function(llat, llon, ulat, ulon, srsName) {
+    		this['ogc:Filter'].spatialOps = {
+        		'ogc:BBOX' : {
+            		   TYPE_NAME: "Filter_1_1_0.BBOXType",
+            		   envelope :{
+                	    'gml:Envelope' : {
+                    		TYPE_NAME: "GML_3_1_1.EnvelopeType",
+                    		lowerCorner: {
+                        		TYPE_NAME: "GML_3_1_1.DirectPositionType",
+                        		value : [llat, llon]
+                    		},
+                    		upperCorner : {
+                        		TYPE_NAME: "GML_3_1_1.DirectPositionType",
+                        		value : [ulat, ulon]
+                    		},
+                    		srsName: srsName
+                	     }
+            		  },
+               	       }
+    		};
+    		return this;
+	};	
+
 	/**
 	 * Function to instantiate an OpenFairViewer
 	 */
@@ -600,7 +625,7 @@
 		$("#dataset-count").empty();
 	 
 		this.datasets = new Array();
-		if($("#dataset-search-bbox").prop("checked") && !bbox){
+		if($("#dataset-search-bbox-on-search").prop("checked") && !bbox){
 			bbox = this.map.getView().calculateExtent(this.map.getSize());
 		}
 		this.getDatasetsFromCSW(bbox).then(function(results){
@@ -1424,7 +1449,7 @@
 		//------
 		//spatial search
 		map.on('moveend', function(evt){
-			if($("#dataset-search-bbox").prop("checked")){
+			if($("#dataset-search-bbox-on-search").prop("checked") && $("#dataset-search-bbox-on-mapmove").prop("checked")){
 				var bbox = evt.map.getView().calculateExtent(evt.map.getSize());
 				this_.displayDatasets(bbox); 
 			}

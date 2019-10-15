@@ -56,7 +56,7 @@ nav ul li.active { background-color: #0C71B8;}
 /** BROWSER **/
 #dataset-selection, #dataset-list { height:70%;}
 #dataset-selection section.list, #dataset-list section.list { height: 100%; }
-#dataset-pages { text-align: center; }
+#dataset-pages { text-align: center; margin-left: 15px;}
 .search-result .thumbnail-wrapper { padding: 0px; height: 100%;}
 .search-result .thumbnail { border-radius: 0 !important; padding: 0px; height: 100%;     margin-bottom: 0px;}
 .search-result .thumbnail img { height: 100%;}
@@ -71,7 +71,7 @@ nav ul li.active { background-color: #0C71B8;}
 .search-result h6 > a, .search-result i { color: #248dc1 !important; }
 .search-result p { font-size:80%;}
 .pagination>li { display: inline-block; }
-.loader { text-align:center; display:none; position: absolute; margin: 30% 0; width: 100%;}
+.loader { text-align:center; display:none; position: absolute; margin: 60% 0; width: 100%;}
 .loader img { .hwa; width: 48px; height: 48px;}
 .graphic_overview {background: url(img/loading.gif);background-repeat: no-repeat !important;background-size: 48px 48px !important; background-position: center !important;}
 .dataset-button { font-size: 80%; position: absolute; top: 0px; right: 0px; padding: 3px 6px !important;}
