@@ -87,7 +87,7 @@
 		}
 		this.config = config;
 		this.config.OGC_CSW_SCHEMA = "http://www.isotc211.org/2005/gmd";
-		this.config.OGC_CSW_MAXRECORDS = 10;
+		this.config.OGC_CSW_MAXRECORDS = 5;
 		
 		var options = opt_options || {};
 		this.options = {};
@@ -275,6 +275,9 @@
 		if(options.panel) {
 				this.options.panel.welcome = options.panel.about? options.panel.about : 'aboutDialog2';				
 		}
+		
+		//datasets caching
+		this.datasets = new Array();
 	}
 	
 	//Init
@@ -504,13 +507,15 @@
 	
 	/**
 	 * OpenFairViewer.prototype.getRecords
-	 * @param Page
+	 * @param pageItem
 	 */
-	OpenFairViewer.prototype.getRecords = function(pageItem, filter){
+	OpenFairViewer.prototype.getRecords = function(page, filter){
 		var deferred = $.Deferred();
 		var this_ = this;
-		console.log("Get CSW Records for page "+pageItem.page+" (ie from index "+pageItem.first+" to "+pageItem.last+" ...");
-		this.csw.GetRecords(pageItem.first, this.config.OGC_CSW_MAXRECORDS, filter, this.config.OGC_CSW_SCHEMA).then(function(result){				 
+		var last = page * this.config.OGC_CSW_MAXRECORDS;
+		var first = last - this.config.OGC_CSW_MAXRECORDS + 1;
+		console.log("Get CSW Records for page "+page+" [from index "+first+" to "+last+"] ...");
+		this.csw.GetRecords(first, this.config.OGC_CSW_MAXRECORDS, filter, this.config.OGC_CSW_SCHEMA).then(function(result){				 
 			var csw_results = result.value.searchResults.any;
 			var datasets = new Array();	
 			//post-process results
@@ -534,6 +539,9 @@
 	 */
 	OpenFairViewer.prototype.getDatasetsFromCSW = function(bbox){
 		
+		$("#dataset-count").empty();
+		
+		//business logic
 		var this_ = this;
 		var deferred = $.Deferred();
 		if(!this.csw) deferred.reject("CSW endpoint is not instantiated!");
@@ -578,36 +586,48 @@
 					console.log("Max items option set. Restraining number of records retrieved to "+this_.options.catalog.maxitems+" records");
 					maxNb = this_.options.catalog.maxitems;
 				}
-				//GetRecords with pagination
-				if(numberOfRecordsMatched > 0){
-					var firstIdx = 1; 
-					var lastIdx = this_.config.OGC_CSW_MAXRECORDS;
-					var page = 1;
-					var indexes = new Array();
-					indexes.push({page: 1, first: 1, last: this_.config.OGC_CSW_MAXRECORDS});
-					while(lastIdx < maxNb){
-						page = page+1;
-						firstIdx = lastIdx+1;
-						lastIdx = this_.config.OGC_CSW_MAXRECORDS*page;
-						if(lastIdx>maxNb) lastIdx = maxNb;
-						indexes.push({page: page, first: firstIdx, last: lastIdx});	
-					}
-					var getrecords_promises = new Array();
-					for(var i=0;i<indexes.length;i++){
-						getrecords_promises.push( this_.getRecords(indexes[i], filter) );
-					}
-					var datasets = new Array();
-					var count = 0;
-					getrecords_promises.forEach(function(promise, i){
-						$.when(promise).then(function(records) {
-							console.log(records);
-							for(var j=0;j<records.length;j++){ datasets.push(records[j]) };
-							count += 1;
-							if(count==getrecords_promises.length) deferred.resolve(datasets);
-						});
-					});
+
+				//add datasets counting
+				$("#dataset-count").html(maxNb + " datasets");
+				//Set paginated browsing operated by OGC CSW protocol
+				$("#dataset-pages").bootpag({
+					page: 1,
+					total: Math.ceil(maxNb / this_.config.OGC_CSW_MAXRECORDS),
+					maxVisible: 5,
+					leaps: true,
+					firstLastUse: true,
+					first: '←',
+					last: '→',
+				}).on("page", function(event, num){
 					
-				}
+					$("#dataset-loader").show();
+					
+					//display based on templates
+					var template = $('#datasetTpl').html();
+					var dataContainer = $("#dataset-articles");
+					if(dataContainer.find("section").length >0) $(dataContainer.find("section")[0]).remove();
+					
+					//get CSW records for page
+					this_.getRecords(num, filter).then(function(records){
+						
+						if(dataContainer.find("section").length >0) $(dataContainer.find("section")[0]).remove();
+						$("#dataset-loader").hide();
+						
+						var dataHtml = '<section class="col-xs-12 col-sm-12 col-md-12">';
+						console.log(records);
+						for(var i=0;i<records.length;i++){
+						  var record = records[i];
+						  console.log(record);
+						  this_.cacheDataset(record.pid);
+						  var item_html = Mustache.to_html(template, record);
+						  dataHtml += item_html;
+						}
+						dataHtml += '</section>';
+						dataContainer.append(dataHtml);
+						
+					});
+				
+				}).trigger("page", 1);
 			});
 		}
 		return deferred.promise();
@@ -620,42 +640,10 @@
 	 */
 	OpenFairViewer.prototype.displayDatasets = function(bbox){
 		var this_ = this;
-		$($("#dataset-list").find("section")[0]).empty();
-		$("#dataset-loader").show();
-		$("#dataset-count").empty();
-	 
-		this.datasets = new Array();
 		if($("#dataset-search-bbox-on-search").prop("checked") && !bbox){
 			bbox = this.map.getView().calculateExtent(this.map.getSize());
 		}
-		this.getDatasetsFromCSW(bbox).then(function(results){
-			console.log(results);
-			$("#dataset-loader").hide();
-			this_.datasets = results;
-			
-			//display based on templates
-			var template = $('#datasetTpl').html();
-			var dataContainer = $("#dataset-articles");
-			dataContainer.empty();
-			var container = $("#dataset-pages");
-			container.pagination({
-				dataSource: this_.datasets,
-				pageSize: 5,
-				autoHidePrevious: true,
-				autoHideNext: true,
-				callback: function(data, pagination) {
-					var dataHtml = '<section class="col-xs-12 col-sm-12 col-md-12">';
-					$.each(data, function (index, item) {
-					  var item_html = Mustache.to_html(template, item);
-					  dataHtml += item_html;
-					});
-					dataHtml += '</section>';
-					dataContainer.html(dataHtml);
-				}
-			});
-			//add datasets counting
-			$("#dataset-count").html(this_.datasets.length + " datasets");
-		});
+		this.getDatasetsFromCSW(bbox);
 	}
 	 
 	/**
@@ -711,6 +699,23 @@
 		console.log(dataset);
 		this.handleQueryForm(dataset);
 	}
+	  
+	/**
+	 * OpenFairViewer.prototype.cacheDataset
+	 * Cache a dataset
+	 * @param dataset
+	 *
+	 **/
+	OpenFairViewer.prototype.cacheDataset = function(dataset){
+		var pid = dataset.pid;
+		console.log("Cache dataset with pid = " + pid);
+		var out =false;
+		if(this.datasets.map(function(i){return i.pid}).indexOf(pid) == -1){
+			this.datasets.push(dataset);
+			out = true;   
+		}
+		return out;
+	}	  
 	  
 	/**
 	 * OpenFairViewer.prototype.selectDataset
@@ -2519,6 +2524,8 @@
 		$( "#" + id ).dialog({
 			width: ((id=='queryDialog')? ((this_.options.ui.query.columns * 400)+'px') : undefined),
 			autoOpen: false,
+			draggable: false,
+			resizable: false,
 			title: title,
 			classes: classes,
 			position: position,
