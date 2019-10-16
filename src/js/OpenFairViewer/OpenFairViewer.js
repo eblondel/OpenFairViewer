@@ -617,8 +617,7 @@
 						console.log(records);
 						for(var i=0;i<records.length;i++){
 						  var record = records[i];
-						  console.log(record);
-						  this_.cacheDataset(record.pid);
+						  this_.cacheDataset(record);
 						  var item_html = Mustache.to_html(template, record);
 						  dataHtml += item_html;
 						}
@@ -696,7 +695,6 @@
 		console.log("Display query form dataset with pid = " + pid);
 		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
 		if(dataset.length>0) dataset = dataset[0];
-		console.log(dataset);
 		this.handleQueryForm(dataset);
 	}
 	  
