@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191014)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191021)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -80,7 +80,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,10,14)}
+		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,10,21)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -1391,7 +1391,7 @@
 			target : mapId,
 			layers : this_.layers.baseLayers.concat(this_.layers.overlays),
 			view : new ol.View({
-				projection: this.options.map.projection,
+				projection: this_.options.map.projection,
 				center : ol.extent.getCenter(defaultMapExtent),
 				extent: defaultMapExtent,
 				zoom : defaultMapZoom
@@ -1400,6 +1400,19 @@
 			logo: false
 		});
 		map.addControl( new ol.control.LoadingPanel() );
+		map.addControl( new ol.control.OverviewMap({
+			className: 'ol-overviewmap ol-custom-overviewmap',
+			layers: [ this_.layers.baseLayers[0] ],
+			view : new ol.View({
+				projection: this_.options.map.projection,
+				center : ol.extent.getCenter(defaultMapExtent),
+				extent: defaultMapExtent,
+				zoom : defaultMapZoom
+			}),
+			collapseLabel: '\u00BB',
+  			label: '\u00AB',
+  			collapsed: true
+		}) );
 		map.addControl( new ol.control.Zoom() );
 		map.addControl( new ol.control.ZoomToMaxExtent({
 			extent	: extent? extent : defaultMapExtent,
@@ -1537,9 +1550,10 @@
 		var popup = this.map.getOverlayById(layer.id);
 		$.ajax({
 			url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"}),
-			contentType: 'application/xml',
-                	type: 'GET',
-                	success: function(response){
+			crossOrigin: true,
+			type: 'GET',
+			success: function(response){
+				console.log(response);
 				var gml = new ol.format.GML();
 				var features = gml.readFeatures(response);
 				if(features.length > 0){
@@ -1837,7 +1851,7 @@
 				this_.selectDataset(pid);
 				var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, cql_filter, null, null, null, null, null);
 				layer.strategy = dataset.strategy;
-				layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+				layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 				this_.addLayerTooltip(layer);
 				$("#datasetMapper").bootstrapBtn('reset');
 				$("#datasetMapper").prop('disabled', false);
@@ -1873,7 +1887,7 @@
 							this_.selectDataset(pid);
 							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, values.length);
 							layer.strategy = dataset.strategy;
-							layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
 							layer.count = values.length;
@@ -1903,7 +1917,7 @@
 					this_.selectDataset(pid);
 					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
-					layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					this_.map.changed();
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
@@ -1921,7 +1935,7 @@
 				var cql_filter = null;
 				if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 				layer.strategy = dataset.strategy;
-				layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+				layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 				layer.setProperties({title: layerTitle});
 				layer.getSource().updateParams({'CQL_FILTER': cql_filter});
 				this_.map.changed();
@@ -1958,7 +1972,7 @@
 
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
-						layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						layer.setProperties({title: layerTitle});
 						layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 						layer.getSource().updateParams({'STYLES' : layerStyle});
@@ -1991,7 +2005,7 @@
 					layer.setProperties({title: layerTitle});
 					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 					layer.strategy = dataset.strategy;
-					layer.baseDataUrl = baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "");
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					this_.map.changed();
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
