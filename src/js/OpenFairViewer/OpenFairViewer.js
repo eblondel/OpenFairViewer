@@ -131,14 +131,17 @@
 		//MAP options
 		this.options.map = {};
 		//watermark
-		this.options.map.attribution = options.map.attribution? options.map.attribution : null;
+		this.options.map.attribution = null;
+		if(options.map) this.options.map.attribution = options.map.attribution? options.map.attribution : null;
 		//projection
-		this.options.map.projection = options.map.projection? options.map.projection : 'EPSG:4326';
+		this.options.map.projection = 'EPSG:4326';
+		if(options.map) this.options.map.projection = options.map.projection? options.map.projection : 'EPSG:4326';
 		//zoom
-		this.options.map.zoom = options.map.zoom? options.map.zoom : 3;
+		this.options.map.zoom = 3;
+		if(options.map) this.options.map.zoom = options.map.zoom? options.map.zoom : 3;
 		//extent
 		this.options.map.extent = [-180, -90, 180, 90];
-		if(options.map.extent){
+		if(options.map) if(options.map.extent){
 			if(!(options.map.extent instanceof Array)){
 				console.error("Map extent should be an array");
 			}else{
@@ -151,12 +154,12 @@
 		}
 		//layergroups
 		this.options.map.layergroups = [{name: "Base overlays"},{name: "Statistical maps"}];
-		if(options.map.layergroups){
+		if(options.map) if(options.map.layergroups){
 			this.options.map.layergroups = options.map.layergroups;
 		}
 		//statistics layergroup
 		this.options.map.mainlayergroup = this.options.map.layergroups.length-1;
-		if(options.map.mainlayergroup){
+		if(options.map) if(options.map.mainlayergroup){
 			this.options.map.mainlayergroup = options.map.mainlayergroup;
 		}
 		//baselayers
@@ -214,14 +217,14 @@
 				})
 			})
 		];
-		if(options.map.baselayers) this.options.map.baselayers = options.map.baselayers;
+		if(options.map) if(options.map.baselayers) this.options.map.baselayers = options.map.baselayers;
 		//overlays
 		this.options.map.overlays = [];
-		if(options.map.overlays) this.options.map.overlays = options.map.overlays;
+		if(options.map) if(options.map.overlays) this.options.map.overlays = options.map.overlays;
 		
 		//aggregate
 		this.options.map.aggregated_layer_suffix = "_aggregated";
-		if(options.map.aggregated_layer_suffix){
+		if(options.map) if(options.map.aggregated_layer_suffix){
 			this.options.map.aggregated_layer_suffix = options.map.aggregated_layer_suffix;
 		}
 
