@@ -47,24 +47,24 @@ The next sections highlight the current options available in OpenFairViewer
 ### _browse_ options
 
 Name | Type | Description| Default value
-----------------------------------------
+-----|------|------------|----------------
 filters| ``Array``| An array of filters applied with 'AND' condition. Filters are defined are defined according to CSW capabilities. Each filter can be defined as object ```{name: <property>, value: <value>}```, eg. all datasets whose identifier contains the string 'species' ```{name: "dc:identifier", value: "%species%" }``` | _empty_
 filterByWMS| ``Boolean``| Indicates if only datasets with OGC WMS map resources should be listed | false
-datasetInfoHandler| ``function`` | A function taking as parameter a metadata object. By default it will open a new tab with | ```function(metadata){ var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;window.open(datasetInfoUrl, '_blank');}```
+datasetInfoHandler| ``function`` | A function taking as parameter a metadata object. By default it will open a new tab with | Function returning CSW GetRecordByID XML in new tab
 maxitems| ``Integer``| Maximum number of datasets to retrieve from the catalogue| null
 
 
 ### _query_ options
 
 Name | Type | Description| Default value
-----------------------------------------
+-----|------|------------|----------------
 columns | ``Integer``| Number of columns to use for displaying the dynamic query form. **_Experimental_**| 1
 time | ``String``| Name of the widget to use for time selection. Default is 'datePicker'. Possible alternative value 'slider' for time slider. **_Experimental_** | 'datePicker'
 
 ### _map_ options
 
 Name | Type | Description| Default value
-----------------------------------------
+-----|------|------------|----------------
 extent | ``Array``| Bounding box to use to bind the map geographic extent | [-180, -90, 180, 90]
 zoom | ``Integer``| Zoom level to use for the map | 3
 projection|``String``|Default map projection|'EPSG:4326'
