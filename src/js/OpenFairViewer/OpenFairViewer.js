@@ -531,7 +531,43 @@
 		return deferred.promise();
 	 };
 		
-
+	/**
+	 * OpenFairViewer.prototype.createFilter
+	 * @param bbox
+	 */
+	OpenFairViewer.prototype.createFilter = function(bbox){
+		//base filter
+		var filter;
+		for(var i=0;i<this.options.browse.filters.length;i++){
+			var inputFilter = this.options.browse.filters[i];
+			var cswFilter = new Ows4js.Filter().PropertyName([inputFilter.name]).isLike(inputFilter.value);
+			if(typeof filter == 'undefined'){
+				filter = cswFilter;
+			}else{
+				filter = filter.and(cswFilter);
+			}
+		}
+		
+		//free text filter
+		var txt = $("#dataset-search-text").val();
+		if(txt != ""){
+			txt = '%'+txt+'%';
+			var txtFilter = new Ows4js.Filter().PropertyName(['dc:title']).isLike(txt);
+			txtFilter = txtFilter.or(  new Ows4js.Filter().PropertyName(['dc:subject']).isLike(txt) );
+			if(typeof filter == 'undefined'){
+				filter = txtFilter;
+			}else{
+				filter = filter.and(txtFilter);
+			}
+		}
+		
+		//spatial filter
+		if(bbox){
+			filter = filter.and(new Ows4js.Filter().BBOX(bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326'));
+		}
+		return filter;
+	}
+		
 	/**
 	 * OpenFairViewer.prototype.getDatasetsFromCSW
 	 * @param bbox
@@ -546,35 +582,8 @@
 		if(!this.csw) deferred.reject("CSW endpoint is not instantiated!");
 		if(this.csw){
 			
-			//base filter
-			var filter;
-			for(var i=0;i<this.options.browse.filters.length;i++){
-				var inputFilter = this.options.browse.filters[i];
-				var cswFilter = new Ows4js.Filter().PropertyName([inputFilter.name]).isLike(inputFilter.value);
-				if(typeof filter == 'undefined'){
-					filter = cswFilter;
-				}else{
-					filter = filter.and(cswFilter);
-				}
-			}
-			
-			//free text filter
-			var txt = $("#dataset-search-text").val();
-			if(txt != ""){
-				txt = '%'+txt+'%';
-				var txtFilter = new Ows4js.Filter().PropertyName(['dc:title']).isLike(txt);
-				txtFilter = txtFilter.or(  new Ows4js.Filter().PropertyName(['dc:subject']).isLike(txt) );
-				if(typeof filter == 'undefined'){
-					filter = txtFilter;
-				}else{
-					filter = filter.and(txtFilter);
-				}
-			}
-			
-			//spatial filter
-			if(bbox){
-				filter = filter.and(new Ows4js.Filter().BBOX(bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326'));
-			}
+			//filter
+			var filter = this.createFilter(bbox);
 			
 			//get 1st record to get numberOfRecordsMatched
 			this.csw.GetRecords(1,1, filter, this.config.OGC_CSW_SCHEMA).then(function(response){
@@ -601,13 +610,20 @@
 					
 					$("#dataset-loader").show();
 					
+					var thebbox = null;
+					if($("#dataset-search-bbox-on-search").prop("checked")){
+						thebbox = this.map.getView().calculateExtent(this.map.getSize());
+					}
+					
+					var thefilter = this_.createFilter(thebbox); 
+					
 					//display based on templates
 					var template = $('#datasetTpl').html();
 					var dataContainer = $("#dataset-articles");
 					if(dataContainer.find("section").length >0) $(dataContainer.find("section")[0]).remove();
 					
 					//get CSW records for page
-					this_.getRecords(num, filter).then(function(records){
+					this_.getRecords(num, thefilter).then(function(records){
 						
 						if(dataContainer.find("section").length >0) $(dataContainer.find("section")[0]).remove();
 						$("#dataset-loader").hide();
