@@ -2162,7 +2162,14 @@
 		var baseLayerUrl = baseWFS.url;
 		var layerName = baseWFS.name;
 		var serviceVersion = baseWFS.serviceVersion;
-		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.getStrategyParams(this.dataset_on_query, true), null, null, 'json');
+		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false);
+		var cql_filter = null;
+		var strategyparams_str = null;
+		if(strategyparams){
+			strategyparams_str = strategyparams.map(function(item){return Object.keys(item) + ':' + item[Object.keys(item)]}).join(';');
+			if(strategyparams.length>0) cql_filter = strategyparams[0].CQL_FILTER;	
+		}
+		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, strategyparams_str, cql_filter, null, 'json');
 		$.getJSON(layerUrl, function(response){
 			var features = new ol.format.GeoJSON().readFeatures(response);
 			var featuresToExport = new Array();
