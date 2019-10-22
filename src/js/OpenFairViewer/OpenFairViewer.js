@@ -2287,7 +2287,8 @@
 		var url = location.href.replace(/#.*$/,'').replace(/\?.*$/,'');
 		
 		//dataset on query
-		if(this.dataset_on_query) url += '?dataset=' + this.dataset_on_query.pid;
+		url += '?';
+		if(this.dataset_on_query) url += 'dataset=' + this.dataset_on_query.pid;
 		
 		//views
 		var encoded_views = new Array();
@@ -2324,7 +2325,8 @@
 		if(viewlayers.length > 0) url += '&views=' + encodeURIComponent(JSON.stringify(encoded_views));
 		
 		//extent, center, zoom
-		url += '&extent=' + this.map.getView().calculateExtent(this.map.getSize()).join(',');
+		if(this.dataset_on_query) url += '&';
+		url += 'extent=' + this.map.getView().calculateExtent(this.map.getSize()).join(',');
 		url += "&center=" + this.map.getView().getCenter().join(',');
 		url += "&zoom=" + this.map.getView().getZoom();
 
