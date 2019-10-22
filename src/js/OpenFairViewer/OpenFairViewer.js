@@ -880,10 +880,15 @@
 		//download buttons
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
-		var button_csv_aggregated = '<button id="dsd-ui-button-csv1" type="button" class="btn data-action-button data-csv-agg" title="Download aggregated data (CSV)" onclick="app.downloadDatasetCSV(true)"></button>';
-		$("#dsd-ui-buttons").append(button_csv_aggregated);
-		var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="app.downloadDatasetCSV(false)"></button>';
-		$("#dsd-ui-buttons").append(button_csv_raw);
+		if(this.dataset_on_query.entry.wfs){
+			hasAggregate = this_.dataset_on_query.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>0}).length > 0
+			if(hasAggregate){
+				var button_csv_aggregated = '<button id="dsd-ui-button-csv1" type="button" class="btn data-action-button data-csv-agg" title="Download aggregated data (CSV)" onclick="app.downloadDatasetCSV(true)"></button>';
+				$("#dsd-ui-buttons").append(button_csv_aggregated);
+			}
+			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="app.downloadDatasetCSV(false)"></button>';
+			$("#dsd-ui-buttons").append(button_csv_raw);
+		}
 		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="app.downloadMapPNG()"></button>';
 		$("#dsd-ui-buttons").append(button_png_map);
 				
@@ -1902,7 +1907,7 @@
 			 case "ogc_viewparams":
 			    if(this_.options.map.styling.dynamic){
 					//dynamic styling
-					this_.getDatasetFeatures(baseWfsUrl, layerName, strategyparams_str, null, ["value"]).then(function(features){
+					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, strategyparams_str, null, ["value"]).then(function(features){
 						console.log("Data series features");
 						console.log(features);
 						console.log("Data series values");
@@ -1986,7 +1991,7 @@
 			case "ogc_viewparams":
 			    if(this_.options.map.styling.dynamic){
 				//dynamic styling
-				this_.getDatasetFeatures(baseWfsUrl, layerName, strategyparams_str, null, ["value"]).then(function(features){
+				this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, strategyparams_str, null, ["value"]).then(function(features){
 					console.log("Data series features");
 					console.log(features);
 					console.log("Data series values");
@@ -2151,9 +2156,11 @@
 	 */
 	OpenFairViewer.prototype.downloadDatasetCSV = function(aggregated){
 		var this_ = this;
-		var layerName = this.dataset_on_query.pid;
-		var baseWFS = this_.getDataProtocolsFromMetadataEntry(this_.dataset_on_query.entry, "WFS", layerName)[0];
+		var wfsResources = this.dataset_on_query.entry.wfs;
+		if(aggregated) wfsResources = wfsResources.filter(function(item){item.name.indexOf(this_.options.map.aggregated_layer_suffix)>0});
+		var baseWFS = wfsResources[0];
 		var baseLayerUrl = baseWFS.url;
+		var layerName = baseWFS.name;
 		var serviceVersion = baseWFS.serviceVersion;
 		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.getStrategyParams(this.dataset_on_query, true), null, null, 'json');
 		$.getJSON(layerUrl, function(response){
