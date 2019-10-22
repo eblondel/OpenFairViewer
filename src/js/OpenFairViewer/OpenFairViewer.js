@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191021)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191022)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -80,7 +80,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,10,21)}
+		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,10,22)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -97,6 +97,7 @@
 		this.options.browse = {};
 		this.options.browse.maxitems = null;
 		this.options.browse.filters = [];
+		this.options.browse.filterByWMS = false;
 		this.options.browse.datasetInfoHandler = function(metadata){
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
 			window.open(datasetInfoUrl, '_blank');
@@ -105,6 +106,10 @@
 			if(options.browse.maxitems) this.options.browse.maxitems = options.browse.maxitems;
 			if(options.browse.filters) this.options.browse.filters = options.browse.filters;
 			if(options.browse.datasetInfoHandler) this.options.browse.datasetInfoHandler = options.browse.datasetInfoHandler;
+			if(options.browse.filterByWMS){
+				this.options.browse.filterByWMS = options.browse.filterByWMS;
+				this.options.browse.filters.push( {name: 'csw:anyText', value: 'WMS'} );
+			}
 		}
 		
 		//QUERY options
