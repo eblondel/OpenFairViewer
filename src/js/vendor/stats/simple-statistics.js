@@ -1,6 +1,6 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
+//Object.defineProperty(exports, '__esModule', { value: true });
 
 /* @flow */
 
@@ -3508,6 +3508,7 @@ function bisect(
 
 // Linear Regression
 
+/*
 exports.linearRegression = linearRegression;
 exports.linearRegressionLine = linearRegressionLine;
 exports.standardDeviation = standardDeviation;
@@ -3585,4 +3586,5 @@ exports.bisect = bisect;
 exports.quickselect = quickselect;
 exports.sign = sign;
 exports.numericSort = numericSort;
+*/
 //# sourceMappingURL=simple-statistics.js.map
