@@ -92,43 +92,35 @@
 		var options = opt_options || {};
 		this.options = {};
 		
-		//CATALOG options
-		this.options.catalog = {};
-		this.options.catalog.maxitems = null;
-		this.options.catalog.filters = [];
-		if(options.catalog){
-			if(options.catalog.maxitems) this.options.catalog.maxitems = options.catalog.maxitems;
-			if(options.catalog.filters) this.options.catalog.filters = options.catalog.filters;
-		}
-		
-		//UI options
-		this.options.ui = {};
-		//UI browse options
-		this.options.ui.browse = {};
-		this.options.ui.browse.filterByContentInfo = false;
-		this.options.ui.browse.filterByWMS = false;
-		this.options.ui.browse.datasetInfoHandler = function(metadata){
+		//BROWSE options
+		//--------------------------------------------------------------------------------------------------
+		this.options.browse = {};
+		this.options.browse.maxitems = null;
+		this.options.browse.filters = [];
+		this.options.browse.datasetInfoHandler = function(metadata){
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
 			window.open(datasetInfoUrl, '_blank');
 		}
-		if(options.ui) if (options.ui.browse) {
-			if(options.ui.browse.datasetInfoHandler) this.options.ui.browse.datasetInfoHandler = options.ui.browse.datasetInfoHandler;
-			if(options.ui.browse.filterByContentInfo) this.options.ui.browse.filterByContentInfo = options.ui.browse.filterByContentInfo;
-			if(options.ui.browse.filterByWMS) this.options.ui.browse.filterByWMS = options.ui.browse.filterByWMS;
+		if(options.browse){
+			if(options.browse.maxitems) this.options.browse.maxitems = options.browse.maxitems;
+			if(options.browse.filters) this.options.browse.filters = options.browse.filters;
+			if(options.browse.datasetInfoHandler) this.options.browse.datasetInfoHandler = options.browse.datasetInfoHandler;
 		}
 		
-		//UI query options
-		this.options.ui.query = {};
-		this.options.ui.query.columns = 1;
-		this.options.ui.query.time = 'datePicker';
-		if(options.ui){
-			if(options.ui.query.columns){
-				if([1,2].indexOf(options.ui.query.columns) != -1) this.options.ui.query.columns = options.ui.query.columns;
+		//QUERY options
+		//--------------------------------------------------------------------------------------------------
+		this.options.query = {};
+		this.options.query.columns = 1;
+		this.options.query.time = 'datePicker';
+		if(options.query){
+			if(options.query.columns){
+				if([1,2].indexOf(options.query.columns) != -1) this.options.query.columns = options.query.columns;
 			}
-			if(options.ui.query.time) this.options.ui.query.time = options.ui.query.time;
+			if(options.query.time) this.options.query.time = options.query.time;
 		}
-		
+
 		//MAP options
+		//--------------------------------------------------------------------------------------------------
 		this.options.map = {};
 		//watermark
 		this.options.map.attribution = null;
@@ -269,6 +261,7 @@
 			if(options.map.tooltip.enabled) this.options.map.tooltip.enabled = options.map.tooltip.enabled;
 			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
 		}
+		
 		
 		//events
 		this.mapEvents = new Array();
@@ -525,9 +518,7 @@
 			for(var i=0;i<csw_results.length;i++){
 				var csw_result = csw_results[i];    
 				var md_entry = this_.createMetadataEntry(csw_result.value);
-				var add = this_.options.ui.browse.filterByWMS? md_entry.queryable : true;
-				add = add && (this_.options.ui.browse.filterByContentInfo? md_entry.metadata.contentInfo : true);
-				if(add) datasets.push(md_entry);
+				datasets.push(md_entry);
 			}                       
 			  
 			deferred.resolve(datasets);
@@ -552,8 +543,8 @@
 			
 			//base filter
 			var filter;
-			for(var i=0;i<this.options.catalog.filters.length;i++){
-				var inputFilter = this.options.catalog.filters[i];
+			for(var i=0;i<this.options.browse.filters.length;i++){
+				var inputFilter = this.options.browse.filters[i];
 				var cswFilter = new Ows4js.Filter().PropertyName([inputFilter.name]).isLike(inputFilter.value);
 				if(typeof filter == 'undefined'){
 					filter = cswFilter;
@@ -585,9 +576,9 @@
 				var numberOfRecordsMatched = response.value.searchResults.numberOfRecordsMatched;
 				console.log("CSW GetRecords matched "+numberOfRecordsMatched+" records");
 				var maxNb = numberOfRecordsMatched;
-				if(this_.options.catalog.maxitems && numberOfRecordsMatched > this_.options.catalog.maxitems){
-					console.log("Max items option set. Restraining number of records retrieved to "+this_.options.catalog.maxitems+" records");
-					maxNb = this_.options.catalog.maxitems;
+				if(this_.options.browse.maxitems && numberOfRecordsMatched > this_.options.browse.maxitems){
+					console.log("Max items option set. Restraining number of records retrieved to "+this_.options.browse.maxitems+" records");
+					maxNb = this_.options.browse.maxitems;
 				}
 
 				//add datasets counting
@@ -684,7 +675,7 @@
 		var pid = elm.getAttribute('data-pid');
 		console.log("Display metadata dataset with pid = " + pid);
 		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
-		this.options.ui.browse.datasetInfoHandler(dataset.metadata);
+		this.options.browse.datasetInfoHandler(dataset.metadata);
 	}
 	  
 	/**
@@ -977,7 +968,7 @@
 		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null};
 				
 		//build UI
-		var bootstrapClass = "col-md-" + 12/this_.options.ui.query.columns;
+		var bootstrapClass = "col-md-" + 12/this_.options.query.columns;
 
 		$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
 		$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
@@ -1020,7 +1011,7 @@
 				this_.dataset_on_query = { pid: pid, entry: entry, strategy: "ogc_viewparams", dsd: this_.parseFeatureCatalogue(response), query: null };
 				
 				//build UI
-				var bootstrapClass = "col-md-" + 12/this_.options.ui.query.columns;
+				var bootstrapClass = "col-md-" + 12/this_.options.query.columns;
 				
 				//1. Build codelist (multi-selection) UIs
 				//-------------------------------------------
@@ -1099,7 +1090,7 @@
 				
 				//2. Time start/end slider or datepickers
 				//-----------------------------------------
-				this_.timeWidget = this_.options.ui.time? this_.options.ui.time : 'slider';
+				this_.timeWidget = this_.options.query.time? this_.options.query.time : 'slider';
 				var dsd_time_dimensions = ["time_start", "time_end"];
 				var timeDimensions = this_.dataset_on_query.dsd.filter(function(item){if(dsd_time_dimensions.indexOf(item.serviceCode) != -1) return item});
 				var timeDimTypeList = this_.dataset_on_query.dsd.filter(function(i){if(i.serviceType=="TimeDimension"){return(i)}}).map(function(i){return(i.primitiveType)});
@@ -2539,7 +2530,7 @@
 			position = { my: "center", at: "top", of: window };
 		}
 		$( "#" + id ).dialog({
-			width: ((id=='queryDialog')? ((this_.options.ui.query.columns * 400)+'px') : undefined),
+			width: ((id=='queryDialog')? ((this_.options.query.columns * 400)+'px') : undefined),
 			autoOpen: false,
 			draggable: false,
 			resizable: false,
