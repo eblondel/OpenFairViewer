@@ -638,7 +638,7 @@
 						}
 						dataHtml += '</section>';
 						dataContainer.append(dataHtml);
-						
+						this_.displayGraphicOverviews();
 					});
 				
 				}).trigger("page", 1);
@@ -667,22 +667,24 @@
 		var imgs = $("img.graphic_overview");
 		$.each(imgs, function () {
 			var $this = $(this);
-			
+			console.log($this);
 			var im = new Image();
 			im.onload = function () {
 				var theImage = $this;
 				$this.hide();
 				theImage[0].src = im.src;
+				$this.css("background", "");
 				$this.show();
 			};
 			im.onerror = function(){
 				var theImage = $this;
 				$this.hide();
+				$this.removeAttr("alt");
 				$this.css("background", "url('js/OpenFairViewer/img/loading-error.svg')");
 				$this.show();
 			}
 			$this.css("background", "url('js/OpenFairViewer/img/loading.gif')");
-			im.src = $this.data("mainsrc");
+			im.src = $this.attr("src");
 		});
 	}
   
@@ -1495,6 +1497,7 @@
 	 * @param id
 	 * @param title
 	 * @param wmsUrl
+	 * @param wmsVersion
 	 * @param layer
 	 * @param cql_filter
 	 * @param style
@@ -1503,12 +1506,13 @@
 	 * @param envparams
 	 * @param count
 	 */
-	OpenFairViewer.prototype.addLayer = function(mainOverlayGroup, id, title, wmsUrl, layer, hidden, visible, showLegend, opacity, tiled,
-											cql_filter, style, viewparams, envfun, envparams, count){
+	OpenFairViewer.prototype.addLayer = function(mainOverlayGroup, id, title, wmsUrl, wmsVersion, layer,
+												hidden, visible, showLegend, opacity, tiled, cql_filter, style, 
+												viewparams, envfun, envparams, count){
 		var this_ = this;
 		var layerParams = {
 				'LAYERS' : layer,
-				'VERSION': '1.1.1',
+				'VERSION': '1.1.0', //TODO support wmsVersion for 1.3.0,
 				'FORMAT' : 'image/png'
 		}
 		var olLayerClass = ol.layer.Image;
@@ -1667,8 +1671,9 @@
 		if(!md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine) return out;
 		var onLines = md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
 		   function(item){
-			if(!item.ciOnlineResource.linkage.url) return;
-			var protocolFilter = item.ciOnlineResource.linkage.url.indexOf(protocol)!=-1 | item.ciOnlineResource.linkage.url.indexOf(protocol.toLowerCase())!=-1;
+			var url = item.ciOnlineResource.linkage.url;
+			if(!url) return;
+			var protocolFilter = url.indexOf(protocol)!=-1 | url.indexOf(protocol.toLowerCase())!=-1;
 			var layerFilter = layerSuffix? item.ciOnlineResource.name.endsWith(layerSuffix) : true;
 			var filter = protocolFilter && layerFilter;
 			if(filter) return item;
@@ -1677,10 +1682,19 @@
 		//if(onLines.length == 0) console.warn("No Dataset URL from metadata entry");
 		if(onLines.length > 0){
 			for(var i=0;i<onLines.length;i++){
+				//layerUrl
 				layerUrl = onLines[i].ciOnlineResource.linkage.url;
+				if(layerUrl.indexOf("ows?")>0) layerUrl = layerUrl.split("ows?")[0] + "ows?service="+ protocol;
+				if(layerUrl.indexOf(protocol.toLowerCase()+"?")>0) layerUrl = layerUrl.split(protocol.toLowerCase()+"?")[0] + "ows?service=" + protocol;
+				//layerName
 				layerName = onLines[i].ciOnlineResource.name;
 				if(layerSuffix) layerName = layerName + layerSuffix;
-				out.push({url : layerUrl, name: layerName});
+				//serviceVersion
+				var serviceVersion = null;
+				var url = onLines[i].ciOnlineResource.linkage.url;
+				if(url.indexOf("&version=") > 0) serviceVersion = url.split("&version=")[1].split("&")[0];
+				if(url.indexOf("&VERSION=") > 0) serviceVersion = url.split("&VERSION=")[1].split("&")[0];
+				out.push({url : layerUrl, version: serviceVersion, name: layerName});
 			}
 		}
 		return out;
@@ -1690,14 +1704,15 @@
 	/**
 	 * OpenFairViewer.prototype.getDatasetFeatures
 	 * @param layerUrl
+	 * @param serviceVersion
 	 * @param layerName
 	 * @param viewparams
 	 * @param cql_filter
 	 * @param propertyNames
 	 * @returns a Jquery promise
 	 */
-	OpenFairViewer.prototype.getDatasetFeatures = function(layerUrl, layerName, viewparams, cql_filter, propertyNames){
-	    var wfsRequest = this.getDatasetWFSLink(layerUrl, layerName, viewparams, cql_filter, propertyNames, "json");
+	OpenFairViewer.prototype.getDatasetFeatures = function(layerUrl, serviceVersion, layerName, viewparams, cql_filter, propertyNames){
+	    var wfsRequest = this.getDatasetWFSLink(layerUrl, serviceVersion, layerName, viewparams, cql_filter, propertyNames, "json");
 	    var deferred = $.Deferred();
 	    $.ajax({
                 url: wfsRequest,
@@ -1831,16 +1846,20 @@
 		var baseWfsUrl = undefined;
 		var baseWmsUrl = undefined;
 		var layerName = undefined;
+		var wfsVersion = undefined;
+		var wmsVersion = undefined;
 		if(dataset.entry.wfs.length > 0){
 			var baseWFS = dataset.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
 			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = dataset.entry.wfs[0] };
 			baseWfsUrl = baseWFS.url;
+			wfsVersion = baseWFS.serviceVersion;
 		}
 		if(dataset.entry.wms.length > 0){
 			var baseWMS = dataset.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
 			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = dataset.entry.wms[0] };
 			baseWmsUrl = baseWMS.url;
 			layerName = baseWMS.name;
+			wmsVersion = baseWMS.serviceVersion;
 		}
 		
 	    var layer = this_.getLayerByProperty(dataset.entry.pid, 'id');
@@ -1864,7 +1883,7 @@
 				if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 				console.log(cql_filter);
 				this_.selectDataset(pid);
-				var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, cql_filter, null, null, null, null, null);
+				var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, cql_filter, null, null, null, null, null);
 				layer.strategy = dataset.strategy;
 				layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 				this_.addLayerTooltip(layer);
@@ -1900,7 +1919,7 @@
 							console.log(breaks);
 							var envparams = this_.buildEnvParams(breaks);
 							this_.selectDataset(pid);
-							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, values.length);
+							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, values.length);
 							layer.strategy = dataset.strategy;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 							layer.envfun = classType;
@@ -1930,7 +1949,7 @@
 			    }else{
 					//static styling
 					this_.selectDataset(pid);
-					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, layerName, false, true, true, 0.9, false, null, null,strategyparams_str);
+					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					this_.map.changed();
@@ -2035,6 +2054,7 @@
 	/**
 	 * OpenFairViewer.prototype.getDatasetWFSLink
 	 * @param layerUrl
+	 * @param serviceVersion
 	 * @param layerName
 	 * @param strategyparams_str
 	 * @param cql_filter a cql filter to filter out the dataset
@@ -2042,10 +2062,9 @@
    	 * @param format optional format to be specified, by default it will provide a CSV
 	 * @return the WFS layer URL
 	 */
-	OpenFairViewer.prototype.getDatasetWFSLink = function(layerUrl, layerName, strategyparams_str, cql_filter, propertyNames, format){		
-		if(layerUrl.indexOf("ows?service=WFS")>-1) layerUrl = layerUrl.split("ows?service=WFS")[0] + "ows?service=WFS";
-		if(layerUrl.indexOf("wfs?")>-1) layerUrl = layerUrl.split("wfs?")[0] + "ows?service=WFS";
-		layerUrl += "&version=1.0.0";
+	OpenFairViewer.prototype.getDatasetWFSLink = function(layerUrl, serviceVersion, layerName, strategyparams_str, cql_filter, propertyNames, format){		
+		
+		layerUrl += "&version=" + (serviceVersion? serviceVersion : "1.0.0");
 		layerUrl += "&request=GetFeature";
 		layerUrl += "&typeName=" + layerName;
 	    if(strategyparams_str) layerUrl += "&VIEWPARAMS=" + strategyparams_str;
@@ -2135,7 +2154,8 @@
 		var layerName = this.dataset_on_query.pid;
 		var baseWFS = this_.getDataProtocolsFromMetadataEntry(this_.dataset_on_query.entry, "WFS", layerName)[0];
 		var baseLayerUrl = baseWFS.url;
-		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, layerName, this.getStrategyParams(this.dataset_on_query, true), null, null, 'json');
+		var serviceVersion = baseWFS.serviceVersion;
+		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.getStrategyParams(this.dataset_on_query, true), null, null, 'json');
 		$.getJSON(layerUrl, function(response){
 			var features = new ol.format.GeoJSON().readFeatures(response);
 			var featuresToExport = new Array();
@@ -2282,9 +2302,10 @@
 		//layers of interest
 		if(this.map){
 			for(var i=0;i<this.options.map.overlays.length;i++){
-				var layerDef = this.options.map.overlays[i];			
+				var layerDef = this.options.map.overlays[i];
+				var wmsVersion = layerDef.wmsVersion? layerDef.wmsVersion : "1.1.0";
 				this_.addLayer(
-					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, layerDef.layer, layerDef.hidden,
+					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, wmsVersion, layerDef.layer, layerDef.hidden,
 					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter, layerDef.style
 				);
 			}

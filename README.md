@@ -71,7 +71,7 @@ projection|``String``|Default map projection|'EPSG:4326'
 layergroups|``Array``| Array of layer groups. Each layer group should be an object in the form  ``{name: "<layergroup name>"}``| [{name: "Base overlays"},{name: "Statistical maps"}]
 mainlayergroup|``Integer``|Index within ``layergroups`` to define the main layer group (where layers loaded from the ``browse`` part will be added) | 1
 baselayers |``Array``| An array of baselayers defined with OpenLayers 3 layer objects| [UN Geospatial](https://geoservices.un.org) baselayers
-overlays|``Array``| Array of base overlays to add to the map. Each overlay is defined as simplified object ``{group: <mainOverlayGroup>, id: <id>,title: <title>, wmsUrl: <wmsUrl>, layer: <layer>, hidden: <true/false>, visible: <true/false>, showLegend: <true/false>, opacity: <0 to 1>, tiled: <true/false>, cql_filter: <cql_filter>, style: <style>}``. | _empty_
+overlays|``Array``| Array of base overlays to add to the map. Each overlay is defined as simplified object ``{group: <mainOverlayGroup>, id: <id>,title: <title>, wmsUrl: <wmsUrl>, wmsVersion: <wmsVersion>, layer: <layer>, hidden: <true/false>, visible: <true/false>, showLegend: <true/false>, opacity: <0 to 1>, tiled: <true/false>, cql_filter: <cql_filter>, style: <style>}``. | _empty_
 aggregated_layer_suffix|``String``| Layer name suffix used to characterize aggregated layers| "_aggregated"
 attribution|``String``|A string giving html markup for the map attribution.|null
 styling|``Object``| Sub options for dynamic styling in geo-referenced statistics. ``dynamic``: true/false, ``breaks`` for labeling class interval breaks [""," to ",""]|
