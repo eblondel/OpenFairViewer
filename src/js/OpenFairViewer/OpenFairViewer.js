@@ -301,10 +301,10 @@
 		});
 				
 		//init widgets
-		this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0, null);
-		this.initDialog("browseDialog", "Browse", {"ui-dialog": "browse-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1, 'search', function(){ });
-		this.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2, 'filter', function(){ });
-		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3, 'info-sign', function(){});
+		this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0);
+		this.initDialog("browseDialog", "Browse", {"ui-dialog": "browse-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
+		this.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
+		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 		this.openAboutDialog();
 		
 		//resolve viewer from URL
@@ -2575,7 +2575,7 @@
 	/**
      * OpenFairViewer.prototype.initDialog Init dialog
 	 */
-	OpenFairViewer.prototype.initDialog = function(id, title, classes, position, liIdx, iconName, onopen, onclose){
+	OpenFairViewer.prototype.initDialog = function(id, title, classes, position, liIdx, onopen, onclose){
 		var this_ = this;
 		if(!classes){
 			classes  = {
@@ -2604,10 +2604,6 @@
 			},
 			open: function( event, ui ) {
 				$($("nav li")[liIdx]).addClass("active");
-				if(iconName){
-					$.each($(".ui-dialog-title").find("span"), function(idx,item){$(item).remove()});
-					$(".ui-dialog-title").append("<span class='glyphicon glyphicon-"+iconName+"' style='float:left;'></span>");
-				}
 				if(onopen) onopen();
 			},
 			close: function( event, ui ) {
