@@ -681,6 +681,7 @@
 				$this.hide();
 				$this.removeAttr("alt");
 				$this.css("background", "url('js/OpenFairViewer/img/loading-error.svg')");
+				$this[0].src = "js/OpenFairViewer/img/loading-error.svg";
 				$this.show();
 			}
 			$this.css("background", "url('js/OpenFairViewer/img/loading.gif')");
