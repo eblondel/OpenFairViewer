@@ -289,7 +289,8 @@
 	OpenFairViewer.prototype.init = function(){
 		var this_ = this;
 		this.selection = new Array();
-		this.initDataCatalogue();
+		this.initBrowseCatalogue();
+		this.initBrowsePagination();
 			
 		this.initDataViewer();
 	
@@ -419,9 +420,9 @@
 	//==========================================================================================
 		
 	/**
-	 * OpenFairViewer.prototype.initDataCatalogue
+	 * OpenFairViewer.prototype.initBrowseCatalogue
 	 */
-	OpenFairViewer.prototype.initDataCatalogue = function(){
+	OpenFairViewer.prototype.initBrowseCatalogue = function(){
 		var cswConfig = [
 			[
 				OWS_1_0_0,
@@ -464,6 +465,26 @@
 		];
 		this.csw = new Ows4js.Csw(this.config.OGC_CSW_BASEURL, cswConfig);
 		return this.csw;
+	}
+	
+	
+	/**
+	 * OpenFairViewer.prototype.initBrowsePagination
+	 */
+	OpenFairViewer.prototype.initBrowsePagination = function(){
+		var this_ = this;
+		//Set paginated browsing operated by OGC CSW protocol
+		$("#dataset-pages").bootpag({
+			page: 1,
+			total: 5,
+			maxVisible: 5,
+			leaps: true,
+			firstLastUse: true,
+			first: '←',
+			last: '→',
+		}).on("page", function(event, num){
+			this_.getDatasetsFromCSWPage(num);
+		})
 	}
         
 	/**
@@ -567,6 +588,45 @@
 		}
 		return filter;
 	}
+	
+	/**
+	 * OpenFairViewer.prototype.getDatasetsFromCSWPage
+	 * @param page
+	 */
+	OpenFairViewer.prototype.getDatasetsFromCSWPage = function(page){
+		var this_ = this;
+		$("#dataset-articles").empty();
+		$("#dataset-articles").html('<p id="dataset-loader" class="loader"><img alt="loading" src="js/OpenFairViewer/img/loading.gif" /><br /><br />Fetching datasets...</p>');
+		$("#dataset-loader").show();
+		
+		var thebbox = null;
+		if($("#dataset-search-bbox-on-search").prop("checked")){
+			thebbox = this_.map.getView().calculateExtent(this_.map.getSize());
+		}
+		
+		var thefilter = this_.createFilter(thebbox); 
+		
+		//display based on templates
+		var template = $('#datasetTpl').html();
+		
+		//get CSW records for page
+		this_.getRecords(page, thefilter).then(function(records){
+			
+			$("#dataset-loader").hide();
+			
+			var dataHtml = '<section class="col-xs-12 col-sm-12 col-md-12">';
+			console.log(records);
+			for(var i=0;i<records.length;i++){
+			  var record = records[i];
+			  this_.cacheDataset(record);
+			  var item_html = Mustache.to_html(template, record);
+			  dataHtml += item_html;
+			}
+			dataHtml += '</section>';
+			$("#dataset-articles").html(dataHtml);
+			this_.displayGraphicOverviews();
+		});
+	}
 		
 	/**
 	 * OpenFairViewer.prototype.getDatasetsFromCSW
@@ -575,6 +635,9 @@
 	OpenFairViewer.prototype.getDatasetsFromCSW = function(bbox){
 		
 		$("#dataset-count").empty();
+		$("#dataset-articles").empty();
+		$("#dataset-articles").html('<p id="dataset-loader" class="loader"><img alt="loading" src="js/OpenFairViewer/img/loading.gif" /><br /><br />Fetching datasets...</p>');
+		$("#dataset-loader").show();
 		
 		//business logic
 		var this_ = this;
@@ -587,6 +650,8 @@
 			
 			//get 1st record to get numberOfRecordsMatched
 			this.csw.GetRecords(1,1, filter, this.config.OGC_CSW_SCHEMA).then(function(response){
+				
+				//manage maxNb
 				var numberOfRecordsMatched = response.value.searchResults.numberOfRecordsMatched;
 				console.log("CSW GetRecords matched "+numberOfRecordsMatched+" records");
 				var maxNb = numberOfRecordsMatched;
@@ -599,48 +664,7 @@
 				$("#dataset-count").html(maxNb + " datasets");
 				//Set paginated browsing operated by OGC CSW protocol
 				$("#dataset-pages").bootpag({
-					page: 1,
-					total: Math.ceil(maxNb / this_.config.OGC_CSW_MAXRECORDS),
-					maxVisible: 5,
-					leaps: true,
-					firstLastUse: true,
-					first: '←',
-					last: '→',
-				}).on("page", function(event, num){
-					
-					$("#dataset-loader").show();
-					
-					var thebbox = null;
-					if($("#dataset-search-bbox-on-search").prop("checked")){
-						thebbox = this.map.getView().calculateExtent(this.map.getSize());
-					}
-					
-					var thefilter = this_.createFilter(thebbox); 
-					
-					//display based on templates
-					var template = $('#datasetTpl').html();
-					var dataContainer = $("#dataset-articles");
-					if(dataContainer.find("section").length >0) $(dataContainer.find("section")[0]).remove();
-					
-					//get CSW records for page
-					this_.getRecords(num, thefilter).then(function(records){
-						
-						if(dataContainer.find("section").length >0) $(dataContainer.find("section")[0]).remove();
-						$("#dataset-loader").hide();
-						
-						var dataHtml = '<section class="col-xs-12 col-sm-12 col-md-12">';
-						console.log(records);
-						for(var i=0;i<records.length;i++){
-						  var record = records[i];
-						  this_.cacheDataset(record);
-						  var item_html = Mustache.to_html(template, record);
-						  dataHtml += item_html;
-						}
-						dataHtml += '</section>';
-						dataContainer.append(dataHtml);
-						this_.displayGraphicOverviews();
-					});
-				
+					total: Math.ceil(maxNb / this_.config.OGC_CSW_MAXRECORDS)
 				}).trigger("page", 1);
 			});
 		}
@@ -2539,14 +2563,12 @@
 
 					//popup coords
 					if(params.popup_id) if(params.popup_id == encoded_dataset.entry.pid) {
-							if(params.popup_coords){
-								var layer = this_.getLayerByProperty(encoded_dataset.entry.pid, "id");
-								var coords = params.popup_coords.split(",").map(function(coord,i){return parseFloat(coord)});
-								this_.getFeatureInfo(layer, coords);
-							}
+						if(params.popup_coords){
+							var layer = this_.getLayerByProperty(encoded_dataset.entry.pid, "id");
+							var coords = params.popup_coords.split(",").map(function(coord,i){return parseFloat(coord)});
+							this_.getFeatureInfo(layer, coords);
 						}
 					}
-
 
 					this_.map.changed();
 				});
