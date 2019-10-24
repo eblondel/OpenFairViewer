@@ -2538,11 +2538,12 @@
 					
 
 					//popup coords
-					if(params.popup_id) if(params.popup_id == encoded_dataset.pid) {
-						if(params.popup_coords){
-							var layer = this_.getLayerByProperty(encoded_dataset.pid, "id");
-							var coords = params.popup_coords.split(",");
-							this_.getFeatureInfo(layer, coords);
+					if(params.popup_id) if(params.popup_id == encoded_dataset.entry.pid) {
+							if(params.popup_coords){
+								var layer = this_.getLayerByProperty(encoded_dataset.entry.pid, "id");
+								var coords = params.popup_coords.split(",").map(function(coord,i){return parseFloat(coord)});
+								this_.getFeatureInfo(layer, coords);
+							}
 						}
 					}
 
