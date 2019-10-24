@@ -63,12 +63,12 @@ nav ul li.active { background-color: #0C71B8;}
 .search-result .thumbnail img { height: 100%;}
 .search-result:first-child { margin-top: 0 !important; }
 .search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 75px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px;}
-.search-result:hover {cursor: pointer; background-color: #fff;}
+.search-result:hover {background-color: #fff;}
 .search-result ul { padding-left: 0 !important; list-style: none;  }
 .search-result ul li { line-height: 30px; }
 .search-result ul li i { padding-right: 5px; }
 .search-result .col-md-9{ position: relative; }
-.search-result h6{ margin-top: 0 !important; margin-bottom: 0px !important; font-weight: bold; width: 90%;}
+.search-result h6{ margin-top: 0 !important; margin-bottom: 0px !important; font-weight: bold; width: 90%;cursor: default;}
 .search-result h6 > a, .search-result i { color: #248dc1 !important; }
 .search-result p { font-size:80%;}
 .pagination>li { display: inline-block; }
