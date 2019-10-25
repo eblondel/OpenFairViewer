@@ -26,6 +26,7 @@
     <!-- ================ -->
     <!-- Jsonix -->
     <script type="text/javascript" src="js/vendor/jsonix/Jsonix-all.js"></script>
+    <script type="text/javascript" src="js/vendor/jsonix/GeoJSON.js"></script>
     <!-- W3C schemas -->
     <script type="text/javascript" src="js/vendor/w3c-schemas/XLink_1_0.js"></script>
     <!-- OGC schemas -->
@@ -140,7 +141,7 @@
               <div class="form-group">
                 <input type="text" class="form-control" id="dataset-search-text" aria-describedby="searchHelp" placeholder="Search a dataset">
               </div>
-	      <a data-toggle="collapse" href="#dataset-search-advanced" role="button" aria-expanded="false" aria-controls="dataset-search-advanced">Advanced filtering</a>
+	      <a data-toggle="collapse" href="#dataset-search-advanced" role="button" aria-expanded="false" aria-controls="dataset-search-advanced">Advanced settings</a>
 	      <br>
 	      <div class="collapse multi-collapse" id="dataset-search-advanced">
       		<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">
@@ -150,10 +151,22 @@
                   	Enable Search on map extent
                      </label>
               	  </div>
-	      	  <div class="form-check" >
+				  <div class="form-check" >
                      <label class="form-check-label" style="font-weight:100">
                   	<input id ="dataset-search-bbox-on-mapmove" type="checkbox" class="form-check-input">
                   	Auto-Search on map move
+                     </label>
+              	  </div>
+				  <div class="form-check" >
+                     <label class="form-check-label" style="font-weight:100">
+                  	<input id ="dataset-spatial-coverage-visible" type="checkbox" class="form-check-input" checked>
+                  	Display dataset spatial coverage layer (if any)
+                     </label>
+              	  </div>
+				  <div class="form-check" >
+                     <label class="form-check-label" style="font-weight:100">
+                  	<input id ="dataset-spatial-coverage-extended" type="checkbox" class="form-check-input" checked>
+                  	Include dataset spatial coverage extended geometries (if any)
                      </label>
               	  </div>
 		</fieldset>
@@ -168,7 +181,7 @@
 
         <div id="dataset-list">
           <!-- Search results -->
-          <div id="dataset-articles"></div></br>
+          <div id="dataset-articles"></div>
           <!-- Search pagination -->
           <div id="dataset-pages"></div>
         </div>
@@ -198,7 +211,7 @@
     <!-- ========= -->
     <!-- Dataset search template -->
     <script id="datasetTpl" type="text/template">
-     <article class="search-result row">
+     <article id="{{pid}}" class="search-result row">
 	<div class="col-xs-3 col-sm-3 col-md-3 thumbnail-wrapper">
             <span class="thumbnail"><img class="graphic_overview" src="{{graphic_overview}}" alt="{{pid}}" /></span>
 	</div>

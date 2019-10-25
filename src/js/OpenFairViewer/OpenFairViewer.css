@@ -58,12 +58,13 @@ nav ul li.active { background-color: #0C71B8;}
 #dataset-list section.list { height: 100%; }
 #dataset-articles {min-height:400px;}
 #dataset-pages { text-align: center; margin-left: 15px;}
+ul.pagination {margin: 0px !important;}
 .search-result .thumbnail-wrapper { padding: 0px; height: 100%;}
-.search-result .thumbnail { border-radius: 0 !important; padding: 0px; height: 100%;     margin-bottom: 0px;}
+.search-result .thumbnail { border-radius: 0 !important; padding: 0px; height: 100%; margin-bottom: 0px;}
 .search-result .thumbnail img { height: 100%;}
 .search-result:first-child { margin-top: 0 !important; }
 .search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 75px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px;}
-.search-result:hover {background-color: #fff;}
+.search-result:hover, .search-result.hovered {background-color: lightsteelblue;}
 .search-result ul { padding-left: 0 !important; list-style: none;  }
 .search-result ul li { line-height: 30px; }
 .search-result ul li i { padding-right: 5px; }
@@ -83,13 +84,13 @@ nav ul li.active { background-color: #0C71B8;}
 	top: 40px;
 	height: 20px !important;
 	color:#8e8e8e !important;
-	background-color: #fff !important;
+	background-color: transparent !important;
 	padding: 0px !important;
 	font-size: 160% !important;
 }
 .dataset-button-add:hover {
 	color:#286090 !important;
-	background-color: #fff !important;
+	background-color: transparent !important;
 }
 .dataset-button-remove {
 	float:right !important;
@@ -113,13 +114,13 @@ nav ul li.active { background-color: #0C71B8;}
 	right: 24px;
 	height: 20px !important;
 	color:#8e8e8e !important;
-	background-color: #fff !important;
+	background-color: transparent !important;
 	padding: 0px !important;
 	font-size: 160% !important;
 }
 .dataset-button-info:hover {
 	color:#286090 !important;
-	background-color: #fff !important;
+	background-color: transparent !important;
 }
 
 /** QUERY **/

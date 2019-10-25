@@ -112,6 +112,20 @@
 			}
 		}
 		
+		//spatial coverage vector layer params
+		this.options.browse.defaultStyle = new ol.style.Style({
+		   stroke : new ol.style.Stroke({color : [0, 153, 255, 1], width: 3})
+		})
+		this.options.browse.hoverStyle = new ol.style.Style({
+		   image: new ol.style.Circle({
+			    radius: 3,
+				fill : new ol.style.Fill({color: [255, 255, 255, 0.2]}),
+				stroke : new ol.style.Stroke({color : "orange", width: 3})
+		   }),
+		   fill : new ol.style.Fill({color: [255, 255, 255, 0.2]}),
+		   stroke : new ol.style.Stroke({color : "orange", width: 3})
+		});
+		
 		//QUERY options
 		//--------------------------------------------------------------------------------------------------
 		this.options.query = {};
@@ -290,6 +304,7 @@
 		var this_ = this;
 		this.selection = new Array();
 		this.initBrowseCatalogue();
+		this.initBrowseAdvancedSettings();
 		this.initBrowsePagination();
 			
 		this.initDataViewer();
@@ -362,8 +377,18 @@
 				  var keys = Object.keys(obj);
 				  for(var i=0;i<keys.length;i++) {
 					var p = keys[i];
-					if(["characterString", "integer", "real", "decimal", "_boolean"].indexOf(p) != -1){
-					  obj = this.lightenMetadata(obj[p]);
+					if( ["characterString", "integer", "real", "decimal", "_boolean"].indexOf(p) != -1 || p.startsWith("abstract")){
+					  var newobj = obj[p];
+					  if(p=="abstractRing") {
+						newobj = {
+							value: {
+								ring: {
+									value: obj[p]
+								}
+							}
+						};
+					  }
+					  obj = this.lightenMetadata(newobj);
 					}else{
 					  obj[p] = this.lightenMetadata(obj[p]);
 					}
@@ -423,7 +448,7 @@
 	 * OpenFairViewer.prototype.initBrowseCatalogue
 	 */
 	OpenFairViewer.prototype.initBrowseCatalogue = function(){
-		var cswConfig = [
+		this.cswConfig = [
 			[
 				OWS_1_0_0,
 				DC_1_1,
@@ -463,10 +488,25 @@
 				mappingStyle : 'standard'
 			}
 		];
-		this.csw = new Ows4js.Csw(this.config.OGC_CSW_BASEURL, cswConfig);
+		this.csw = new Ows4js.Csw(this.config.OGC_CSW_BASEURL, this.cswConfig);
 		return this.csw;
 	}
 	
+	/**
+	 * OpenFairViewer.prototype.initBrowseAdvancedSettings
+	 */
+	OpenFairViewer.prototype.initBrowseAdvancedSettings = function(){
+		var this_ = this;
+		//spatial coverage layer visibility
+		$('#dataset-spatial-coverage-visible').change(function() {
+			var layer = this_.getLayerByProperty("ofv-csw-spatial-coverages", "id");
+			layer.setVisible(this.checked);
+		});
+		//spatial coverage layer extended or not
+		$('#dataset-spatial-coverage-extended').change(function() {
+			this_.setSpatialCoverageLayer(this_.records_on_browse, this.checked, $('#dataset-spatial-coverage-visible').is(":checked"));
+		});
+	}
 	
 	/**
 	 * OpenFairViewer.prototype.initBrowsePagination
@@ -484,7 +524,7 @@
 			last: '→',
 		}).on("page", function(event, num){
 			this_.getDatasetsFromCSWPage(num);
-		})
+		});
 	}
         
 	/**
@@ -494,29 +534,30 @@
 	OpenFairViewer.prototype.createMetadataEntry = function(value){
 		var this_ = this;
 		var md_entry = new Object();
+		console.log(value);
 		md_entry.metadata = this_.lightenMetadata(value);
 
 		//delete csw_result.value;
 		md_entry.pid = md_entry.metadata.fileIdentifier;
 		md_entry.pidinfo = md_entry.pid;
 		//title
-		md_entry.title = md_entry.metadata.identificationInfo[0].abstractMDIdentification.citation.ciCitation.title;
+		md_entry.title = md_entry.metadata.identificationInfo[0].citation.ciCitation.title;
 		md_entry.title_tooltip = md_entry.title;
 		//graphic overviews
-		var graphicOverviews = md_entry.metadata.identificationInfo[0].abstractMDIdentification.graphicOverview
+		var graphicOverviews = md_entry.metadata.identificationInfo[0].graphicOverview
 		if(graphicOverviews) if(graphicOverviews.length > 0) md_entry.graphic_overview = graphicOverviews[0].mdBrowseGraphic.fileName;
-		md_entry._abstract = md_entry.metadata.identificationInfo[0].abstractMDIdentification._abstract;
+		md_entry._abstract = md_entry.metadata.identificationInfo[0]._abstract;
 		//extents
-		var extents = md_entry.metadata.identificationInfo[0].abstractMDIdentification.extent; 
+		var extents = md_entry.metadata.identificationInfo[0].extent; 
 		if(extents) if(extents[0].exExtent.temporalElement){                          
-			var temporalExtent = extents[0].exExtent.temporalElement[0].exTemporalExtent.extent.abstractTimePrimitive;
+			var temporalExtent = extents[0].exExtent.temporalElement[0].exTemporalExtent.extent;
 			if(temporalExtent.beginPosition) md_entry.time_start = temporalExtent.beginPosition.value[0];
 			if(temporalExtent.endPosition) md_entry.time_end = temporalExtent.endPosition.value[0];
 			if(temporalExtent.timePosition) md_entry.time_position = temporalExtent.timePosition.value; //TODO to see how to deal with that
 		}
 		//content information
-		if(md_entry.metadata.contentInfo) if(md_entry.metadata.contentInfo[0].abstractMDContentInformation.featureCatalogueCitation){
-			md_entry.dsd = md_entry.metadata.contentInfo[0].abstractMDContentInformation.featureCatalogueCitation[0].ciCitation.citedResponsibleParty[0].ciResponsibleParty.contactInfo.ciContact.onlineResource.ciOnlineResource.linkage.url;
+		if(md_entry.metadata.contentInfo) if(md_entry.metadata.contentInfo[0].featureCatalogueCitation){
+			md_entry.dsd = md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].ciCitation.citedResponsibleParty[0].ciResponsibleParty.contactInfo.ciContact.onlineResource.ciOnlineResource.linkage.url;
 			md_entry.dsd = md_entry.dsd.replace("catalog.search#/metadata/","xml.metadata.get?uuid=");
 			md_entry.dsd = this_.rewriteURL(md_entry.dsd);
 		}
@@ -525,6 +566,143 @@
 		md_entry.wfs = this.getDataProtocolsFromMetadataEntry(md_entry, "WFS");
 		md_entry.queryable = md_entry.wms.length > 0;
 		return md_entry;
+	}
+	
+	      
+	/**
+	 * OpenFairViewer.prototype.buildSpatialCoverageFeature
+	 * @param dataset
+	 * @param extended
+	 */
+	OpenFairViewer.prototype.buildSpatialCoverageFeature = function(dataset, extended){
+		var this_ = this;
+		var idents = dataset.metadata.identificationInfo;
+		if(!idents) return; if(idents.length == 0) return;
+		var extents = idents[0].extent;
+		if(!extents) return; if(extents.length == 0) return;
+		var geo_extents = extents[0].exExtent.geographicElement;
+		if(!geo_extents) return; if(geo_extents.length == 0) return;
+		
+		var geometries = new Array();
+		for(var i=0;i<geo_extents.length;i++){
+			var geo_extent = geo_extents[i];
+			var geo_keys = Object.keys(geo_extent);
+			var is_bbox = geo_keys.indexOf("westBoundLongitude")!=-1 && geo_keys.indexOf("eastBoundLongitude")!=-1 && 
+						  geo_keys.indexOf("southBoundLatitude")!=-1 && geo_keys.indexOf("northBoundLatitude")!=-1;
+			if(is_bbox){
+				//case of bounding box
+				var coords = [
+					geo_extent.westBoundLongitude, geo_extent.southBoundLatitude,
+					geo_extent.eastBoundLongitude, geo_extent.northBoundLatitude
+				]
+				var polyCoords = [
+					[coords[0],coords[1]],
+					[coords[0],coords[3]],
+					[coords[2],coords[3]],
+					[coords[2],coords[1]],
+					[coords[0],coords[1]]
+				];
+				console.log(polyCoords);
+				geometries.push(new ol.geom.LineString(polyCoords));
+			}else{
+				//case of bounding polygons
+				if(extended) if(geo_keys.length == 1 && geo_keys[0]=="polygon"){
+					polygons = geo_extent.polygon;
+					//jsonix to Geojson
+					var geomConverter = new GML_V_3_1_1.GeoJSON.ForwardGeometryConverter();	
+					polygons.forEach(function(polygon){
+						var geojson_geom = geomConverter.createGeometry(polygon);
+						console.log("Convert JSONIX to GeoJSON");
+						console.log("from JSONIX = "+JSON.stringify(polygon));
+						console.log("to GeoJSON = "+JSON.stringify(geojson_geom));
+						console.log(geojson_geom);
+						var ol_geom_handler = null;
+						switch(geojson_geom.type){
+							case "Point": ol_geom_handler = ol.geom.Point; break;
+							case "MultiPoint": ol_geom_handler = ol.geom.MultiPoint; break;
+							case "LineString":  ol_geom_handler = ol.geom.LineString; break;
+							case "MultiLineString":  ol_geom_handler = ol.geom.MultiLineString; break;
+							case "Polygon":  ol_geom_handler = ol.geom.Polygon; break;
+							case "MultiPolygon":  ol_geom_handler = ol.geom.MultiPolygon; break;
+						}
+						if(ol_geom_handler) geometries.push( new ol_geom_handler(geojson_geom.coordinates) );
+					});
+					
+				}
+			}
+		}
+		
+		var feature_geom = null;
+		if(geometries.length==1){
+			feature_geom = geometries[0];
+		}else{
+			feature_geom = new ol.geom.GeometryCollection();
+			feature_geom.setGeometriesArray(geometries);
+		}
+		feature = new ol.Feature({
+			geometry: feature_geom,
+			style : this_.options.browse.defaultStyle
+		});
+		feature.setId(dataset.pid);
+		
+		return feature;
+	}
+	
+	/**
+	 * OpenFairViewer.prototype.buildSpatialCoverageDataset
+	 * @param datasets
+	 */
+	OpenFairViewer.prototype.buildSpatialCoverageDataset = function(datasets, extended){
+		var this_ = this;
+		var features = datasets.map(function(dataset,i){console.log(dataset);return this_.buildSpatialCoverageFeature(dataset, extended)});
+		return features;
+	}
+	
+	/**
+	 * OpenFairViewer.prototype.setSpatialCoverageLayer
+	 * @param datasets
+	 */
+	OpenFairViewer.prototype.setSpatialCoverageLayer = function(datasets, extended, visible){
+		var this_ = this;
+		
+		var features = this_.buildSpatialCoverageDataset(datasets, extended);
+		
+		var layerId = 'ofv-csw-spatial-coverages';
+		var layer = this.getLayerByProperty(layerId, 'id');
+		var source = new ol.source.Vector({ features: features });
+		if(!layer){
+			var layer = new ol.layer.Vector({
+				id: undefined, title: undefined,
+				source: source,
+				visible: visible
+			});
+			layer.id = layerId;
+			this.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
+			var layerPointer = new ol.interaction.Select({
+				condition: ol.events.condition.pointerMove,
+				layers: [layer]
+			});
+
+			layerPointer.on('select', function(evt){
+				if(evt.selected) if(evt.selected.length>0){
+					evt.selected.forEach(function(feature){
+						feature.setStyle(this_.options.browse.hoverStyle);
+						$("#"+feature.getId()).addClass("hovered");
+					});
+					
+				}
+				if(evt.deselected) if(evt.deselected.length>0){
+					evt.deselected.forEach(function(feature){
+						feature.setStyle(null);
+						$("#"+feature.getId()).removeClass("hovered");
+					});
+				}
+			});
+			this.map.addInteraction(layerPointer);
+			console.log(layer);
+		}else{
+			layer.setSource(source);
+		}
 	}
 	
 	/**
@@ -612,6 +790,8 @@
 		//get CSW records for page
 		this_.getRecords(page, thefilter).then(function(records){
 			
+			this_.records_on_browse = records;
+			
 			$("#dataset-loader").hide();
 			
 			var dataHtml = '<section class="col-xs-12 col-sm-12 col-md-12">';
@@ -625,6 +805,33 @@
 			dataHtml += '</section>';
 			$("#dataset-articles").html(dataHtml);
 			this_.displayGraphicOverviews();
+			
+			//TESTING
+			var extended = $("#dataset-spatial-coverage-extended").is(":checked");
+			var visible = $("#dataset-spatial-coverage-visible").is(":checked");
+			this_.setSpatialCoverageLayer(records, extended, visible);
+			$("article").each(function(i,item){$(item).on('mouseenter', function(evt){
+				var vectorLayer = this_.getLayerByProperty("ofv-csw-spatial-coverages", "id");
+				var vectorFeature = vectorLayer.getSource().getFeatureById($(item).context.id);
+				if(vectorFeature && $("#dataset-spatial-coverage-visible").is(":checked")){
+					var select = this_.map.getInteractions().getArray().filter(function(item){return item instanceof ol.interaction.Select});
+					if(select.length>0) select = select[0];
+					vectorFeature.setStyle(this_.options.browse.hoverStyle);
+					select.getFeatures().push(vectorFeature);
+					select.dispatchEvent('select');
+				}
+			})});
+			$("article").each(function(i,item){$(item).on('mouseleave', function(evt){
+				var vectorLayer = this_.getLayerByProperty("ofv-csw-spatial-coverages", "id");
+				var vectorFeature = vectorLayer.getSource().getFeatureById($(item).context.id);
+				if(vectorFeature && $("#dataset-spatial-coverage-visible").is(":checked")){
+					var select = this_.map.getInteractions().getArray().filter(function(item){return item instanceof ol.interaction.Select});
+					if(select.length>0) select = select[0];
+					vectorFeature.setStyle(null);
+					select.getFeatures().remove(vectorFeature);
+					select.dispatchEvent('select');					
+				}
+			})});
 		});
 	}
 		
@@ -815,7 +1022,7 @@
 		this_.csw.GetRecords(1, 1, pidFilter, this_.config.OGC_CSW_SCHEMA).then(function(result){
 			var md_entry = new Object();
 			if(result.value.searchResults.numberOfRecordsMatched > 0){                 
-                       		var csw_results = result.value.searchResults.any;
+                var csw_results = result.value.searchResults.any;
 				md_entry = this_.createMetadataEntry(csw_results[0].value);
 			}
 			deferred.resolve(md_entry);
@@ -1512,7 +1719,7 @@
 		//------
 		//spatial search
 		map.on('moveend', function(evt){
-			if($("#dataset-search-bbox-on-search").prop("checked") && $("#dataset-search-bbox-on-mapmove").prop("checked")){
+			if($("#dataset-search-bbox-on-search").prop("checked") && $("#dataset-search-bbox-on-mapinteraction").prop("checked")){
 				var bbox = evt.map.getView().calculateExtent(evt.map.getSize());
 				this_.displayDatasets(bbox); 
 			}
@@ -1560,17 +1767,17 @@
 	    if(envparams){ layerParams['env'] = envparams; }
 	    if(style) layerParams['STYLES'] = style;
 	    var layer = new olLayerClass({
-		id : (hidden? undefined : id),
-		title : (hidden? undefined : title),
-		source : new olSourceClass({
-			url : wmsUrl,
-			params : layerParams,
-			wrapX: true,
-			serverType : 'geoserver',
-			crossOrigin : 'anonymous'
-		}),
-		opacity : opacity,
-                visible: visible
+			id : (hidden? undefined : id),
+			title : (hidden? undefined : title),
+			source : new olSourceClass({
+				url : wmsUrl,
+				params : layerParams,
+				wrapX: true,
+				serverType : 'geoserver',
+				crossOrigin : 'anonymous'
+			}),
+			opacity : opacity,
+			visible: visible
 	    });
             
 	    this.setLegendGraphic(layer);
@@ -2319,7 +2526,7 @@
 		var target = undefined;
 		for(var i=0;i<this.map.getLayerGroup().getLayersArray().length;i++){
 			var layer = this.map.getLayerGroup().getLayersArray()[i];
-			var condition  = by? (layer.get(by) === layerProperty) : (layer.getSource().getParams()["LAYERS"] === layerProperty);
+			var condition  = by? (layer[by] === layerProperty) : (layer.getSource().getParams()["LAYERS"] === layerProperty);
 			if(condition){
 				target = this.map.getLayerGroup().getLayersArray()[i];
 				break;
@@ -2368,6 +2575,7 @@
 		for(var i=0;i<viewlayers.length;i++){
 			var encoded_view = "";
 			var viewlayer = viewlayers[i];
+			if(!viewlayer.getSource().getParams) continue;
 			var params = viewlayer.getSource().getParams();
 			var pid = viewlayer.id;
 			var strategy = viewlayer.strategy;
