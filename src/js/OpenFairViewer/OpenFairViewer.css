@@ -54,7 +54,7 @@ nav ul li.active { background-color: #0C71B8;}
 #infoDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
 
 /** BROWSER **/
-#dataset-list { height:70%;}
+#dataset-list { height:70%; overflow:auto;}
 #dataset-list section.list { height: 100%; }
 #dataset-articles {min-height:400px;}
 #dataset-pages { text-align: center; margin-left: 15px;}
