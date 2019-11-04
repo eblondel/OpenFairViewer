@@ -8,6 +8,11 @@
 @import "../vendor/ol3/ol3-tooltip.css";
 @import "../vendor/ol3/ol3-snapshot.css";
 
+.glyphicon-none:before {
+    content: "";
+    color: transparent !important;
+}
+
 /** Main layout **/
 /** ----------- **/
 
@@ -122,6 +127,22 @@ ul.pagination {margin: 0px !important;}
 	color:#286090 !important;
 	background-color: transparent !important;
 }
+.dataset-button-doi {
+	margin: 0px 1px;
+	width:20px !important;
+	top: 40px;
+	right: 48px;
+	height: 20px !important;
+	color:#8e8e8e !important;
+	background-color: transparent !important;
+	padding: 0px !important;
+	font-size: 160% !important;
+}
+.dataset-button-doi:hover {
+	color:#286090 !important;
+	background-color: transparent !important;
+}
+
 
 /** QUERY **/
 #dsd-ui-wrapper { }

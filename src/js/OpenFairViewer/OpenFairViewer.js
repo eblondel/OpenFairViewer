@@ -573,6 +573,9 @@
 		md_entry.wms = this.getDataProtocolsFromMetadataEntry(md_entry, "WMS");
 		md_entry.wfs = this.getDataProtocolsFromMetadataEntry(md_entry, "WFS");
 		md_entry.queryable = md_entry.wms.length > 0;
+		//doi
+		md_entry.doi = this.getDatasetDOILink(md_entry);
+		
 		return md_entry;
 	}
 	
@@ -2291,6 +2294,41 @@
 			layerTitle += '</p>';
 		}
 		return layerTitle;
+	}
+	
+	/**
+	 * OpenFairViewer.prototype.getDatasetDOILink
+	 * @param md_entry
+	 */
+	OpenFairViewer.prototype.getDatasetDOILink = function(md_entry){
+		var ident = md_entry.metadata.identificationInfo; if(!ident) return null;
+		var identifiers = ident[0].citation.ciCitation.identifier; if(!identifiers) return null;
+		var doi_identifiers = identifiers.filter(function(identifier){
+			var hasDOI = false;
+			if(identifier.mdIdentifier.code.href) if(identifier.mdIdentifier.code.href.indexOf("dx.doi.org")!=-1) hasDOI = true;
+			if(!hasDOI) if(identifier.mdIdentifier.code.value) if(identifier.mdIdentifier.code.value.startsWith("doi:")!=-1) hasDOI = true;
+			if(hasDOI) return identifier;
+		});
+		if(doi_identifiers.length == 0) return null;
+		var doi = null;
+		var doi_identifier = doi_identifiers[0].mdIdentifier;
+		if(doi_identifier.code.href){
+			doi = doi_identifier.code.href.split("dx.doi.org/")[1];
+		}else{
+			doi = doi_identifier.code.value.split("doi:")[1];
+		}
+		return doi;
+	}
+	
+	/**
+	 * OpenFairViewer.prototype.resolveDatasetDOI
+	 * @param dataset
+	 */
+	OpenFairViewer.prototype.resolveDatasetDOI = function(elm){
+		var pid = elm.getAttribute('data-pid');
+		console.log("Resove DOI for dataset pid = " + pid);
+		var the_dataset = this.datasets.filter(function(item){if(item.pid == pid) return item});
+		if(the_dataset.length > 0) the_dataset = the_dataset[0]; window.open("//dx.doi.org/" + the_dataset.doi,'_blank');
 	}
 
 	/**

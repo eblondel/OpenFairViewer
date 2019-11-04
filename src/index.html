@@ -217,6 +217,11 @@
 	</div>
        	<div class="col-xs-9 col-sm-9 col-md-9 excerpet">
 	    <h6>{{title}}</h6>
+	    {{#doi}}
+	    <button class="btn btn-xs dataset-button dataset-button-doi" 
+		    data-pid="{{pid}}" title="Access resource with DOI" 
+		    onclick="app.resolveDatasetDOI(this)"><span class="glyphicon glyphicon-link"></span></button>
+	    {{/doi}}
 	    <button class="btn btn-xs dataset-button dataset-button-info"
 		    data-pid="{{pid}}" title="Access dataset metadata"
 		    onclick="app.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>
