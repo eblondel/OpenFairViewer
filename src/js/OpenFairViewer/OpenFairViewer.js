@@ -3006,12 +3006,12 @@
 					if(viewlayer.dsd){
 						if(params['CQL_FILTER']) encoded_view += 'par=' + params['CQL_FILTER'] +',';
 						//map options
-						encoded_view += 'var=' + viewlayer.variable +',';
-						encoded_view += 'fun=' + viewlayer.envfun + ',';
-						encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
-						encoded_view += 'env=' + params['env'] + ',';
-						encoded_view += 'count=' + viewlayer.count + ',';
-						encoded_view += 'style=' + params['STYLES'] + ',';
+						if(viewlayer.variable) encoded_view += 'var=' + viewlayer.variable +',';
+						if(viewlayer.envfun) encoded_view += 'fun=' + viewlayer.envfun + ',';
+						if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
+						if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
+						if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
+						if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					}
 					break;
 				case "ogc_dimensions":
@@ -3022,12 +3022,12 @@
 					console.log("Setting embed link for view with strategy 'ogc_viewparams'");
 					if(params['VIEWPARAMS']) encoded_view += 'par=' + params['VIEWPARAMS'] + ',';
 					//map options
-					encoded_view += 'var=' + viewlayer.variable +',';
-					encoded_view += 'fun=' + viewlayer.envfun + ',';
-					encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
-					encoded_view += 'env=' + params['env'] + ',';
-					encoded_view += 'count=' + viewlayer.count + ',';
-					encoded_view += 'style=' + params['STYLES'] + ',';
+					if(viewlayer.variable) encoded_view += 'var=' + viewlayer.variable +',';
+					if(viewlayer.envfun) encoded_view += 'fun=' + viewlayer.envfun + ',';
+					if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
+					if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
+					if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
+					if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					break;
 			}	
 			
