@@ -1698,7 +1698,7 @@
 						if(values) if(values.length > 0){
 							var data_component_query = new Object();
 							var attribute = item.id.split('dsd-ui-dimension-attribute-')[1];
-							var attributeDef = dataset.dsd.filter(function(component){if(component.name==attribute) return component})[0];
+							var attributeDef = dataset.dsd.filter(function(component){if(component.primitiveCode==attribute) return component})[0];
 							console.log(values);
 							if(attributeDef.primitiveType == "xsd:string") values = values.map(function(item){return "'"+item+"'"});
 							data_component_query[attribute] = values;
