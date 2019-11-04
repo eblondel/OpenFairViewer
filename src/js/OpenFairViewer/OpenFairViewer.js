@@ -2905,7 +2905,6 @@
 				    var dx = 36;
 				    var dy = breakPt;
 				    if(breaks){
-						if(breaks.length<5) breakSpace = 12;
 						var break_signs = this_.options.map.styling.breaks;
 						for(var i=1;i<breaks.length;i++){
 							var minVal = (Math.round(breaks[i-1] * 100) / 100);
@@ -3238,7 +3237,7 @@
 				var query = encoded_view_obj.q == "true";
 				var breaks = undefined;
 				if(envparams){
-					breaks = envparams.split(";"); breaks.splice(-1,1);
+					breaks = envparams.split(";"); breaks.splice(-1,1); breaks.splice(0,1);
 					breaks = breaks.map(function(key){return parseFloat(key.split(":")[1])});
 				}
 				encoded_datasets.push({
