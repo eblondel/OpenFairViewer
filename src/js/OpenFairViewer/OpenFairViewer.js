@@ -1236,7 +1236,7 @@
 				theme: 'classic',
 				allowClear: false,
 				placeholder: map_classnb_placeholder,
-				data: [{id: '4', text: '4'}, {id: '5', text: '5'}],
+				data: [{id: '3', text: '3'},{id: '4', text: '4'}, {id: '5', text: '5'}],
 				templateResult: formatClassnb,
 				templateSelection: formatClassnb
 			});
