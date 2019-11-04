@@ -2339,7 +2339,7 @@
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
 		
-		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="") return item}).length-1 : null);
+		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="") return item}).length-2 : null);
 		var layerStyle =  from_query_form? this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb) : dataset.style;
 
 		if(!layer){
