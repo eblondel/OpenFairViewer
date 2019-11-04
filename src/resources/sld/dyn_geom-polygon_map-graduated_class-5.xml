@@ -15,14 +15,24 @@
                     <ogc:Filter>
                         <ogc:And>
                             <ogc:PropertyIsGreaterThanOrEqualTo>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v1</ogc:Literal>
                                   <ogc:Literal>0</ogc:Literal>
                                 </ogc:Function>
                             </ogc:PropertyIsGreaterThanOrEqualTo>
                             <ogc:PropertyIsLessThan>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v2</ogc:Literal>
                                   <ogc:Literal>500</ogc:Literal>
@@ -67,14 +77,24 @@
                     <ogc:Filter>
                         <ogc:And>
                             <ogc:PropertyIsGreaterThanOrEqualTo>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v2</ogc:Literal>
                                   <ogc:Literal>500</ogc:Literal>
                                 </ogc:Function>
                             </ogc:PropertyIsGreaterThanOrEqualTo>
                             <ogc:PropertyIsLessThan>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v3</ogc:Literal>
                                   <ogc:Literal>1000</ogc:Literal>
@@ -119,14 +139,24 @@
                     <ogc:Filter>
                         <ogc:And>
                             <ogc:PropertyIsGreaterThanOrEqualTo>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v3</ogc:Literal>
                                   <ogc:Literal>1000</ogc:Literal>
                                 </ogc:Function>
                             </ogc:PropertyIsGreaterThanOrEqualTo>
                             <ogc:PropertyIsLessThan>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v4</ogc:Literal>
                                   <ogc:Literal>2500</ogc:Literal>
@@ -171,14 +201,24 @@
                     <ogc:Filter>
                         <ogc:And>
                             <ogc:PropertyIsGreaterThanOrEqualTo>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v4</ogc:Literal>
                                   <ogc:Literal>2500</ogc:Literal>
                                 </ogc:Function>
                             </ogc:PropertyIsGreaterThanOrEqualTo>
                             <ogc:PropertyIsLessThan>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v5</ogc:Literal>
                                   <ogc:Literal>5000</ogc:Literal>
@@ -223,14 +263,24 @@
                     <ogc:Filter>
                         <ogc:And>
                             <ogc:PropertyIsGreaterThanOrEqualTo>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v5</ogc:Literal>
                                   <ogc:Literal>5000</ogc:Literal>
                                 </ogc:Function>
                             </ogc:PropertyIsGreaterThanOrEqualTo>
                             <ogc:PropertyIsLessThanOrEqualTo>
-                                <ogc:PropertyName>value</ogc:PropertyName>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
                                 <ogc:Function name="env">
                                   <ogc:Literal>v6</ogc:Literal>
                                   <ogc:Literal>10000</ogc:Literal>
