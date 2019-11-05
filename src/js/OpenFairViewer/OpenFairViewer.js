@@ -566,8 +566,9 @@
 			if(temporalExtent.timePosition) md_entry.time_position = temporalExtent.timePosition.value; //TODO to see how to deal with that
 		}
 		//content information
-		if(md_entry.metadata.contentInfo) if(md_entry.metadata.contentInfo[0].featureCatalogueCitation){
-			md_entry.dsd = this_.rewriteURL(md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].href.replace("gmd", "gfc"));
+		if(md_entry.metadata.contentInfo) if(md_entry.metadata.contentInfo[0].featureCatalogueCitation) if(md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].uuidref){
+			var fc_url = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gfc&id=" + md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].uuidref;
+			md_entry.dsd = this_.rewriteURL(fc_url);
 		}
 		//distribution information
 		md_entry.wms = this.getDataProtocolsFromMetadataEntry(md_entry, "WMS");
