@@ -1304,6 +1304,11 @@
 				//parse DSD
 				//TODO later get 'type' value from FeatureCatalogue. This type will condition all underlying services (url params for WMS, app, etc)
 				var dsd = this_.parseFeatureCatalogue(response);
+				if(!dsd){
+					console.warn("No feature catalogue available although referenced in metadata. Delegate to simple filter form");
+					this_.handleFilter(dataset);
+					return;
+				}
 				this_.dataset_on_query = { pid: pid, entry: entry, strategy: dsd.strategy, dsd: dsd.components, query: null };
 				
 				//build UI
