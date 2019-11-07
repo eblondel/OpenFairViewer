@@ -108,7 +108,7 @@
 			if(options.browse.datasetInfoHandler) this.options.browse.datasetInfoHandler = options.browse.datasetInfoHandler;
 			if(options.browse.filterByWMS){
 				this.options.browse.filterByWMS = options.browse.filterByWMS;
-				this.options.browse.filters.push( {name: 'csw:anyText', value: 'WMS'} );
+				this.options.browse.filters.push( {name: 'csw:onlineResource', value: '%WMS%'} );
 			}
 		}
 		
