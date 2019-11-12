@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191031)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191112)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -80,7 +80,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,10,22)}
+		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,11,12)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -748,7 +748,7 @@
 	 */
 	OpenFairViewer.prototype.createFilter = function(bbox){
 		//base filter
-		var filter;
+		var filter = new Ows4js.Filter().PropertyName(['dc:type']).isLike('dataset');
 		for(var i=0;i<this.options.browse.filters.length;i++){
 			var inputFilter = this.options.browse.filters[i];
 			var cswFilter = new Ows4js.Filter().PropertyName([inputFilter.name]).isLike(inputFilter.value);
@@ -3074,7 +3074,7 @@
 					break;
 			}	
 			
-			encoded_view += 'q=' + ((this.dataset_on_query.pid == pid)? true : false);
+			encoded_view += 'q=' + this.dataset_on_query? ((this.dataset_on_query.pid == pid)? true : false) : false;
 			encoded_views.push(encoded_view);
 		}
 		if(viewlayers.length > 0) url += '&views=' + encodeURIComponent(JSON.stringify(encoded_views));
