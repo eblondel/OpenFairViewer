@@ -3074,7 +3074,11 @@
 					break;
 			}	
 			
-			encoded_view += 'q=' + this.dataset_on_query? ((this.dataset_on_query.pid == pid)? true : false) : false;
+			if(this.dataset_on_query){
+				encoded_view += 'q=' + (this.dataset_on_query.pid == pid)? true : false;
+			}else{
+				encoded_view += 'q=false';
+			}
 			encoded_views.push(encoded_view);
 		}
 		if(viewlayers.length > 0) url += '&views=' + encodeURIComponent(JSON.stringify(encoded_views));
