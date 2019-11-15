@@ -1349,7 +1349,8 @@
 							var attributeItem = function(item) {
 							  if (!item.id) { return item.text; }
 							  //TODO vocabulary stuff for countries
-							  if(["flag", "flagstate", "country"].indexOf(item.codelist.toLowerCase()) > -1){
+							  console.log(item);
+							  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
 								  var $item = $(
 									'<img src="js/OpenFairViewer/img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
 									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
@@ -1369,6 +1370,8 @@
 							  return $item;
 							};
 							var dsd_component_placeholder = dsd_component.name;
+							
+							console.log(dsd_component.values);
 							
 							$("#" + dsd_component_id).select2({
 								theme: 'classic',
