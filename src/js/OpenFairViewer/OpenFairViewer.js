@@ -1169,6 +1169,23 @@
 			$('#dsd-ui-button-csv2').prop('disabled', true);
 			$('#dsd-ui-button-png').prop('disabled', true);
 		}
+		
+		//download options
+		//--------------------------------
+		if(this_.dataset_on_query.dsd.length>0){ //for now limited to dsd
+			$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;"></div>');
+			var export_options = '<a data-toggle="collapse" href="#dataset-export-options" role="button" aria-expanded="false" aria-controls="dataset-export-options">Export options</a><br>';
+			export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
+			export_options += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
+			//option to prettify column names
+			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input" checked>Prettify column names</label></div>';
+			//option to enrich with data labels
+			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input" checked>Enrich with data labels</label></div>';
+			export_options += '</fieldset>';
+			export_options += '</div>';
+			$("#dsd-ui-export-options").append(export_options);
+		}
+		
 	}
 	
 	/**
@@ -2849,6 +2866,11 @@
 	 * @param aggregated true if aggregated, false otherwise
 	 */
 	OpenFairViewer.prototype.downloadDatasetCSV = function(aggregated){
+		
+		//options
+		var add_colnames = $("#dataset-export-option-colnames").prop("checked");
+		var add_labels = $("#dataset-export-option-labels").prop("checked");
+		
 		var this_ = this;
 		var wfsResources = this.dataset_on_query.entry.wfs;
 		if(aggregated) wfsResources = wfsResources.filter(function(item){item.name.indexOf(this_.options.map.aggregated_layer_suffix)>0});
@@ -2870,11 +2892,32 @@
 			for(var i=0;i<features.length;i++){
 				var feature = features[i];
 				var props = feature.getProperties();
-				geomwkt = props.geometry? new ol.format.WKT().writeGeometry(props.geometry) : "";
-				delete props.geometry;
-				delete props.bbox;
-				props.geometry = geomwkt;
-				featuresToExport.push(props);
+				var prop_keys = Object.keys(props);
+				var newprops = new Object();
+				for(var j=0;j<prop_keys.length;j++){
+					var key = prop_keys[j];
+					if(key == "bbox") continue;
+					if(key!="geometry"){
+						var fieldAttribute = this_.dataset_on_query.dsd.filter(function(item){if(item.primitiveCode == key) return item});
+						var keyname = key;
+						var labelname = key + "_label";
+						if(add_colnames) if(fieldAttribute.length>0){
+							keyname = fieldAttribute[0].name + " [Code]";
+							labelname = fieldAttribute[0].name + " [Label]";
+						}
+						newprops[keyname] = props[key];
+						if(add_labels) if(fieldAttribute.length>0){
+							if(fieldAttribute[0].values){
+								var fieldValue = fieldAttribute[0].values.filter(function(item){if(item.id == props[key]) return item});
+								if(fieldValue.length>0) newprops[labelname] = fieldValue[0].text;
+							}
+						}
+					}
+				}
+				if(prop_keys.indexOf("geometry") != -1){
+					newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
+				}
+				featuresToExport.push(newprops);
 			}
 			var csv = this_.json2csv(featuresToExport);
 			var fileName = this_.dataset_on_query.pid;
