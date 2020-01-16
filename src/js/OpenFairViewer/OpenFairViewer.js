@@ -80,7 +80,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2019,11,12)}
+		this.versioning = {VERSION: "1.0.3", DATE: new Date(2020,1,16)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -1178,9 +1178,9 @@
 			export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
 			export_options += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
 			//option to prettify column names
-			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input" checked>Prettify column names</label></div>';
+			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">Prettify column names</label></div>';
 			//option to enrich with data labels
-			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input" checked>Enrich with data labels</label></div>';
+			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">Enrich with data labels</label></div>';
 			export_options += '</fieldset>';
 			export_options += '</div>';
 			$("#dsd-ui-export-options").append(export_options);
@@ -3073,6 +3073,10 @@
 		url += '?';
 		if(this.dataset_on_query) url += 'dataset=' + this.dataset_on_query.pid;
 		
+		//baseview
+		var baseview = this.map.getLayers().getArray()[0].getLayersArray().filter(function(item){return item.getVisible()})[0];
+		url += '&baseview=' + encodeURIComponent(baseview.getProperties().title);
+
 		//views
 		var encoded_views = new Array();
 		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray();
@@ -3127,8 +3131,7 @@
 		if(viewlayers.length > 0) url += '&views=' + encodeURIComponent(JSON.stringify(encoded_views));
 		
 		//extent, center, zoom
-		if(this.dataset_on_query) url += '&';
-		url += 'extent=' + this.map.getView().calculateExtent(this.map.getSize()).join(',');
+		url += '&extent=' + this.map.getView().calculateExtent(this.map.getSize()).join(',');
 		url += "&center=" + this.map.getView().getCenter().join(',');
 		url += "&zoom=" + this.map.getView().getZoom();
 
@@ -3260,6 +3263,18 @@
 		var params = this_.getAllUrlParams();
 		console.log(params);
 		
+		//baseview
+		if(params.baseview){
+			var baseviews = this_.map.getLayers().getArray()[0].getLayersArray();
+			for(var i=0;i<baseviews.length;i++){
+				if(baseviews[i].get('title') == decodeURIComponent(params.baseview)){
+					baseviews[i].setVisible(true);
+				}else{
+					baseviews[i].setVisible(false);
+				}
+			}
+		}
+
 		//dynamic parameters
 		//embedded link feature 'dataset' decoding
 		if(params.dataset && !params.views){
