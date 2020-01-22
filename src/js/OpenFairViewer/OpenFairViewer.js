@@ -958,6 +958,40 @@
 		if(dataset.length>0) dataset = dataset[0];
 		this.handleQueryForm(dataset);
 	}
+	
+	/**
+	 * OpenFairViewer.prototype.zoomToExtent
+	 * Zooms to dataset extent
+	 * @param elm
+	 *
+	 **/  
+	OpenFairViewer.prototype.zoomToExtent = function(elm){
+		var pid = elm.getAttribute('data-pid');
+		console.log("Zoom to dataset with pid = " + pid);
+		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
+		if(dataset.length>0) dataset = dataset[0];
+		var idents = dataset.metadata.identificationInfo;
+		if(!idents) return; if(idents.length == 0) return;
+		var extents = idents[0].extent;
+		if(!extents) return; if(extents.length == 0) return;
+		var geo_extents = extents[0].exExtent.geographicElement;
+		if(!geo_extents) return; if(geo_extents.length == 0) return;
+
+		var geo_extent = geo_extents[0];
+		var geo_keys = Object.keys(geo_extent);
+		var is_bbox = geo_keys.indexOf("westBoundLongitude")!=-1 && geo_keys.indexOf("eastBoundLongitude")!=-1 && 
+					  geo_keys.indexOf("southBoundLatitude")!=-1 && geo_keys.indexOf("northBoundLatitude")!=-1;
+		if(is_bbox){
+			//case of bounding box
+			var coords = [
+				geo_extent.westBoundLongitude, geo_extent.southBoundLatitude,
+				geo_extent.eastBoundLongitude, geo_extent.northBoundLatitude
+			]
+			this.map.getView().fit(coords,this.map.getSize());
+		}else{
+			//TODO ??
+		}
+	}
 	  
 	/**
 	 * OpenFairViewer.prototype.cacheDataset
