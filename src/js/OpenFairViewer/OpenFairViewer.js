@@ -80,7 +80,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.3", DATE: new Date(2020,1,22)}
+		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2020,1,29)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -1137,7 +1137,7 @@
 					var clCode = props[3].childNodes[1].textContent;
 					var clLabel = props[1].childNodes[1].textContent;
 					var clDefinition = undefined;
-					if(props[5]) clDefinition = props[5].childNodes[1].textContent;
+					if(props[5]) if(props[5].childNodes.length > 0) clDefinition = props[5].childNodes[1].textContent;
 					var clItem = {id: clCode, text: clLabel, alternateText: (clDefinition? clDefinition : null), codelist: featureAttributeModel.primitiveCode};
 					featureAttributeModel.values.push(clItem);
 				}
