@@ -73,6 +73,12 @@
     		return this;
 	};	
 
+	//Proj4js projections
+	//===========================================================================================
+	proj4.defs("EPSG:4326","+proj=longlat +datum=WGS84 +no_defs");
+	proj4.defs("EPSG:3031","+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs");
+	proj4.defs("EPSG:2154","+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+	
 	/**
 	 * Function to instantiate an OpenFairViewer
 	 */
@@ -981,16 +987,39 @@
 		var geo_keys = Object.keys(geo_extent);
 		var is_bbox = geo_keys.indexOf("westBoundLongitude")!=-1 && geo_keys.indexOf("eastBoundLongitude")!=-1 && 
 					  geo_keys.indexOf("southBoundLatitude")!=-1 && geo_keys.indexOf("northBoundLatitude")!=-1;
+		
+		//bounding box coords
+		var coords = undefined;
 		if(is_bbox){
 			//case of bounding box
-			var coords = [
+			coords = [
 				geo_extent.westBoundLongitude, geo_extent.southBoundLatitude,
 				geo_extent.eastBoundLongitude, geo_extent.northBoundLatitude
 			]
-			this.map.getView().fit(coords,this.map.getSize());
 		}else{
-			//TODO ??
+			//TODO get bounding box from bounding polygon - not implemented
 		}
+		
+		//projection
+		var srs_data = 'EPSG:4326';
+		if(dataset.metadata.referenceSystemInfo) {
+			var srs = dataset.metadata.referenceSystemInfo[0].mdReferenceSystem.referenceSystemIdentifier.rsIdentifier;
+			srs_data = srs.codeSpace + ':' + srs.code;
+		}
+		var srs_map = this.map.getView().getProjection().getCode();
+		if(srs_data != srs_map){
+			console.log("Dataset projection ('"+srs_data+"') differs from map projection ('"+srs_map+"'). Reprojecting bounding box!");
+			console.log("Dataset bounding box (source) = ["+ coords + "]")
+			var extentGeom = ol.geom.Polygon.fromExtent(coords);
+			var source = new ol.proj.get(srs_data);
+			var target = new ol.proj.get(srs_map);
+			extentGeom.transform(source, target);
+			coords = extentGeom.getExtent();
+			console.log("Dataset bounding box (reprojected) = ["+ coords + "]")
+		}
+		
+		//zoom
+		if(coords) this.map.getView().fit(coords,this.map.getSize());
 	}
 	  
 	/**
