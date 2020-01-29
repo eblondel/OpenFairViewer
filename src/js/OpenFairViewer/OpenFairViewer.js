@@ -571,6 +571,12 @@
 			if(temporalExtent.endPosition) md_entry.time_end = temporalExtent.endPosition.value[0];
 			if(temporalExtent.timePosition) md_entry.time_position = temporalExtent.timePosition.value; //TODO to see how to deal with that
 		}
+		//projection
+		md_entry.projection = new ol.proj.get('EPSG:4326');
+		if(md_entry.metadata.referenceSystemInfo) {
+			var srs = md_entry.metadata.referenceSystemInfo[0].mdReferenceSystem.referenceSystemIdentifier.rsIdentifier;
+			md_entry.projection = new ol.proj.get(srs.codeSpace + ':' + srs.code);
+		}
 		//content information
 		if(md_entry.metadata.contentInfo) if(md_entry.metadata.contentInfo[0].featureCatalogueCitation) if(md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].uuidref){
 			var fc_url = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gfc&id=" + md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].uuidref;
@@ -621,7 +627,14 @@
 					[coords[0],coords[1]]
 				];
 				console.log(polyCoords);
-				geometries.push(new ol.geom.LineString(polyCoords));
+				var polyCoordsGeom = new ol.geom.LineString(polyCoords);
+				//reproject if needed
+				var srs_data = dataset.projection;
+				var srs_map = this.map.getView().getProjection();
+				if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
+					polyCoordsGeom.transform(srs_data, srs_map);
+				}
+				geometries.push(polyCoordsGeom);
 			}else{
 				//case of bounding polygons
 				if(extended) if(geo_keys.length == 1 && geo_keys[0]=="polygon"){
@@ -643,7 +656,14 @@
 							case "Polygon":  ol_geom_handler = ol.geom.Polygon; break;
 							case "MultiPolygon":  ol_geom_handler = ol.geom.MultiPolygon; break;
 						}
-						if(ol_geom_handler) geometries.push( new ol_geom_handler(geojson_geom.coordinates) );
+						var geom = new ol_geom_handler(geojson_geom.coordinates);
+						//reproject if needed
+						var srs_data = dataset.projection;
+						var srs_map = this.map.getView().getProjection();
+						if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
+							geom.transform(srs_data, srs_map);
+						}
+						if(ol_geom_handler) geometries.push( geom );
 					});
 					
 				}
@@ -1001,21 +1021,15 @@
 		}
 		
 		//projection
-		var srs_data = 'EPSG:4326';
-		if(dataset.metadata.referenceSystemInfo) {
-			var srs = dataset.metadata.referenceSystemInfo[0].mdReferenceSystem.referenceSystemIdentifier.rsIdentifier;
-			srs_data = srs.codeSpace + ':' + srs.code;
-		}
-		var srs_map = this.map.getView().getProjection().getCode();
-		if(srs_data != srs_map){
+		var srs_data = dataset.projection;
+		var srs_map = this.map.getView().getProjection();
+		if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
 			console.log("Dataset projection ('"+srs_data+"') differs from map projection ('"+srs_map+"'). Reprojecting bounding box!");
-			console.log("Dataset bounding box (source) = ["+ coords + "]")
+			console.log("Coordinates (source) = ["+ coords + "]")
 			var extentGeom = ol.geom.Polygon.fromExtent(coords);
-			var source = new ol.proj.get(srs_data);
-			var target = new ol.proj.get(srs_map);
-			extentGeom.transform(source, target);
+			extentGeom.transform(srs_data, srs_map);
 			coords = extentGeom.getExtent();
-			console.log("Dataset bounding box (reprojected) = ["+ coords + "]")
+			console.log("Coordinates (reprojected) = ["+ coords + "]")
 		}
 		
 		//zoom
