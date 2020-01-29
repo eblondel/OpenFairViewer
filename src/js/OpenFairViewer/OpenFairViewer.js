@@ -3142,7 +3142,7 @@
 
 		//views
 		var encoded_views = new Array();
-		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray();
+		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray().filter(function(item){if(item.id != "ofv-csw-spatial-coverages") return item});
 		for(var i=0;i<viewlayers.length;i++){
 			var encoded_view = "";
 			var viewlayer = viewlayers[i];
@@ -3184,13 +3184,15 @@
 					break;
 			}	
 			
-			if(this.dataset_on_query){
-				encoded_view += 'q=' + (this.dataset_on_query.pid == pid)? true : false;
+			if(this.dataset_on_query) if(this.dataset_on_query.pid == pid){
+				encoded_view += 'q=true';
 			}else{
 				encoded_view += 'q=false';
 			}
 			encoded_views.push(encoded_view);
 		}
+		console.log("viewlayers");
+		console.log(viewlayers);
 		if(viewlayers.length > 0) url += '&views=' + encodeURIComponent(JSON.stringify(encoded_views));
 		
 		//extent, center, zoom
@@ -3345,7 +3347,9 @@
 			this_.getCSWRecord(datasetDef.pid).then(function(md_entry){
 				if(this_.selection.map(function(i){return i.pid}).indexOf(pid) == -1){
 					console.log("we should add the dataset to the selection here");
+					console.log(md_entry);
 					datasetDef.entry = md_entry;
+					datasetDef.dsd = md_entry.dsd;
 					datasetDef.strategy = md_entry.metadata.contentInfo? "ogc_viewparams" : "ogc_filters";
 					this_.selection.push(datasetDef.entry);	
 					this_.resolveDatasetForQuery(datasetDef);		
@@ -3397,6 +3401,7 @@
 							break;
 					}
 				}	
+				console.log(encoded_view_obj);
 				var variable = encoded_view_obj["var"];
 				var envfun = encoded_view_obj.fun;
 				var envmaptype = encoded_view_obj.maptype;
