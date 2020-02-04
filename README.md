@@ -8,7 +8,7 @@ The OpenFairViewer is a HTML5/JS map viewer application that operates standard b
 
 The initialization of the viewer is done with a Javascript. The minimal configuration is done by specifying the OGC Catalogue Service for the Web (CSW) endpoint URL.
 
-```{javascript}
+```javascript
 var app = app || {};
  
 $(document).ready(function(){
@@ -26,7 +26,7 @@ The options of OpenFairViewer are grouped according to the main component of app
 
 An OpenFairViewer instance can be then customized handling one more options like this:
 
-```{javascript}
+```javascript
 var app = app || {};
  
 $(document).ready(function(){
