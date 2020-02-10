@@ -1,4 +1,4 @@
-/** OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20191021) */
+/** OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200210) */
 /* IMPORTS START */
 
 @import "../vendor/ol3/ol3.css";
@@ -47,16 +47,18 @@ nav ul li.active { background-color: #0C71B8;}
 .about-dialog .ui-dialog-titlebar{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000; border-radius:0px;}
 .partner-logo{ height:40px; margin-top:10px; margin-right:5px;}
 .partner-logos{text-align:center;}
-.browse-dialog { width: 400px !important; height: 85% !important; top: 15% !important; }
-.query-dialog { width: 400px; height: 85% !important; top: 15% !important; }
+.browse-dialog { width: 25vw !important; height: 85% !important; top: 15% !important; }
+.query-dialog { width: 25vw !important; height: 85% !important; top: 15% !important; }
 .info-dialog { width: 100% !important; height: 100% !important; top: 0% !important; }
-.browse-dialog, .query-dialog, .info-dialog {border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
-.browse-dialog .ui-dialog-content, .query-dialog .ui-dialog-content , .info-dialog .ui-dialog-content{ color:#000; padding: .5em .1em}
-.browse-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;}
+.data-dialog { width: 75vw !important;height: 40vh !important; left:25vw !important; top: 60% !important; }
+.browse-dialog, .query-dialog, .info-dialog, .data-dialog{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
+.browse-dialog .ui-dialog-content, .query-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-titlebar{ color:#000; padding: .5em .1em}
+.browse-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;}
 
 #browseDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
 #queryDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
 #infoDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
+#dataDialog {height: auto; font-size: 12px !important; overflow: hidden;}
 
 /** BROWSER **/
 #dataset-list { height:70%; overflow:auto;}
@@ -248,8 +250,10 @@ ul.pagination {margin: 0px !important;}
 .data-action-button:hover{opacity:1;}
 .data-action-button:disabled{opacity:0.7;filter: grayscale(100%);-webkit-filter: grayscale(100%);-moz-filter: grayscale(100%);-ms-filter: grayscale(100%);-o-filter: grayscale(100%);}
 .data-csv-agg {background-image: url(img/buttons/csv-icon-agg.png);}
-.data-csv-raw {background-image: url(img/buttons/csv-icon-raw.png);}
+.data-csv-raw {background-image: url(img/buttons/csv-icon.png);}
+.data-table { background-image: url(img/buttons/table-icon.png);}
 .data-png-map {background-image: url(img/buttons/png-icon-map.png);}
+
 
 /** MAP **/
 #pageMap { display: block; background-color: rgba(2, 113, 190, 1);}
@@ -341,3 +345,6 @@ div.ol-custom-overviewmap:not(.ol-collapsed) { border: 1px solid black;}
 div.ol-custom-overviewmap div.ol-overviewmap-map {border: none; width: 300px;}
 div.ol-custom-overviewmap div.ol-overviewmap-box {border: 2px solid red;}
 div.ol-custom-overviewmap:not(.ol-collapsed) button{bottom: auto;left: auto;right: 1px;bottom: 1px;}
+
+/* data table */
+table.dataTable thead th, table.dataTable thead td {padding: 5px 5px;}

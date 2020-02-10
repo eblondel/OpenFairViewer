@@ -86,7 +86,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2020,1,29)}
+		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2020,2,10)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -337,6 +337,8 @@
 		this.initDialog("browseDialog", "Browse", {"ui-dialog": "browse-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
 		this.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
 		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
+		this.initDialog("dataDialog", "Tabular data", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
+
 		this.openAboutDialog();
 		
 		//resolve viewer from URL
@@ -1231,6 +1233,9 @@
 			}
 			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="app.downloadDatasetCSV(false)"></button>';
 			$("#dsd-ui-buttons").append(button_csv_raw);
+
+			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="Open tabular data" onclick="app.displayTabularDataset()"></button>';
+			$("#dsd-ui-buttons").append(button_tabulardata);
 		}
 		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="app.downloadMapPNG()"></button>';
 		$("#dsd-ui-buttons").append(button_png_map);
@@ -1240,10 +1245,12 @@
 		if(layer){
 			$('#dsd-ui-button-csv1').prop('disabled', false);
 			$('#dsd-ui-button-csv2').prop('disabled', false);
+			$('#dsd-ui-button-table').prop('disabled', false);
 			$('#dsd-ui-button-png').prop('disabled', false);
 		}else{
 			$('#dsd-ui-button-csv1').prop('disabled', true);
 			$('#dsd-ui-button-csv2').prop('disabled', true);
+			$('#dsd-ui-button-table').prop('disabled', true);
 			$('#dsd-ui-button-png').prop('disabled', true);
 		}
 		
@@ -2106,7 +2113,16 @@
 					this_.popup = {id: layer.id, coords: coords};
 				}else{
 					popup.hide();
-					this_.popup = {};				
+					this_.popup = {};
+
+					//in case feature markers are highlighted we remove them
+					var markersId = 'ofv-feature-marker';
+					var markers = this_.getLayerByProperty(markersId, 'id');
+					if(markers){
+						var source = new ol.source.Vector({ features: [] });
+						markers.setSource(source);
+					}
+			
 				}
 			}
 		});
@@ -2529,6 +2545,7 @@
 							//actions o download buttons
 							$('#dsd-ui-button-csv1').prop('disabled', false);
 							$('#dsd-ui-button-csv2').prop('disabled', false);
+							$('#dsd-ui-button-table').prop('disabled', false);
 							$('#dsd-ui-button-png').prop('disabled', false);
 							
 							//action on no data
@@ -2540,6 +2557,7 @@
 								//actions o download buttons
 								$('#dsd-ui-button-csv1').prop('disabled', true);
 								$('#dsd-ui-button-csv2').prop('disabled', true);
+								$('#dsd-ui-button-table').prop('disabled', true);
 								$('#dsd-ui-button-png').prop('disabled', true);
 							}
 						});
@@ -2554,6 +2572,7 @@
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
+						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
 					}
 				}else{
@@ -2572,6 +2591,7 @@
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
 					$('#dsd-ui-button-csv2').prop('disabled', false);
+					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
 				}
 				break;
@@ -2622,6 +2642,7 @@
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
+						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
 						
 						//action on no data
@@ -2633,6 +2654,7 @@
 							//actions o download buttons
 							$('#dsd-ui-button-csv1').prop('disabled', true);
 							$('#dsd-ui-button-csv2').prop('disabled', true);
+							$('#dsd-ui-button-table').prop('disabled', true);
 							$('#dsd-ui-button-png').prop('disabled', true);
 						}
 					});
@@ -2648,6 +2670,7 @@
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
 					$('#dsd-ui-button-csv2').prop('disabled', false);
+					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
 			    }
 			    break;
@@ -2707,6 +2730,7 @@
 							//actions o download buttons
 							$('#dsd-ui-button-csv1').prop('disabled', false);
 							$('#dsd-ui-button-csv2').prop('disabled', false);
+							$('#dsd-ui-button-table').prop('disabled', false);
 							$('#dsd-ui-button-png').prop('disabled', false);
 							
 							
@@ -2720,6 +2744,7 @@
 								//actions o download buttons
 								$('#dsd-ui-button-csv1').prop('disabled', true);
 								$('#dsd-ui-button-csv2').prop('disabled', true);
+								$('#dsd-ui-button-table').prop('disabled', true);
 								$('#dsd-ui-button-png').prop('disabled', true);
 							}
 						});
@@ -2735,6 +2760,7 @@
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
+						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
 					}
 				}else{
@@ -2752,6 +2778,7 @@
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
 					$('#dsd-ui-button-csv2').prop('disabled', false);
+					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
 				}
 			    break;
@@ -2806,6 +2833,7 @@
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
+						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
 						
 						//action on no data
@@ -2818,6 +2846,7 @@
 							//actions o download buttons
 							$('#dsd-ui-button-csv1').prop('disabled', true);
 							$('#dsd-ui-button-csv2').prop('disabled', true);
+							$('#dsd-ui-button-table').prop('disabled', true);
 							$('#dsd-ui-button-png').prop('disabled', true);
 						}
 					});
@@ -2833,11 +2862,16 @@
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
 					$('#dsd-ui-button-csv2').prop('disabled', false);
+					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
 			    }
 			    break;
 			}
 		}
+		
+		//if data dialog is opened then update tabular dataset
+		if($(".data-dialog").is(":visible")) this_.displayTabularDataset();
+
 	}
 
 	/**
@@ -3003,6 +3037,189 @@
 			this_.downloadCSV(csv, fileName); 
 		});
 	}
+
+	/**
+	 * OpenFairViewer.prototype.displayTabularDataset
+	 *
+	 */
+	OpenFairViewer.prototype.displayTabularDataset = function(){
+				
+		var this_ = this;
+		var wfsResources = this.dataset_on_query.entry.wfs;
+		var baseWFS = wfsResources[0];
+		var baseLayerUrl = baseWFS.url;
+		var layerName = baseWFS.name;
+		var serviceVersion = baseWFS.serviceVersion;
+		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false);
+		var cql_filter = null;
+		var strategyparams_str = null;
+		if(strategyparams){
+			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true);
+			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
+		}
+		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.dataset_on_query.strategy, strategyparams_str, cql_filter, null, 'json');
+		$.getJSON(layerUrl, function(response){
+			var features = new ol.format.GeoJSON().readFeatures(response);
+			var featuresToExport = new Array();
+			var columnsToExport = new Array();
+			for(var i=0;i<features.length;i++){
+				var feature = features[i];
+				var props = feature.getProperties();
+				var prop_keys = Object.keys(props);
+				var newprops = new Object();
+				for(var j=0;j<prop_keys.length;j++){
+					var key = prop_keys[j];
+					if(key == "bbox") continue;
+					if(key!="geometry"){
+						var fieldAttribute = this_.dataset_on_query.dsd.filter(function(item){if(item.primitiveCode == key) return item});
+						var keyname = key;
+						var labelname = key + "_label";
+						var oldkeyname = keyname;
+						var oldlabelname = labelname;
+						var newkeyname = "";
+						var newlabelname = "";
+						if(fieldAttribute.length>0){
+							newkeyname = fieldAttribute[0].name + " [Code]";
+							newlabelname = fieldAttribute[0].name + " [Label]";
+							keyname = newkeyname;
+							labelname = newlabelname;
+						}
+						newprops[keyname] = props[key];
+						if(i==0) {
+							var column1 = {id: oldkeyname, title: newkeyname}; columnsToExport.push(column1);
+						}
+						if(fieldAttribute.length>0){
+							if(fieldAttribute[0].values){
+								var fieldValue = fieldAttribute[0].values.filter(function(item){if(item.id == props[key]) return item});
+								if(fieldValue.length>0){
+									newprops[labelname] = fieldValue[0].text;
+									if(i==0){
+										var column2 = {id: oldlabelname, title: newlabelname}; columnsToExport.push(column2);
+									}
+								}
+							}
+						}
+					}
+				}
+				if(prop_keys.indexOf("geometry") != -1){
+					newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
+				}
+				featuresToExport.push(newprops);
+			}
+
+			//DataTables
+			var data_columns = Object.keys(featuresToExport[0]);
+			var data_series = featuresToExport.map(function(item){return data_columns.map(function(key){return item[key]})});
+			this_.openDataDialog();
+			$("#data-table").empty();
+			$('#data-table').DataTable( {
+        				data: data_series, order: [[0, 'asc']],
+				columns: columnsToExport,
+				searching: false, destroy: true, pageLength: 5, lengthMenu: [ 5, 10, 25, 50],
+				scrollY: 200, scrollX: true,
+				columnDefs : [ {
+                            		targets : data_columns.map(function(item,idx){return idx;}),
+                            		render : function(data, type, row, meta) {
+						if(data == null || typeof data == "undefined") data = "";
+						//generic renderer
+						//case of http(s) links
+                                			if(typeof data == "string") if(data.indexOf("http")==0){
+							data = '<a href="'+data+'" target="_blank" style="color:#337ab7">Link</a>';
+						}
+						if(meta.col == data_columns.indexOf('geometry')){
+							var wkt = data;
+							var button_id_zoom = 'zoom_feature-'+row[0];
+							var button_id_disp = 'display_feature'+row[0];
+							//button to zoom to feature
+							data = '<button id="'+button_id_zoom+'" class="btn btn-xs dataset-button-zoom" title="Zoom to feature" ';
+		    					data += 'onclick="app.zoomToFeature(\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-zoom-in"></span></button>';
+							//button to display feature
+	    						data += '<button id="'+button_id_disp+'" class="btn btn-xs dataset-button-add" style="margin-left:10px"  title="Display feature" ';
+		    					data += 'onclick="app.highlightFeature(\''+this_.dataset_on_query.pid+'\',\''+row[0]+'\',\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-map-marker"></span></button>';
+						}
+						return data;
+                                    	}
+                                	}
+				,{
+					targets : [data_columns.indexOf('geometry')],
+					orderable: false
+				}
+				]
+			});
+
+
+		});
+
+	}
+
+	/**
+
+	/**
+	 * OpenFairViewer.prototype.processWKT
+	 *
+	 */
+	OpenFairViewer.prototype.processWKT = function(wkt){
+		var format = new ol.format.WKT();
+		var feature = format.readFeature(wkt);
+		var geom = feature.getGeometry();
+		//reproject if needed
+		var srs_data = this.dataset_on_query.entry.projection;
+		var srs_map = this.map.getView().getProjection();
+		if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
+			geom.transform(srs_data, srs_map);
+		}
+		return geom;
+	}
+
+	/**
+
+	/**
+	 * OpenFairViewer.prototype.zoomToFeature
+	 *
+	 */
+	OpenFairViewer.prototype.zoomToFeature = function(wkt){
+		var geom = this.processWKT(wkt);
+		var extent = geom.getExtent();
+		this.map.getView().fit(extent,this.map.getSize());
+	}
+
+	/**
+	 * OpenFairViewer.prototype.highlightFeature
+	 *
+	 */
+	OpenFairViewer.prototype.highlightFeature = function(pid, id, wkt){
+		var this_ = this;
+		var geom = this.processWKT(wkt);
+		console.log(geom);
+		var feature = new ol.Feature({
+			geometry: geom,
+			style : this_.options.browse.defaultStyle
+		});
+		feature.setId(id);
+		console.log(feature);
+
+		var layerId = 'ofv-feature-marker';
+		var layer = this.getLayerByProperty(layerId, 'id');
+		var source = new ol.source.Vector({ features: [feature] });
+		if(!layer){
+			var layer = new ol.layer.Vector({
+			  source: new ol.source.Vector({
+			    features: [feature]
+			  })
+			});
+			layer.id = layerId;
+			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
+		}else{
+			layer.setSource(source);
+		}
+		
+		//add popup
+		var target_layer = this_.getLayerByProperty(pid, "id");
+		var coords = ol.extent.getCenter(geom.getExtent())
+		this_.getFeatureInfo(target_layer, coords);
+		
+	}
+
 	
 	/**
 	 * OpenFairViewer.prototype.downloadMapPNG
@@ -3613,6 +3830,21 @@
 	OpenFairViewer.prototype.closeInfoDialog = function(){
 		this.closeDialog("infoDialog");
 	}
+
+	/**
+	* OpenFairViewer.prototype.openDataDialog Open 'Data' dialog
+	*/
+	OpenFairViewer.prototype.openDataDialog = function(){
+		this.openDialog("dataDialog");
+	}
+   
+   	/**
+	* OpenFairViewer.prototype.closeDataDialog Close 'Data' dialog
+	*/
+	OpenFairViewer.prototype.closeDataDialog = function(){
+		this.closeDialog("dataDialog");
+	}
+
 	
   	/**
 	*
