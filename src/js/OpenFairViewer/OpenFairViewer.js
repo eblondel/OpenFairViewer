@@ -661,7 +661,7 @@
 						var geom = new ol_geom_handler(geojson_geom.coordinates);
 						//reproject if needed
 						var srs_data = dataset.projection;
-						var srs_map = this.map.getView().getProjection();
+						var srs_map = this_.map.getView().getProjection();
 						if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
 							geom.transform(srs_data, srs_map);
 						}
