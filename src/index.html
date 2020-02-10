@@ -58,17 +58,17 @@
     <!-- OWS.js -->
     <script type="text/javascript" src="js/vendor/ows/ows.debug.js"></script>   
     <!-- JQuery main & plugins -->
-    <script type="application/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script type="application/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="application/javascript" src="js/vendor/jquery/jquery.js"></script>
+    <script type="application/javascript" src="js/vendor/jquery/jquery-ui.js"></script>
     <script type="application/javascript" src="//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
-	<!--Bootstrap-->
+    <!--Bootstrap-->
     <script type="application/javascript" src="js/vendor/bootstrap/bootstrap.js"></script>
     <!--Jquery Select2-->
     <script type="application/javascript" src="js/vendor/select2/select2.js"></script>
 	<!--Proj4Js-->
 	<script type="application/javascript" src="js/vendor/proj4js/proj4.js"></script>
     <!--OpenLayers 3-->
-    <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.18.2/ol-debug.js"></script>
+    <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/ol3/3.18.2/ol-debug.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-loadingpanel.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-zoomtomaxextent.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-layerswitcher.js"></script>
@@ -141,7 +141,7 @@
           <!-- Search form -->
           <section class="col-xs-12 col-sm-12 col-md-12 search" style="margin-bottom:5px;">
             <form id="dataset-form">
-              <div class="form-group">
+              <div class="form-group" style="margin-bottom:4px;">
                 <input type="text" class="form-control" id="dataset-search-text" aria-describedby="searchHelp" placeholder="Search a dataset">
               </div>
 	      <a data-toggle="collapse" href="#dataset-search-advanced" role="button" aria-expanded="false" aria-controls="dataset-search-advanced">Advanced settings</a>
@@ -154,7 +154,7 @@
                   	Enable Search on map extent
                      </label>
               	  </div>
-				  <div class="form-check" >
+		  <div class="form-check" >
                      <label class="form-check-label" style="font-weight:100">
                   	<input id ="dataset-search-bbox-on-mapmove" type="checkbox" class="form-check-input">
                   	Auto-Search on map move
@@ -174,7 +174,6 @@
               	  </div>
 		</fieldset>
 	      </div>
-	      </br>
               <input type="submit" class="btn btn-primary btn-sm" style="float:right;" value="Search"></input>
             </form>
           </section>
@@ -187,6 +186,15 @@
           <div id="dataset-articles"></div>
           <!-- Search pagination -->
           <div id="dataset-pages"></div>
+	  <div class="dataTables_length" style="text-align:right;margin-right:5px;">
+	  	<label>Show 
+		<select id="datasets_length" class="">
+		  <option value="5">5</option>
+		  <option value="10">10</option>
+		  <option value="25">25</option>
+		  <option value="50">50</option>
+		</select> datasets</label>
+	   </div>
         </div>
     </div>
     <div id="queryDialog">
@@ -201,14 +209,14 @@
           <div id="dsd-ui"></div>
         </div>
     </div>
-	<div id="infoDialog">
-		<div class="row" style="height:100% !important;">
-			<div class="col-md-12" style="height:100% !important;">
-				<div id="datasetInfo" style="height:100% !important; background:url(js/OpenFairViewer/img/loading.gif) center center no-repeat;">
-				</div>
+    <div id="infoDialog">
+	<div class="row" style="height:100% !important;">
+		<div class="col-md-12" style="height:100% !important;">
+			<div id="datasetInfo" style="height:100% !important; background:url(js/OpenFairViewer/img/loading.gif) center center no-repeat;">
 			</div>
 		</div>
 	</div>
+    </div>
     <div id="dataDialog">
 	<div class="row" style="height:100% !important;">
 		<div class="col-md-12" style="height:100% !important;">
@@ -216,7 +224,6 @@
 		</div>
 	</div>
     </div>
-
     
     <!-- Templates -->
     <!-- ========= -->

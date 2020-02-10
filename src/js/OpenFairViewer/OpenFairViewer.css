@@ -55,16 +55,16 @@ nav ul li.active { background-color: #0C71B8;}
 .browse-dialog .ui-dialog-content, .query-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-titlebar{ color:#000; padding: .5em .1em}
 .browse-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;}
 
-#browseDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
+#browseDialog {height: 95% !important; font-size: 12px !important;overflow: auto; }
 #queryDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
 #infoDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
 #dataDialog {height: auto; font-size: 12px !important; overflow: hidden;}
 
 /** BROWSER **/
-#dataset-list { height:70%; overflow:auto;}
+#dataset-list { height:85%;}
 #dataset-list section.list { height: 100%; }
-#dataset-articles {min-height:400px;}
-#dataset-pages { text-align: center; margin-left: 15px;}
+#dataset-articles {min-height:400px; height: 90%; overflow:auto;}
+#dataset-pages { text-align: center; margin: 5px 0px;}
 ul.pagination {margin: 0px !important;}
 .search-result .thumbnail-wrapper { padding: 0px; height: 100%;}
 .search-result .thumbnail { border-radius: 0 !important; padding: 0px; height: 100%; margin-bottom: 0px;}

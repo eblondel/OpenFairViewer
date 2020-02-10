@@ -325,10 +325,18 @@
 			
 		this.initDataViewer();
 	
+		//event on page number selection
+		$("select[id='datasets_length']").on('change', function() {
+		  var maxrecords = parseInt(this.value);
+		  console.log('Browsing '+maxrecords+' records...');
+		  this_.displayDatasets(maxrecords);
+		});
+	
 		//get Datasets from CSW
-		this.displayDatasets();
+		this.displayDatasets(this.config.OGC_CSW_MAXRECORDS);
 		$("#dataset-form").submit(function() {
-			this_.displayDatasets();
+			var maxrecords = parseInt($("select[id='datasets_length']").val());
+			this_.displayDatasets(maxrecords);
 			return false;
 		});
 				
@@ -541,7 +549,8 @@
 			first: '←',
 			last: '→',
 		}).on("page", function(event, num){
-			this_.getDatasetsFromCSWPage(num);
+			var maxrecords = parseInt($("select[id='datasets_length']").val());
+			this_.getDatasetsFromCSWPage(maxrecords, num);
 		});
 	}
         
@@ -747,15 +756,17 @@
 	
 	/**
 	 * OpenFairViewer.prototype.getRecords
-	 * @param pageItem
+	 * @param maxrecords
+	 * @param page
+	 * @param filter
 	 */
-	OpenFairViewer.prototype.getRecords = function(page, filter){
+	OpenFairViewer.prototype.getRecords = function(maxrecords, page, filter){
 		var deferred = $.Deferred();
 		var this_ = this;
-		var last = page * this.config.OGC_CSW_MAXRECORDS;
-		var first = last - this.config.OGC_CSW_MAXRECORDS + 1;
+		var last = page * maxrecords;
+		var first = last - maxrecords + 1;
 		console.log("Get CSW Records for page "+page+" [from index "+first+" to "+last+"] ...");
-		this.csw.GetRecords(first, this.config.OGC_CSW_MAXRECORDS, filter, this.config.OGC_CSW_SCHEMA).then(function(result){				 
+		this.csw.GetRecords(first, maxrecords, filter, this.config.OGC_CSW_SCHEMA).then(function(result){				 
 			var csw_results = result.value.searchResults.any;
 			var datasets = new Array();	
 			//post-process results
@@ -809,9 +820,10 @@
 	
 	/**
 	 * OpenFairViewer.prototype.getDatasetsFromCSWPage
+	 * @param maxrecords
 	 * @param page
 	 */
-	OpenFairViewer.prototype.getDatasetsFromCSWPage = function(page){
+	OpenFairViewer.prototype.getDatasetsFromCSWPage = function(maxrecords, page){
 		var this_ = this;
 		$("#dataset-articles").empty();
 		$("#dataset-articles").html('<p id="dataset-loader" class="loader"><img alt="loading" src="js/OpenFairViewer/img/loading.gif" /><br /><br />Fetching datasets...</p>');
@@ -828,7 +840,7 @@
 		var template = $('#datasetTpl').html();
 		
 		//get CSW records for page
-		this_.getRecords(page, thefilter).then(function(records){
+		this_.getRecords(maxrecords, page, thefilter).then(function(records){
 			
 			this_.records_on_browse = records;
 			
@@ -877,9 +889,10 @@
 		
 	/**
 	 * OpenFairViewer.prototype.getDatasetsFromCSW
+	 * @param maxrecords
 	 * @param bbox
 	 */
-	OpenFairViewer.prototype.getDatasetsFromCSW = function(bbox){
+	OpenFairViewer.prototype.getDatasetsFromCSW = function(maxrecords, bbox){
 		
 		$("#dataset-count").empty();
 		$("#dataset-articles").empty();
@@ -911,7 +924,7 @@
 				$("#dataset-count").html(maxNb + " datasets");
 				//Set paginated browsing operated by OGC CSW protocol
 				$("#dataset-pages").bootpag({
-					total: Math.ceil(maxNb / this_.config.OGC_CSW_MAXRECORDS)
+					total: Math.ceil(maxNb / maxrecords)
 				}).trigger("page", 1);
 			});
 		}
@@ -921,14 +934,15 @@
         
 	/**
 	 * OpenFairViewer.prototype.displayDatasets
-	 *
+	 * @param maxrecords
+	 * @param bbox
 	 */
-	OpenFairViewer.prototype.displayDatasets = function(bbox){
+	OpenFairViewer.prototype.displayDatasets = function(maxrecords, bbox){
 		var this_ = this;
 		if($("#dataset-search-bbox-on-search").prop("checked") && !bbox){
 			bbox = this.map.getView().calculateExtent(this.map.getSize());
 		}
-		this.getDatasetsFromCSW(bbox);
+		this.getDatasetsFromCSW(maxrecords, bbox);
 	}
 	 
 	/**
@@ -2016,7 +2030,8 @@
 		map.on('moveend', function(evt){
 			if($("#dataset-search-bbox-on-search").prop("checked") && $("#dataset-search-bbox-on-mapinteraction").prop("checked")){
 				var bbox = evt.map.getView().calculateExtent(evt.map.getSize());
-				this_.displayDatasets(bbox); 
+				var maxrecords = parseInt($("select[id='datasets_length']").val());
+				this_.displayDatasets(maxrecords, bbox); 
 			}
 		});
 		
