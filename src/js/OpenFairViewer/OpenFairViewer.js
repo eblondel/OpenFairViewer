@@ -2870,7 +2870,10 @@
 		}
 		
 		//if data dialog is opened then update tabular dataset
-		if($(".data-dialog").is(":visible")) this_.displayTabularDataset();
+		if($(".data-dialog").is(":visible")){
+			$('#data-table').DataTable().destroy();
+			this_.displayTabularDataset();
+		}
 
 	}
 
@@ -3111,9 +3114,9 @@
 			var data_columns = Object.keys(featuresToExport[0]);
 			var data_series = featuresToExport.map(function(item){return data_columns.map(function(key){return item[key]})});
 			this_.openDataDialog();
-			$("#data-table").empty();
+			$('#data-table').empty();
 			$('#data-table').DataTable( {
-        				data: data_series, order: [[0, 'asc']],
+        			data: data_series, order: [[0, 'asc']],
 				columns: columnsToExport,
 				searching: false, destroy: true, pageLength: 5, lengthMenu: [ 5, 10, 25, 50],
 				scrollY: 200, scrollX: true,
@@ -3215,7 +3218,12 @@
 		
 		//add popup
 		var target_layer = this_.getLayerByProperty(pid, "id");
-		var coords = ol.extent.getCenter(geom.getExtent())
+		var coords = ol.extent.getCenter(geom.getExtent());
+		if(geom instanceof ol.geom.LineString ||
+		   geom instanceof ol.geom.MultiLineString ||
+	 	   geom instanceof ol.geom.MultiPoint){
+			coords = geom.getCoordinates()[0][Math.floor(geom.getCoordinates()[0].length/2)];
+		}
 		this_.getFeatureInfo(target_layer, coords);
 		
 	}
