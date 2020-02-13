@@ -279,16 +279,40 @@
 		this.options.map.tooltip.enabled = true;
 		this.options.map.tooltip.handler = function(layer, feature){
 			var props = feature.getProperties();
-			var html = "<ul style='padding:0px 2px;list-style-type:none;'>"
+			var html = '<table class="table table-condensed">';
 			var propNames = Object.keys(props);
+			//text fields
 			for(var i=0;i<propNames.length;i++){
 				var propName = propNames[i];
 				var prop = props[propName];
-				if(typeof prop != "undefined" && !(prop instanceof ol.geom.Geometry)){
-					html += "<li><b>" + propName + ":</b> " + prop + "</li>";
+				if(prop){
+				  var isBase64 = false;
+				  if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
+				  if(typeof prop != "undefined" && !(prop instanceof ol.geom.Geometry)) if(!isBase64) {
+					html += "<tr><td><b>" + propName + "</b></td><td>" + prop + "</td></tr>";	
+				  }
 				}
+			}			
+			
+			//image fields
+			var imgPropNames = propNames.filter(function(propName){
+				var prop = props[propName];
+				if(typeof prop == 'undefined') return false;
+				var isBase64 = false;
+				if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
+				if(isBase64) return propName;
+			});
+			if(imgPropNames.length>0){
+			  html += "<tr><td><b>Images</b></td><td>";
+			  for(var i=0;i<imgPropNames.length;i++){
+				var imgPropName = imgPropNames[i];
+				var prop = props[imgPropName];
+				if(prop.startsWith('base64:')) prop = 'data:image/png;base64,' + prop.split('base64:')[1];
+				html += '<img src="'+prop+'" width="45%" style="margin:2px;" alt="'+imgPropName+'" title="'+imgPropName+'"/>';
+			  }
+		  	  html += '</td></tr>';
 			}
-			html += "</ul>";
+			html += '</table>';
 			console.log(html);
 			return html;
 		}
@@ -787,7 +811,8 @@
 	 */
 	OpenFairViewer.prototype.createFilter = function(bbox){
 		//base filter
-		var filter = new Ows4js.Filter().PropertyName(['dc:type']).isLike('dataset');
+		//var filter = new Ows4js.Filter().PropertyName(['dc:type']).isLike('dataset');
+		var filter = undefined;
 		for(var i=0;i<this.options.browse.filters.length;i++){
 			var inputFilter = this.options.browse.filters[i];
 			var cswFilter = new Ows4js.Filter().PropertyName([inputFilter.name]).isLike(inputFilter.value);
@@ -1270,7 +1295,7 @@
 		
 		//download options
 		//--------------------------------
-		if(this_.dataset_on_query.dsd.length>0){ //for now limited to dsd
+		//if(this_.dataset_on_query.dsd.length>0){ //for now limited to dsd
 			$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;"></div>');
 			var export_options = '<a data-toggle="collapse" href="#dataset-export-options" role="button" aria-expanded="false" aria-controls="dataset-export-options">Export options</a><br>';
 			export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
@@ -1282,7 +1307,7 @@
 			export_options += '</fieldset>';
 			export_options += '</div>';
 			$("#dsd-ui-export-options").append(export_options);
-		}
+		//}
 		
 	}
 	
