@@ -3271,11 +3271,12 @@
 	 */
 	OpenFairViewer.prototype.featureTypeToColumns = function(featuretype){
 		var columnsToExport = new Array();
-		var prop_keys = featuretype.map(function(item){return item.name});
+		var prop_keys = featuretype.map(function(item){return item});
 		for(var j=0;j<prop_keys.length;j++){
-			var key = prop_keys[j];
+			var key = prop_keys[j].name;
+			var type = prop_keys[j].type;
 			if(key == "bbox") continue;
-			if(key!="geometry"){
+			if(!type.startsWith('gml')){
 				var fieldAttribute = null;
 				if(this.dataset_on_query.dsd) fieldAttribute = this.dataset_on_query.dsd.filter(function(item){if(item.primitiveCode == key) return item});
 				var oldkeyname = key;
@@ -3288,11 +3289,16 @@
 				}
 				var column1 = {id: oldkeyname, title: (newkeyname != ""? newkeyname: oldkeyname)}; columnsToExport.push(column1);
 				if(fieldAttribute != null) if(fieldAttribute.length>0){
-					if(fieldAttribute[0].values) if(fieldAttributes[0].values.length > 0){
+					if(fieldAttribute[0].values) if(fieldAttribute[0].values.length > 0){
 						var column2 = {id: oldlabelname, title: (newlabelname != ""? newlabelname : oldlabelname)}; columnsToExport.push(column2);
 					}
 				}
 			}
+		}
+		var geom_props = featuretype.filter(function(item){if(item.type.startsWith('gml')) return item});
+		if(geom_props.length > 0){
+			var geom_prop = geom_props[0];
+			columnsToExport.push({id: geom_prop.name, title: 'geometry'});
 		}
 		return columnsToExport;
 	}
@@ -3324,9 +3330,10 @@
 			//get columns defs from feature type
 			var columnsToExport = this_.featureTypeToColumns(featuretype);
 			var data_columns = columnsToExport.map(function(item){return item.title});
+			var sortablePropertyNames = featuretype.filter(function(item){if(!item.type.startsWith('gml')) return item;});
+			var sortByPropertyName = sortablePropertyNames[0].name;
 			
 			var layerUrl = this_.getDatasetWFSLink(baseLayerUrl, '2.0.0', layerName, this_.dataset_on_query.strategy, strategyparams_str, cql_filter, null, 'json');
-			var wfsPagingUrl = layerUrl + '&count='+pageLength+'&startIndex=0&sortBy='+ featuretype[0].name;
 
 			this_.openDataDialog();
 			$('#data-table').empty();
@@ -3344,7 +3351,7 @@
 						request: 'GetFeature',
 						typeName: layerName,
 						outputFormat: 'json',
-						sortBy: data_columns[0],
+						sortBy: sortByPropertyName,
 						count: data.length,
 						startIndex: data.start,
 					}, function(response) {
