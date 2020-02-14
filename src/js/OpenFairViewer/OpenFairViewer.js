@@ -278,6 +278,12 @@
 		this.options.map.tooltip = {};
 		this.options.map.tooltip.enabled = true;
 		this.options.map.tooltip.handler = function(layer, feature){
+
+			//patterns
+			var regexps = {
+			  DATE: new RegExp("^([1-9][0-9]{3})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])?$"),
+			  DATETIME: new RegExp("^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$")
+			}
 			var props = feature.getProperties();
 			var html = '<table class="table table-condensed">';
 			var propNames = Object.keys(props);
@@ -286,10 +292,16 @@
 				var propName = propNames[i];
 				var prop = props[propName];
 				if(prop){
-				  var isBase64 = false;
-				  if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
+				  var isBase64 = false; if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
+				  var isDate = false; if(typeof prop == "string") isDate = prop.match(regexps.DATE) != null;
+				  var isDateTime = false; if(typeof prop == "string") isDateTime = prop.match(regexps.DATETIME) != null;
 				  if(typeof prop != "undefined" && !(prop instanceof ol.geom.Geometry)) if(!isBase64) {
-					html += "<tr><td><b>" + propName + "</b></td><td>" + prop + "</td></tr>";	
+					html += "<tr><td><b>" + propName + "</b></td><td>" + prop;
+					if(isDate || isDateTime){
+						html += '<button style="margin: 0px 10px" class="btn btn-xs" ';
+						html += 'onclick="app.getNextFeatureInfoInTime(\''+layer.id+'\',\''+layer.baseDataUrl+'\',\'1.0.0\',\''+layer.getSource().getParams().LAYERS+'\',\''+propName+'\',\''+prop+'\')">Next</button>';
+					}
+					html += "</td></tr>";
 				  }
 				}
 			}			
@@ -313,7 +325,6 @@
 		  	  html += '</td></tr>';
 			}
 			html += '</table>';
-			console.log(html);
 			return html;
 		}
 		if(options.map) if(options.map.tooltip) {
@@ -2170,6 +2181,58 @@
 
     	/**
 	 * OpenFairViewer.prototype.addLayerTooltip
+	 * @param layerUrl
+	 * @param serviceVersion
+	 * @param layerName
+	 * @param propertyName
+	 * @param propertyValuel
+	 */
+    	OpenFairViewer.prototype.nextFeatureInTime = function(layerUrl, serviceVersion, layerName, propertyName, propertyValue){
+		return this.getDatasetNextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue);
+	};
+
+    	/**
+	 * OpenFairViewer.prototype.getNextFeatureInfoInTime
+	 * @param pid
+	 * @param layerUrl
+	 * @param serviceVersion
+	 * @param layerName
+	 * @param propertyName
+	 * @param propertyValue
+	 */
+    	OpenFairViewer.prototype.getNextFeatureInfoInTime = function(pid, layerUrl, serviceVersion, layerName, propertyName, propertyValue){
+		var this_ = this;
+		var layer = this.getLayerByProperty(pid, "id");
+		var viewResolution = this_.map.getView().getResolution();
+		var viewProjection = this_.map.getView().getProjection().getCode();
+		var popup = this.map.getOverlayById(layer.id);
+
+		this.nextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue).then(function(nextresponse){
+			
+			if(nextresponse.length > 0){
+				var nextfeature = nextresponse[0];
+				var geom = nextfeature.getGeometry();
+				console.log(geom);
+				var coords = ol.extent.getCenter(geom.getExtent());
+				if(geom instanceof ol.geom.LineString ||
+		   	   	   geom instanceof ol.geom.MultiLineString ||
+	 	   	   	   geom instanceof ol.geom.MultiPoint){
+					coords = geom.getCoordinates()[0][Math.floor(geom.getCoordinates()[0].length/2)];
+				}
+				if(geom instanceof ol.geom.Point) coords = geom.getCoordinates();
+			
+				//popup handling
+				popup.show(coords, this_.options.map.tooltip.handler(layer, nextfeature));
+				this_.popup = {id: layer.id, coords: coords};
+			}else{
+				popup.hide();
+				this_.popup = {};
+			}
+		});
+	}
+
+    	/**
+	 * OpenFairViewer.prototype.addLayerTooltip
 	 * @param layer
 	 */
     	OpenFairViewer.prototype.addLayerTooltip = function(layer){
@@ -2340,8 +2403,39 @@
 		}
 	    });
 	    return deferred.promise();
-
 	}
+
+	/**
+	 * OpenFairViewer.prototype.getDatasetNextFeatureInTime
+	 * @param layerUrl
+	 * @param serviceVersion
+	 * @param layerName
+	 * @param propertyName
+	 * @param propertyValue
+	 * @returns a Jquery promise
+	 */
+	OpenFairViewer.prototype.getDatasetNextFeatureInTime = function(layerUrl, serviceVersion, layerName, propertyName, propertyValue){
+	    var wfsRequest = this.getDatasetWFSLink(layerUrl, serviceVersion, layerName, 'ogc_filters', null, propertyName + ' > ' + propertyValue, null, 'json');
+	    wfsRequest += '&sortBy='+propertyName+'&maxFeatures=1';
+	    console.log(wfsRequest);
+	    var deferred = $.Deferred();
+	    $.ajax({
+                url: wfsRequest,
+                contentType: 'application/json',
+                type: 'GET',
+                success: function(response){
+			var geojson = new ol.format.GeoJSON();
+			var features = geojson.readFeatures(response);			
+			deferred.resolve(features);
+		},
+		error: function(error){
+			console.log(error);
+			deferred.reject(error);
+		}
+	    });
+	    return deferred.promise();
+	}
+	
 	
 	/**
 	 * OpenFairViewer.prototype.getDatasetValues
