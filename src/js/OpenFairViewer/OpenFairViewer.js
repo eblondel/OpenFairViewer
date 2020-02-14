@@ -3037,6 +3037,45 @@
 	    if(format) layerUrl += "&outputFormat=" + format;
  	    return layerUrl;	
 	}	
+	
+	/**
+	 * OpenFairViewer.prototype.describeFeatureType
+	 * @param layerUrl
+	 * @param serviceVersion
+	 * @param typeName
+	 * @return a feature type description
+	 */	
+	OpenFairViewer.prototype.describeFeatureType = function(layerUrl, serviceVersion, typeName){
+		var deferred = $.Deferred();
+		layerUrl += "&version=" + (serviceVersion? serviceVersion : "1.0.0");
+		layerUrl += "&request=DescribeFeatureType";
+		layerUrl += "&typeName=" + typeName;
+		$.ajax({
+			url: layerUrl,
+			crossOrigin: true,
+			type: 'GET',
+			success: function(response){
+				console.log("WFS describe feature type");
+				fc = $(response); console.log(fc);
+				var featuretype = new Array();
+				var elems = fc.children().children()[1].childNodes[1].childNodes[1].childNodes[1].childNodes;
+				for(var i=0;i<elems.length;i++){
+					if(i%2 != 0){
+						var elem = $(elems[i]);
+						featuretype.push({
+							maxOccurs: elem.attr('maxOccurs'), 
+							minOccurs: elem.attr('minOccurs'),
+							name: elem.attr('name'),
+							nillable: elem.attr('nillable'),
+							type: elem.attr('type')
+						});
+					}
+				}
+				deferred.resolve(featuretype);
+			}
+		});
+		return deferred.promise();
+	}
 
 	
 	/**
@@ -3176,10 +3215,95 @@
 	}
 
 	/**
+	 * OpenFairViewer.prototype.formatTabularDataset
+	 * @param features
+	 *
+	 */
+	OpenFairViewer.prototype.formatTabularDataset = function(features){	
+		var this_ = this;
+		var featuresToExport = new Array();
+		for(var i=0;i<features.length;i++){
+			var feature = features[i];
+			var props = feature.getProperties();
+			var prop_keys = Object.keys(props);
+			var newprops = new Object();
+			for(var j=0;j<prop_keys.length;j++){
+				var key = prop_keys[j];
+				if(key == "bbox") continue;
+				if(key!="geometry"){
+					var fieldAttribute = null;
+					if(this_.dataset_on_query.dsd) fieldAttribute = this_.dataset_on_query.dsd.filter(function(item){if(item.primitiveCode == key) return item});
+					var keyname = key;
+					var labelname = key + "_label";
+					var oldkeyname = keyname;
+					var oldlabelname = labelname;
+					var newkeyname = "";
+					var newlabelname = "";
+					if(fieldAttribute != null) if(fieldAttribute.length>0){
+						newkeyname = fieldAttribute[0].name + " [Code]";
+						newlabelname = fieldAttribute[0].name + " [Label]";
+						keyname = newkeyname;
+						labelname = newlabelname;
+					}
+					newprops[keyname] = props[key];
+					if(fieldAttribute != null) if(fieldAttribute.length>0){
+						if(fieldAttribute[0].values){
+							var fieldValue = fieldAttribute[0].values.filter(function(item){if(item.id == props[key]) return item});
+							if(fieldValue.length>0){
+								newprops[labelname] = fieldValue[0].text;
+							}
+						}
+					}
+				}
+			}
+			if(prop_keys.indexOf("geometry") != -1){
+				newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
+			}
+			featuresToExport.push(newprops);
+		}
+		return featuresToExport;
+	}
+	
+	/**
+	 * OpenFairViewer.prototype.displayTabularDataset
+	 * @param featuretype
+	 *
+	 */
+	OpenFairViewer.prototype.featureTypeToColumns = function(featuretype){
+		var columnsToExport = new Array();
+		var prop_keys = featuretype.map(function(item){return item.name});
+		for(var j=0;j<prop_keys.length;j++){
+			var key = prop_keys[j];
+			if(key == "bbox") continue;
+			if(key!="geometry"){
+				var fieldAttribute = null;
+				if(this.dataset_on_query.dsd) fieldAttribute = this.dataset_on_query.dsd.filter(function(item){if(item.primitiveCode == key) return item});
+				var oldkeyname = key;
+				var oldlabelname = key + "_label";
+				var newkeyname = "";
+				var newlabelname = "";
+				if(fieldAttribute != null) if(fieldAttribute.length>0){
+					newkeyname = fieldAttribute[0].name + " [Code]";
+					newlabelname = fieldAttribute[0].name + " [Label]";
+				}
+				var column1 = {id: oldkeyname, title: (newkeyname != ""? newkeyname: oldkeyname)}; columnsToExport.push(column1);
+				if(fieldAttribute != null) if(fieldAttribute.length>0){
+					if(fieldAttribute[0].values) if(fieldAttributes[0].values.length > 0){
+						var column2 = {id: oldlabelname, title: (newlabelname != ""? newlabelname : oldlabelname)}; columnsToExport.push(column2);
+					}
+				}
+			}
+		}
+		return columnsToExport;
+	}
+	
+	/**
 	 * OpenFairViewer.prototype.displayTabularDataset
 	 *
 	 */
 	OpenFairViewer.prototype.displayTabularDataset = function(){
+				
+		var pageLength = 5;
 				
 		var this_ = this;
 		var wfsResources = this.dataset_on_query.entry.wfs;
@@ -3194,89 +3318,80 @@
 			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true);
 			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
 		}
-		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.dataset_on_query.strategy, strategyparams_str, cql_filter, null, 'json');
-		$.getJSON(layerUrl, function(response){
-			var features = new ol.format.GeoJSON().readFeatures(response);
-			var featuresToExport = new Array();
-			var columnsToExport = new Array();
-			for(var i=0;i<features.length;i++){
-				var feature = features[i];
-				var props = feature.getProperties();
-				var prop_keys = Object.keys(props);
-				var newprops = new Object();
-				for(var j=0;j<prop_keys.length;j++){
-					var key = prop_keys[j];
-					if(key == "bbox") continue;
-					if(key!="geometry"){
-						var fieldAttribute = this_.dataset_on_query.dsd.filter(function(item){if(item.primitiveCode == key) return item});
-						var keyname = key;
-						var labelname = key + "_label";
-						var oldkeyname = keyname;
-						var oldlabelname = labelname;
-						var newkeyname = "";
-						var newlabelname = "";
-						if(fieldAttribute.length>0){
-							newkeyname = fieldAttribute[0].name + " [Code]";
-							newlabelname = fieldAttribute[0].name + " [Label]";
-							keyname = newkeyname;
-							labelname = newlabelname;
-						}
-						newprops[keyname] = props[key];
-						if(i==0) {
-							var column1 = {id: oldkeyname, title: newkeyname}; columnsToExport.push(column1);
-						}
-						if(fieldAttribute.length>0){
-							if(fieldAttribute[0].values){
-								var fieldValue = fieldAttribute[0].values.filter(function(item){if(item.id == props[key]) return item});
-								if(fieldValue.length>0){
-									newprops[labelname] = fieldValue[0].text;
-									if(i==0){
-										var column2 = {id: oldlabelname, title: newlabelname}; columnsToExport.push(column2);
-									}
-								}
-							}
-						}
-					}
-				}
-				if(prop_keys.indexOf("geometry") != -1){
-					newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
-				}
-				featuresToExport.push(newprops);
-			}
+		
+		this.describeFeatureType(baseLayerUrl, serviceVersion, layerName).then(function(featuretype){
+			
+			//get columns defs from feature type
+			var columnsToExport = this_.featureTypeToColumns(featuretype);
+			var data_columns = columnsToExport.map(function(item){return item.title});
+			
+			var layerUrl = this_.getDatasetWFSLink(baseLayerUrl, '2.0.0', layerName, this_.dataset_on_query.strategy, strategyparams_str, cql_filter, null, 'json');
+			var wfsPagingUrl = layerUrl + '&count='+pageLength+'&startIndex=0&sortBy='+ featuretype[0].name;
 
-			//DataTables
-			var data_columns = Object.keys(featuresToExport[0]);
-			var data_series = featuresToExport.map(function(item){return data_columns.map(function(key){return item[key]})});
 			this_.openDataDialog();
 			$('#data-table').empty();
+			
+			//DataTables
 			$('#data-table').DataTable( {
-        			data: data_series, order: [[0, 'asc']],
+				processing: true,
+				serverSide: true,
+				serverMethod: 'get',
+				ajax: function(data, callback){
+
+					$.get(baseLayerUrl.split('?service=WFS')[0], {
+						service: 'WFS',
+						serviceVersion: '2.0.0',
+						request: 'GetFeature',
+						typeName: layerName,
+						outputFormat: 'json',
+						sortBy: data_columns[0],
+						count: data.length,
+						startIndex: data.start,
+					}, function(response) {
+						console.log(response);
+						var features = new ol.format.GeoJSON().readFeatures(response);
+						var data_export = this_.formatTabularDataset(features);
+						callback({
+							recordsTotal: response.totalFeatures,
+							recordsFiltered: response.totalFeatures,
+							data: data_export.map(function(item){return data_columns.map(function(key){return item[key]})}),
+						});
+					});
+				},
+				//data: data_series, order: [[0, 'asc']],
 				columns: columnsToExport,
-				searching: false, destroy: true, pageLength: 5, lengthMenu: [ 5, 10, 25, 50],
+				searching: false, destroy: true, pageLength: pageLength, lengthMenu: [ 5, 10, 25, 50],
 				scrollY: 200, scrollX: true,
 				columnDefs : [ {
-                            		targets : data_columns.map(function(item,idx){return idx;}),
-                            		render : function(data, type, row, meta) {
+					targets : columnsToExport.map(function(item,idx){return idx;}),
+					render : function(data, type, row, meta) {
 						if(data == null || typeof data == "undefined") data = "";
 						//generic renderer
 						//case of http(s) links
-                                			if(typeof data == "string") if(data.indexOf("http")==0){
+						if(typeof data == "string") if(data.indexOf("http")==0){
 							data = '<a href="'+data+'" target="_blank" style="color:#337ab7">Link</a>';
 						}
+						//case of images
+						var isBase64 = false; if(typeof data == "string") isBase64 = data.startsWith('base64:') || data.startsWith('data:image/png;base64,');
+						if(isBase64){
+							if(data.startsWith('base64:')) data = 'data:image/png;base64,' + data.split('base64:')[1];
+							data = '<img src="'+data+'" width="100%" style="margin:2px;" alt="'+meta.col+'" title="'+meta.col+'"/>';
+						}
+						//case of geometry
 						if(meta.col == data_columns.indexOf('geometry')){
 							var wkt = data;
 							var button_id_zoom = 'zoom_feature-'+row[0];
 							var button_id_disp = 'display_feature'+row[0];
 							//button to zoom to feature
 							data = '<button id="'+button_id_zoom+'" class="btn btn-xs dataset-button-zoom" title="Zoom to feature" ';
-		    					data += 'onclick="app.zoomToFeature(\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-zoom-in"></span></button>';
+								data += 'onclick="app.zoomToFeature(\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-zoom-in"></span></button>';
 							//button to display feature
-	    						data += '<button id="'+button_id_disp+'" class="btn btn-xs dataset-button-add" style="margin-left:10px"  title="Display feature" ';
-		    					data += 'onclick="app.highlightFeature(\''+this_.dataset_on_query.pid+'\',\''+row[0]+'\',\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-map-marker"></span></button>';
+								data += '<button id="'+button_id_disp+'" class="btn btn-xs dataset-button-add" style="margin-left:10px"  title="Display feature" ';
+								data += 'onclick="app.highlightFeature(\''+this_.dataset_on_query.pid+'\',\''+row[0]+'\',\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-map-marker"></span></button>';
 						}
 						return data;
-                                    	}
-                                	}
+					}
+				}
 				,{
 					targets : [data_columns.indexOf('geometry')],
 					orderable: false
@@ -3284,9 +3399,7 @@
 				]
 			});
 
-
 		});
-
 	}
 
 	/**
@@ -3327,13 +3440,11 @@
 	OpenFairViewer.prototype.highlightFeature = function(pid, id, wkt){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
-		console.log(geom);
 		var feature = new ol.Feature({
 			geometry: geom,
 			style : this_.options.browse.defaultStyle
 		});
 		feature.setId(id);
-		console.log(feature);
 
 		var layerId = 'ofv-feature-marker';
 		var layer = this.getLayerByProperty(layerId, 'id');
