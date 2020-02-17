@@ -292,6 +292,11 @@
 				var propName = propNames[i];
 				var prop = props[propName];
 				if(prop){
+				
+				  if(typeof prop == "string") if(prop.indexOf("http")==0){
+				    prop = '<a href="'+prop+'" target="_blank" style="color:#337ab7">Link</a>';
+				  }
+
 				  var isBase64 = false; if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
 				  var isDate = false; if(typeof prop == "string") isDate = prop.match(regexps.DATE) != null;
 				  var isDateTime = false; if(typeof prop == "string") isDateTime = prop.match(regexps.DATETIME) != null;
@@ -2219,8 +2224,8 @@
 	 	   	   	   geom instanceof ol.geom.MultiPoint){
 					coords = geom.getCoordinates()[0][Math.floor(geom.getCoordinates()[0].length/2)];
 				}
-				if(geom instanceof ol.geom.Point) coords = geom.getCoordinates();
-			
+				if(geom instanceof ol.geom.Point) coords = geom.getCoordinates();			
+
 				//popup handling
 				popup.show(coords, this_.options.map.tooltip.handler(layer, nextfeature));
 				this_.popup = {id: layer.id, coords: coords};
