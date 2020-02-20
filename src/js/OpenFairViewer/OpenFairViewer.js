@@ -2156,12 +2156,12 @@
 		var viewProjection = this_.map.getView().getProjection().getCode();
 		var popup = this.map.getOverlayById(layer.id);
 		$.ajax({
-			url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"}),
+			url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/json"}),
 			crossOrigin: true,
 			type: 'GET',
 			success: function(response){
 				console.log(response);
-				var gml = new ol.format.GML();
+				var gml = new ol.format.GeoJSON();
 				var features = gml.readFeatures(response);
 				if(features.length > 0){
 					var feature = features[0];
@@ -2185,18 +2185,6 @@
 	}
 
     	/**
-	 * OpenFairViewer.prototype.addLayerTooltip
-	 * @param layerUrl
-	 * @param serviceVersion
-	 * @param layerName
-	 * @param propertyName
-	 * @param propertyValuel
-	 */
-    	OpenFairViewer.prototype.nextFeatureInTime = function(layerUrl, serviceVersion, layerName, propertyName, propertyValue){
-		return this.getDatasetNextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue);
-	};
-
-    	/**
 	 * OpenFairViewer.prototype.getNextFeatureInfoInTime
 	 * @param pid
 	 * @param layerUrl
@@ -2212,7 +2200,7 @@
 		var viewProjection = this_.map.getView().getProjection().getCode();
 		var popup = this.map.getOverlayById(layer.id);
 
-		this.nextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue).then(function(nextresponse){
+		this.getDatasetNextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue).then(function(nextresponse){
 			
 			if(nextresponse.length > 0){
 				var nextfeature = nextresponse[0];
@@ -3262,6 +3250,7 @@
 				}
 			}
 			if(prop_keys.indexOf("geometry") != -1){
+				console.log(props["geometry"]);
 				newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
 			}
 			featuresToExport.push(newprops);
@@ -3270,7 +3259,7 @@
 	}
 	
 	/**
-	 * OpenFairViewer.prototype.displayTabularDataset
+	 * OpenFairViewer.prototype.featureTypeToColumns
 	 * @param featuretype
 	 *
 	 */
@@ -3452,6 +3441,7 @@
 	OpenFairViewer.prototype.highlightFeature = function(pid, id, wkt){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
+		console.log(geom);
 		var feature = new ol.Feature({
 			geometry: geom,
 			style : this_.options.browse.defaultStyle
@@ -3481,6 +3471,7 @@
 	 	   geom instanceof ol.geom.MultiPoint){
 			coords = geom.getCoordinates()[0][Math.floor(geom.getCoordinates()[0].length/2)];
 		}
+		if(geom instanceof ol.geom.Point) coords = geom.getCoordinates();
 		this_.getFeatureInfo(target_layer, coords);
 		
 	}
