@@ -208,6 +208,11 @@
 				})
 			}),
 			new ol.layer.Tile({
+				title: "OpenStreetMaps",
+				type: 'base',
+				source: new ol.source.OSM()
+			}),
+			/*new ol.layer.Tile({
 				title : "UN Clear Map (Plain)",
 				type: 'base',
 				source : new ol.source.TileArcGISRest({							
@@ -233,9 +238,9 @@
 					crossOrigin: 'anonymous',
 					wrapX: true
 				})
-			}),
+			}),*/
 			new ol.layer.Tile({
-				title : "UN Clear Map (Topo)",
+				title : "UN Clear Map",
 				type: 'base',
 				source : new ol.source.TileArcGISRest({							
 					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Topo/MapServer',
@@ -2344,7 +2349,7 @@
 	 */
 	OpenFairViewer.prototype.getDatasetGeometryComponent = function(dataset){
 		if(!dataset.dsd) return;
-		var geom_component = dataset.dsd.filter(function(item){if(item.name == "geometry") return item});
+		var geom_component = dataset.dsd.filter(function(item){if(item.primitiveType.startsWith("gml")) return item});
 		if(geom_component.length==0) return;
 		return geom_component[0];
 	}
