@@ -1309,6 +1309,10 @@
 		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">Prettify column names</label></div>';
 		//option to enrich with data labels
 		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">Enrich with data labels</label></div>';
+		export_options += '<p style="margin-top:10px;">More export methods?</p>';
+		export_options += '<div class="data-export-buttons">';
+		export_options += '<a id="dataset-export-option-wfs" href="" target="_blank" title="Get OGC WFS data request"><img src="js/OpenFairViewer/img/buttons/wfs-icon.png" width="50" height="50"/></a>';
+		export_options += '</div>';
 		export_options += '</fieldset>';
 		export_options += '</div>';
 		$("#dsd-ui-export-options").append(export_options);
@@ -2791,6 +2795,10 @@
 								$('#dsd-ui-button-png').prop('disabled', true);
 								$("#dsd-ui-export-options").hide();
 							}
+							
+							//display WFS request download option
+							var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+							$('#dataset-export-option-wfs').prop("href", wfs_link);
 						});
 					}else{
 						//static styling
@@ -2806,6 +2814,10 @@
 						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
 						$("#dsd-ui-export-options").show();
+						
+						//display WFS request download option
+						var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+						$('#dataset-export-option-wfs').prop("href", wfs_link);
 					}
 				}else{
 					console.log("Add layer with strategy 'ogc_filters' with simple CQL filter");
@@ -2825,6 +2837,10 @@
 					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
 					$("#dsd-ui-export-options").show();
+					
+					//display WFS request download option
+					var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, null, cql_filter, null);
+					$('#dataset-export-option-wfs').prop("href", wfs_link);
 				}
 				break;
 				
@@ -2876,6 +2892,10 @@
 						$('#dsd-ui-button-png').prop('disabled', false);
 						$("#dsd-ui-export-options").show();
 						
+						//display WFS request download option
+						var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+						$('#dataset-export-option-wfs').prop("href", wfs_link);
+						
 						//action on no data
 						if(values) if(values.length == 0){
 							console.log("Actions on no data");
@@ -2905,6 +2925,10 @@
 					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
 					$("#dsd-ui-export-options").show();
+					
+					//display WFS request download option
+					var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+					$('#dataset-export-option-wfs').prop("href", wfs_link);
 			    }
 			    break;
 			}    
@@ -2965,6 +2989,9 @@
 							$('#dsd-ui-button-png').prop('disabled', false);
 							$("#dsd-ui-export-options").show();
 							
+							//display WFS request download option
+							var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+							$('#dataset-export-option-wfs').prop("href", wfs_link);
 							
 							//action on no data
 							if(values) if(values.length==0){
@@ -2996,6 +3023,11 @@
 						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
 						$("#dsd-ui-export-options").show();
+						
+						//display WFS request download option
+						var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+						$('#dataset-export-option-wfs').prop("href", wfs_link);
+						
 					}
 				}else{
 					console.log("Update layer with strategy 'ogc_filters' with simple CQL filter");
@@ -3070,6 +3102,10 @@
 						$('#dsd-ui-button-png').prop('disabled', false);
 						$("#dsd-ui-export-options").show();
 						
+						//display WFS request download option
+						var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+						$('#dataset-export-option-wfs').prop("href", wfs_link);
+						
 						//action on no data
 						if(values) if(values.length == 0){
 							this_.removeLayerByProperty(pid, "id");
@@ -3100,6 +3136,10 @@
 					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
 					$("#dsd-ui-export-options").show();
+					
+					//display WFS request download option
+					var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, null);
+					$('#dataset-export-option-wfs').prop("href", wfs_link);
 			    }
 			    break;
 			}

@@ -253,7 +253,7 @@ ul.pagination {margin: 0px !important;}
 .data-csv-raw {background-image: url(img/buttons/csv-icon.png);}
 .data-table { background-image: url(img/buttons/table-icon.png);}
 .data-png-map {background-image: url(img/buttons/png-icon-map.png);}
-
+.data-export-buttons {margin: 0 auto;width: 90%;text-align: center !important;}
 
 /** MAP **/
 #pageMap { display: block; background-color: rgba(2, 113, 190, 1);}
