@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200122)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200221)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -86,7 +86,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2020,2,10)}
+		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2020,2,21)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -306,7 +306,12 @@
 				  var isDate = false; if(typeof prop == "string") isDate = prop.match(regexps.DATE) != null;
 				  var isDateTime = false; if(typeof prop == "string") isDateTime = prop.match(regexps.DATETIME) != null;
 				  if(typeof prop != "undefined" && !(prop instanceof ol.geom.Geometry)) if(!isBase64) {
-					html += "<tr><td><b>" + propName + "</b></td><td>" + prop;
+					var propToDisplay = prop;
+					if(isDateTime){
+						var date = new Date(Date.parse(prop));
+						propToDisplay = date.toISOString().split("T")[0] + 'T' + date.toLocaleTimeString();
+					}
+					html += "<tr><td><b>" + propName + "</b></td><td>" + propToDisplay;
 					if(isDate || isDateTime){
 						html += '<button style="margin: 0px 10px" class="btn btn-xs" ';
 						html += 'onclick="app.getNextFeatureInfoInTime(\''+layer.id+'\',\''+layer.baseDataUrl+'\',\'1.0.0\',\''+layer.getSource().getParams().LAYERS+'\',\''+propName+'\',\''+prop+'\')">Next</button>';
@@ -682,7 +687,6 @@
 					[coords[2],coords[1]],
 					[coords[0],coords[1]]
 				];
-				console.log(polyCoords);
 				var polyCoordsGeom = new ol.geom.LineString(polyCoords);
 				//reproject if needed
 				var srs_data = dataset.projection;
@@ -793,7 +797,6 @@
 				}
 			});
 			this.map.addInteraction(layerPointer);
-			console.log(layer);
 		}else{
 			layer.setSource(source);
 		}
@@ -998,7 +1001,6 @@
 		var imgs = $("img.graphic_overview");
 		$.each(imgs, function () {
 			var $this = $(this);
-			console.log($this);
 			var im = new Image();
 			im.onload = function () {
 				var theImage = $this;
@@ -1217,7 +1219,6 @@
 		var featureTypes = $(featureCatalogue[0].childNodes).filter(function(idx,item){if(item.nodeName == "gfc:featureType") return item;});
 	
 		var ft = featureTypes[0];
-		console.log(ft);
 		//get carrier of characteristics
 		var characteristics = $(ft.childNodes[1].childNodes).filter(function(idx,item){ if(item.nodeName == "gfc:carrierOfCharacteristics") return item;});
 		console.log(characteristics);
@@ -1299,7 +1300,19 @@
 		}
 		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="app.downloadMapPNG()"></button>';
 		$("#dsd-ui-buttons").append(button_png_map);
-				
+		
+		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;display:none;"></div>');
+		var export_options = '<a data-toggle="collapse" href="#dataset-export-options" role="button" aria-expanded="false" aria-controls="dataset-export-options">Export options</a><br>';
+		export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
+		export_options += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
+		//option to prettify column names
+		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">Prettify column names</label></div>';
+		//option to enrich with data labels
+		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">Enrich with data labels</label></div>';
+		export_options += '</fieldset>';
+		export_options += '</div>';
+		$("#dsd-ui-export-options").append(export_options);
+		
 		var layerName = this_.dataset_on_query.pid;
 		var layer = this_.getLayerByProperty(this_.dataset_on_query.pid, 'id');
 		if(layer){
@@ -1313,22 +1326,6 @@
 			$('#dsd-ui-button-table').prop('disabled', true);
 			$('#dsd-ui-button-png').prop('disabled', true);
 		}
-		
-		//download options
-		//--------------------------------
-		//if(this_.dataset_on_query.dsd.length>0){ //for now limited to dsd
-			$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;"></div>');
-			var export_options = '<a data-toggle="collapse" href="#dataset-export-options" role="button" aria-expanded="false" aria-controls="dataset-export-options">Export options</a><br>';
-			export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
-			export_options += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
-			//option to prettify column names
-			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">Prettify column names</label></div>';
-			//option to enrich with data labels
-			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">Enrich with data labels</label></div>';
-			export_options += '</fieldset>';
-			export_options += '</div>';
-			$("#dsd-ui-export-options").append(export_options);
-		//}
 		
 	}
 	
@@ -1432,7 +1429,7 @@
 		var ogcfilter_component_id = "ui-ogc_filter";
 		//html
 		$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Filter</label></p></div>');
-		$("#dsd-ui-col-1").append('<input type="text" id = "'+ogcfilter_component_id+'" class="dsd-ui-dimension" title="Filter data with CQL"></select>');
+		$("#dsd-ui-col-1").append('<input type="text" id = "'+ogcfilter_component_id+'" class="dsd-ui-dimension" title="Filter data with CQL" autofocus="true" ></select>');
 		
 		//query form buttons
 		this.handleQueryFormButtons(1);
@@ -1459,7 +1456,6 @@
 			contentType: 'application/xml',
 			type: 'GET',
 			success: function(response){
-				console.log(response);
 				$("#dsd-loader").hide();
 				
 				//parse DSD
@@ -1492,6 +1488,7 @@
 					return null;
 				}
 				$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
+				$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
 				$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 				$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.attributes+'</label></p></div>');
 				for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
@@ -1499,7 +1496,8 @@
 					if(dsd_component.definition == "attribute"){
 						
 						//attribute with list values --> DROPDOWNLISTS
-						if(dsd_component.values){
+						if(dsd_component.primitiveType == "xsd:string"){
+						  if(dsd_component.values){
 							//id
 							var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
 							
@@ -1540,17 +1538,75 @@
 								templateSelection: attributeItem,
 								matcher: attributeMatcher
 							});	
-						}else{
-							//other attributes --> TIME etc
-							//TODO
+						  }
 						}
+						
+						//attribute with time --> datepicker / datetimepicker
+						if(dsd_component.primitiveType == "xsd:date" || dsd_component.primitiveType == "xsd:datetime"){
+							//indicates local tzone but required to display well the original date
+							var time_start_local = new Date(Date.parse(entry.time_start.split('Z')[0]));
+							var time_start_local_offset = time_start_local.getTimezoneOffset()*60000;
+							var time_start = new Date(time_start_local.getTime() + time_start_local_offset);
+							var time_end_local = new Date(Date.parse(entry.time_end.split('Z')[0]));
+							var time_end_local_offset = time_end_local.getTimezoneOffset()*60000;
+							var time_end = new Date(time_end_local.getTime() + time_end_local_offset);
+	
+							//id
+							var dsd_component_id_start = "dsd-ui-dimension-time-start-"+dsd_component.primitiveCode;
+							var dsd_component_id_end = "dsd-ui-dimension-time-end-"+dsd_component.primitiveCode;
+							//html
+							var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:25px;margin-bottom:5px;">';
+							dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" >'
+							if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" >'
+							$("#dsd-ui-col-1").append(dsd_component_time_html);
+							
+							var startRange = $("#"+dsd_component_id_start);
+							var endRange = $("#"+dsd_component_id_end);
+							
+							//jquery widget
+							if(dsd_component.primitiveType == "xsd:date"){
+								switch(dsd.strategy){
+									case "ogc_filters":
+										$.timepicker.dateRange(startRange, endRange,{
+											minDate: time_start, maxDate: time_end
+										}); break;
+									case "ogc_viewparams":
+										startRange.datetimepicker({
+											minDate: time_start, maxDate: time_end,
+											showHour: false, showMinute: false
+										}); break;
+								}
+							}else if(dsd_component.primitiveType == "xsd:datetime"){
+								switch(dsd.strategy){
+									case "ogc_filters":
+										$.timepicker.datetimeRange(startRange, endRange, {
+											minDate: time_start, maxDate: time_end,
+											dateFormat: 'yy-mm-dd', 
+											timeFormat: 'HH:mm:ss',
+											controlType: 'select',
+											oneLine: true,
+											start: {}, end: {}
+										});break;
+									case "ogc_viewparams":
+										startRange.datetimepicker({
+											minDate: time_start, maxDate: time_end,
+											dateFormat: 'yy-mm-dd', 
+											timeFormat: 'HH:mm:ss',
+											controlType: 'select',
+											oneLine: true
+										});break;
+								}
+							}
+							
+							$("#dsd-ui-col-1").append('</div>');
+						}
+
 					}
 				}
 				
 				//2. Build UI from VARIABLES
 				//-------------------------------------------
 				var variables = this_.dataset_on_query.dsd.filter(function(item){if(item.definition == "variable") return item});
-				console.log(variables);
 				if(variables.length > 0){
 					
 					//VARIABLES handling as drop-down list
@@ -1607,7 +1663,6 @@
 							type: dsd_variable.primitiveType
 						} );
 					}
-					console.log(variable_items);
 					//init selector
 					//id
 					var dsd_variables_id = "dsd-ui-dimension-variable";
@@ -1816,10 +1871,21 @@
 			 case "ogc_filters":
 				if(dataset.dsd){
 					console.log("Stringify 'ogc_filters' strategy params - with DSD")
+					console.log(strategyparams);
 					if(strategyparams) strategyparams_str = strategyparams.map(function(item){
-						var item_values = item[Object.keys(item)];
-						if(!(item_values instanceof Array)) item_values = [item_values];
-						var filter = Object.keys(item) + ' IN(' + item_values.join(',') + ')';
+						var fieldname = Object.keys(item);
+						var item_component = item[fieldname];
+						var item_values = item_component.content;
+						var filter = null
+						switch(item_component.type){
+							case "list":
+								if(!(item_values instanceof Array)) item_values = [item_values];
+								filter = '(' + fieldname + ' IN(' + item_values.join(',') + '))';
+								break;
+							case "timeperiod":
+								filter = '(' + fieldname +' AFTER '+ item_values[0] + ' AND ' + fieldname + ' BEFORE ' + item_values[1] +')';
+								break;
+						}
 						console.log(filter);
 						return filter;
 					}).join(' AND ');
@@ -1835,9 +1901,19 @@
 			case "ogc_viewparams":
 				console.log("Stringify 'ogc_viewparams' strategy params");
 				if(strategyparams) strategyparams_str = strategyparams.map(function(item){
-					var item_values = item[Object.keys(item)];
-					if(!(item_values instanceof Array)) item_values = [item_values];
-					viewparam = Object.keys(item) + ':' + item_values.join('+');
+					var fieldname = Object.keys(item);
+					var item_component = item[fieldname];
+					var item_values = item_component.content
+					var viewparam = null;
+					switch(item_component.type){
+						case "list":
+							if(!(item_values instanceof Array)) item_values = [item_values];
+							viewparam = Object.keys(item) + ':' + item_values.join('+');
+							break;
+						case "timeinstant":
+							filter = fieldname + ':' + item_values[0];
+							break;
+					}
 					console.log(viewparam);
 					return viewparam;
 				}).join(';');
@@ -1863,18 +1939,29 @@
 				if(dataset.dsd){
 					$.each($(".dsd-ui-dimension-attribute"), function(i,item){ 
 						var values = $("#"+item.id).val();
-						console.log("#"+item.id);
-						console.log(values);
 						if(values) if(values.length > 0){
 							var data_component_query = new Object();
 							var attribute = item.id.split('dsd-ui-dimension-attribute-')[1];
 							var attributeDef = dataset.dsd.filter(function(component){if(component.primitiveCode==attribute) return component})[0];
-							console.log(values);
 							if(attributeDef.primitiveType == "xsd:string") values = values.map(function(item){return "'"+item+"'"});
-							data_component_query[attribute] = values;
+							data_component_query[attribute] = {type: 'list', content: values};
 							data_query.push(data_component_query);
 						}
-					})
+					});
+					$.each($(".dsd-ui-dimension-time"), function(i,item){
+						var inputs = $(item).find("input");
+						var val_start = $(inputs[0]).val();
+						var val_end = $(inputs[1]).val();
+						if(val_start != "" && val_end != ""){
+							var date_start = new Date(Date.parse(val_start+'Z'));
+							var date_end = new Date(Date.parse(val_end+'Z'));
+							var data_component_query = new Object();
+							var attribute = inputs[0].id.split('dsd-ui-dimension-time-start-')[1];
+							var attributeDef = dataset.dsd.filter(function(component){if(component.primitiveCode==attribute) return component})[0];
+							data_component_query[attribute] = {type: 'timeperiod', content: [date_start.toISOString().split(".000Z")[0], date_end.toISOString().split(".000Z")[0]]};
+							data_query.push(data_component_query);
+						}
+					});
 				}else{
 					var filter = $("#ui-ogc_filter").val();
 					if(filter) data_query.push({CQL_FILTER : filter});
@@ -1894,7 +1981,19 @@
 					if(values) if(values.length > 0){
 						var data_component_query = new Object();
 						var attribute = item.id.split('dsd-ui-dimension-attribute-')[1];
-						data_component_query[attribute] = values;
+						data_component_query[attribute] = {type: 'list', content: values};
+						data_query.push(data_component_query);
+					}
+				});
+				$.each($(".dsd-ui-dimension-time"), function(i,item){
+					var inputs = $(item).find("input");
+					var val_instant = $(inputs[0]).val();
+					if(val_instant != ""){
+						var date_instant = new Date(Date.parse(val_instant+'Z'));
+						var data_component_query = new Object();
+						var attribute = inputs[0].id.split('dsd-ui-dimension-time-start-')[1];
+						var attributeDef = dataset.dsd.filter(function(component){if(component.primitiveCode==attribute) return component})[0];
+						data_component_query[attribute] = {type: 'timeinstant', content: [date_instant.toISOString()]};
 						data_query.push(data_component_query);
 					}
 				});
@@ -2210,7 +2309,6 @@
 			if(nextresponse.length > 0){
 				var nextfeature = nextresponse[0];
 				var geom = nextfeature.getGeometry();
-				console.log(geom);
 				var coords = ol.extent.getCenter(geom.getExtent());
 				if(geom instanceof ol.geom.LineString ||
 		   	   	   geom instanceof ol.geom.MultiLineString ||
@@ -2521,14 +2619,14 @@
 			layerTitle += '</br>';
 			layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>'+strategyName+':</b></br>';
 			if(dataset.strategy == "ogc_filters"){
-				console.log(strategyparams);
 				if(strategyparams[0].CQL_FILTER){
 					layerTitle += strategyparams[0].CQL_FILTER;
 				}else{
 					for(var i=0;i<strategyparams.length;i++){
 						var strategyparam = strategyparams[i];
 						var key = Object.keys(strategyparam)[0];
-						layerTitle += '&#8226; ' + key + ': '+ strategyparam[key] + '</br>';
+						var component = strategyparam[key];
+						layerTitle += '&#8226; ' + key + ': '+ (component.type=="list"? component.content.join(',') : component.content.join('/') ) + '</br>';
 					}
 				}
 				
@@ -2536,7 +2634,8 @@
 				for(var i=0;i<strategyparams.length;i++){
 					var strategyparam = strategyparams[i];
 					var key = Object.keys(strategyparam)[0];
-					layerTitle += '&#8226; ' + key + ': '+ strategyparam[key] + '</br>';
+					var component = strategyparam[key];
+					layerTitle += '&#8226; ' + key + ': '+ component.content.join(',') + '</br>';
 				}
 			}
 			layerTitle += '</p>';
@@ -2646,7 +2745,6 @@
 							var breaks = undefined;
 							var envparams = undefined;
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
-							console.log(values);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
 									classNb = values.length;
@@ -2655,7 +2753,6 @@
 								breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								console.log(breaks);
 								envparams = this_.buildEnvParams(strategyvariable, breaks);
 							}
 							
@@ -2679,6 +2776,7 @@
 							$('#dsd-ui-button-csv2').prop('disabled', false);
 							$('#dsd-ui-button-table').prop('disabled', false);
 							$('#dsd-ui-button-png').prop('disabled', false);
+							$("#dsd-ui-export-options").show();
 							
 							//action on no data
 							if(values) if(values.length == 0){
@@ -2691,6 +2789,7 @@
 								$('#dsd-ui-button-csv2').prop('disabled', true);
 								$('#dsd-ui-button-table').prop('disabled', true);
 								$('#dsd-ui-button-png').prop('disabled', true);
+								$("#dsd-ui-export-options").hide();
 							}
 						});
 					}else{
@@ -2706,12 +2805,12 @@
 						$('#dsd-ui-button-csv2').prop('disabled', false);
 						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
+						$("#dsd-ui-export-options").show();
 					}
 				}else{
 					console.log("Add layer with strategy 'ogc_filters' with simple CQL filter");
 					var cql_filter = null;
 					if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
-					console.log(cql_filter);
 					this_.selectDataset(pid);
 					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, cql_filter, null, null, null, null, null);
 					layer.strategy = dataset.strategy;
@@ -2725,6 +2824,7 @@
 					$('#dsd-ui-button-csv2').prop('disabled', false);
 					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
+					$("#dsd-ui-export-options").show();
 				}
 				break;
 				
@@ -2744,7 +2844,6 @@
 						var breaks = undefined;
 						var envparams = undefined;
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
-						console.log(values);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
 								classNb = values.length;
@@ -2753,7 +2852,6 @@
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							console.log(breaks);
 							envparams = this_.buildEnvParams(strategyvariable, breaks);
 						}
 						this_.selectDataset(pid);
@@ -2776,6 +2874,7 @@
 						$('#dsd-ui-button-csv2').prop('disabled', false);
 						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
+						$("#dsd-ui-export-options").show();
 						
 						//action on no data
 						if(values) if(values.length == 0){
@@ -2788,6 +2887,7 @@
 							$('#dsd-ui-button-csv2').prop('disabled', true);
 							$('#dsd-ui-button-table').prop('disabled', true);
 							$('#dsd-ui-button-png').prop('disabled', true);
+							$("#dsd-ui-export-options").hide();
 						}
 					});
 			    }else{
@@ -2804,6 +2904,7 @@
 					$('#dsd-ui-button-csv2').prop('disabled', false);
 					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
+					$("#dsd-ui-export-options").show();
 			    }
 			    break;
 			}    
@@ -2825,7 +2926,6 @@
 							var breaks = undefined;
 							var envparams = undefined;
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
-							console.log(values);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
 									classNb = values.length;
@@ -2835,7 +2935,6 @@
 								var breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								console.log(breaks);
 								envparams = this_.buildEnvParams(strategyvariable, breaks);
 							}
 							
@@ -2864,6 +2963,7 @@
 							$('#dsd-ui-button-csv2').prop('disabled', false);
 							$('#dsd-ui-button-table').prop('disabled', false);
 							$('#dsd-ui-button-png').prop('disabled', false);
+							$("#dsd-ui-export-options").show();
 							
 							
 							//action on no data
@@ -2878,6 +2978,7 @@
 								$('#dsd-ui-button-csv2').prop('disabled', true);
 								$('#dsd-ui-button-table').prop('disabled', true);
 								$('#dsd-ui-button-png').prop('disabled', true);
+								$("#dsd-ui-export-options").hide();
 							}
 						});
 					}else{
@@ -2894,6 +2995,7 @@
 						$('#dsd-ui-button-csv2').prop('disabled', false);
 						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
+						$("#dsd-ui-export-options").show();
 					}
 				}else{
 					console.log("Update layer with strategy 'ogc_filters' with simple CQL filter");
@@ -2912,6 +3014,7 @@
 					$('#dsd-ui-button-csv2').prop('disabled', false);
 					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
+					$("#dsd-ui-export-options").show();
 				}
 			    break;
 			case "ogc_dimensions":
@@ -2929,7 +3032,6 @@
 						var breaks = undefined;
 						var envparams = undefined;
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
-						console.log(values);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
 								classNb = values.length;
@@ -2939,7 +3041,6 @@
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							console.log(breaks);
 							envparams = this_.buildEnvParams(strategyvariable, breaks);
 						}
 						//update viewparams, envparams & legend
@@ -2967,6 +3068,7 @@
 						$('#dsd-ui-button-csv2').prop('disabled', false);
 						$('#dsd-ui-button-table').prop('disabled', false);
 						$('#dsd-ui-button-png').prop('disabled', false);
+						$("#dsd-ui-export-options").show();
 						
 						//action on no data
 						if(values) if(values.length == 0){
@@ -2980,6 +3082,7 @@
 							$('#dsd-ui-button-csv2').prop('disabled', true);
 							$('#dsd-ui-button-table').prop('disabled', true);
 							$('#dsd-ui-button-png').prop('disabled', true);
+							$("#dsd-ui-export-options").hide();
 						}
 					});
 			    }else{
@@ -2996,6 +3099,7 @@
 					$('#dsd-ui-button-csv2').prop('disabled', false);
 					$('#dsd-ui-button-table').prop('disabled', false);
 					$('#dsd-ui-button-png').prop('disabled', false);
+					$("#dsd-ui-export-options").show();
 			    }
 			    break;
 			}
@@ -3255,7 +3359,6 @@
 				}
 			}
 			if(prop_keys.indexOf("geometry") != -1){
-				console.log(props["geometry"]);
 				newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
 			}
 			featuresToExport.push(newprops);
@@ -3332,8 +3435,18 @@
 			var sortablePropertyNames = featuretype.filter(function(item){if(!item.type.startsWith('gml')) return item;});
 			var sortByPropertyName = sortablePropertyNames[0].name;
 			
-			var layerUrl = this_.getDatasetWFSLink(baseLayerUrl, '2.0.0', layerName, this_.dataset_on_query.strategy, strategyparams_str, cql_filter, null, 'json');
-
+			//wfs params to send to WFS server
+			var wfsParams = {
+				service: 'WFS',
+				serviceVersion: '2.0.0',
+				request: 'GetFeature',
+				typeName: layerName,
+				outputFormat: 'json',
+				sortBy: sortByPropertyName
+			}
+			if(this_.dataset_on_query.strategy == "ogc_filters")  wfsParams.cql_filter = encodeURI(strategyparams_str);
+			if(this_.dataset_on_query.strategy == "ogc_viewparams") wfsParams.viewparams = strategyparams_str;
+			
 			this_.openDataDialog();
 			$('#data-table').empty();
 			
@@ -3343,17 +3456,13 @@
 				serverSide: true,
 				serverMethod: 'get',
 				ajax: function(data, callback){
-
-					$.get(baseLayerUrl.split('?service=WFS')[0], {
-						service: 'WFS',
-						serviceVersion: '2.0.0',
-						request: 'GetFeature',
-						typeName: layerName,
-						outputFormat: 'json',
-						sortBy: sortByPropertyName,
-						count: data.length,
-						startIndex: data.start,
-					}, function(response) {
+					var ajaxParams = Object.assign(wfsParams,{startIndex: data.start, count: data.length});
+					var ajaxUrl = baseLayerUrl + "&service=" +ajaxParams.service+ "&version=" + ajaxParams.serviceVersion + "&request=" + ajaxParams.request + "&typeName="+ajaxParams.typeName;
+					if(ajaxParams.cql_filter) ajaxUrl += "&cql_filter="+ajaxParams.cql_filter;
+					if(ajaxParams.viewparams) ajaxUrl += "&viewparams="+ajaxParams.viewparams;
+					ajaxUrl += "&sortBy=" +ajaxParams.sortBy + "&startIndex=" + ajaxParams.startIndex + "&count=" + ajaxParams.count;
+					ajaxUrl += "&outputFormat=" + wfsParams.outputFormat;
+					$.get(ajaxUrl, function(response) {
 						console.log(response);
 						var features = new ol.format.GeoJSON().readFeatures(response);
 						var data_export = this_.formatTabularDataset(features);
@@ -3428,6 +3537,15 @@
 	}
 
 	/**
+	 * OpenFairViewer.prototype.utcToLocale
+	 *
+	 */
+	OpenFairViewer.prototype.utcToLocale = function(str){	
+		var date = new Date(Date.parse(str));
+		return date.toISOString().split("T")[0] + 'T' + date.toLocaleTimeString();
+	}
+
+	/**
 
 	/**
 	 * OpenFairViewer.prototype.zoomToFeature
@@ -3446,7 +3564,6 @@
 	OpenFairViewer.prototype.highlightFeature = function(pid, id, wkt){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
-		console.log(geom);
 		var feature = new ol.Feature({
 			geometry: geom,
 			style : this_.options.browse.defaultStyle
@@ -3721,17 +3838,24 @@
 					case "ogc_filters":
 						console.log("Resolve query for dataset '"+datasetDef.pid+"' using 'ogc_filters' strategy");
 						var queryparams = datasetDef.queryparams;
+						console.log(queryparams);
 						if(queryparams) for(var i=0;i<queryparams.length;i++){
 							var queryparam = queryparams[i];
 							var key = Object.keys(queryparam)[0];
-							var values = queryparam[key];
+							var component = queryparam[key];
+							var values = component.content;
 							values = values.map(function(item){
 								if(item.startsWith("'") && item.endsWith("'")){
 									item = item.substr(1,item.length-2);
 								}
 								return item;
 							});
-							$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
+							if(component.type == "list"){
+								$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
+							}else if(component.type == "timeperiod"){
+								$("#dsd-ui-dimension-time-start-"+key).val(component.content[0].replace("T", " ")).trigger('change');
+								$("#dsd-ui-dimension-time-end-"+key).val(component.content[1].replace("T"," ")).trigger('change');
+							}
 						}
 						//variable
 						$("#dsd-ui-dimension-variable").val(datasetDef.variable).trigger('change');
@@ -3760,8 +3884,12 @@
 							for(var i=0;i<queryparams.length;i++){
 								var queryparam = queryparams[i];
 								var key = Object.keys(queryparam)[0];
-								var values = queryparam[key];
-								$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
+								var component = queryparam[key];
+								if(component.type == "list"){
+									$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
+								}else if(component.type=="timeinstant"){
+									$("#dsd-ui-dimension-time-start-"+key).val(component.content[0]).trigger('change');
+								}
 								/*if(!key.match("time")){
 									var values = value.split("+");
 									$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
@@ -3869,12 +3997,24 @@
 				if(queryparams){
 					switch(strategy){
 						case "ogc_filters":
-							queryparams = queryparams.split(" AND ").map(function(item){
-								var elems = item.split(" IN(");
-								var attribute = elems[0];
-								var values = elems[1].split(")")[0].split(',');
-								var out = new Object();
-								out[attribute] = values;
+							queryparams = queryparams.split(") AND (").map(function(item){
+								var out = null;
+								item = item.substr(1, item.length-2);
+								if(item.indexOf('IN(') > 0){
+									var elems = item.split(" IN(");
+									var attribute = elems[0];
+									var values = elems[1].split(")")[0].split(',');
+									out = new Object();
+									out[attribute] = {type: 'list', content: values};
+								}else if(item.indexOf('BEFORE')>0 && item.indexOf('AFTER')){
+									var elems = item.split(" AND ");
+									var time_filter_start = elems[0].split(" AFTER ");
+									var time_filter_end = elems[1].split(" BEFORE ");
+									var attribute = time_filter_start[0];
+									var values = [time_filter_start[1], time_filter_end[1]];
+									out = new Object();
+									out[attribute] = {type: 'timeperiod', content: values};
+								}
 								return out;
 							});
 							break;
@@ -3887,7 +4027,7 @@
 								var attribute = elems[0];
 								var values = elems[1].split('+');
 								var out = new Object(); 
-								out[attribute] = values;
+								out[attribute] = {type: ( (isNaN(Date.parse(values[0])) || values.length > 1)? 'timeinstant': 'list'), content: values}; //TO TEST
 								return out;
 							});
 							break;
@@ -3942,7 +4082,7 @@
 								var coords = params.popup_coords.split(",").map(function(coord,i){return parseFloat(coord)});
 								this_.getFeatureInfo(layer, coords);
 							}
-							window.setTimeout(triggerPopup, 500);
+							window.setTimeout(triggerPopup, 1000); //TO TEST, IF LAYER IS LOW TO RENDER THIS FAILS
 						}
 					}
 
