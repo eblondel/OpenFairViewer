@@ -265,7 +265,7 @@
 		this.options.map.styling.dynamic = true;
 		this.options.map.styling.breaks = [""," to ",""]; 
 		if(options.map) if(options.map.styling){
-			this.options.map.styling.dynamic = options.map.styling.dynamic? options.map.styling.dynamic : true;
+			this.options.map.styling.dynamic = (typeof options.map.styling.dynamic != "undefined")? options.map.styling.dynamic : true;
 			if(options.map.styling.breaks){
 				if(!(options.map.styling.breaks instanceof Array)){
 					console.error("Styling breaks should be an array");
@@ -1361,53 +1361,51 @@
 		$("#" + map_type_id).val("graduated").trigger("change");
 
 		//6. Map classifications
-		if(this_.options.map.styling.dynamic){
-			//Classification type
-			//-------------------
-			//id
-			var map_classtype_id = "map-classtype-selector";
-			//html
-			$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
-			//jquery widget
-			var formatClasstype = function(item) {
-				if (!item.id) { return item.text; }
-				var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
-				return $item;
-			};
-			var map_classtype_placeholder = 'Select a classification';
-			$("#" + map_classtype_id).select2({
-				theme: 'classic',
-				allowClear: false,
-				placeholder: map_classtype_placeholder,
-				data: [{id:'ckmeans', text: 'Ckmeans clustering'},{id:'equal', text: 'Equal intervals'},{id:'quantile', text: 'Quantiles'}],
-				templateResult: formatClasstype,
-				templateSelection: formatClasstype
-			});
-			$("#" + map_classtype_id).val("ckmeans").trigger("change");
+		//Classification type
+		//-------------------
+		//id
+		var map_classtype_id = "map-classtype-selector";
+		//html
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
+		//jquery widget
+		var formatClasstype = function(item) {
+			if (!item.id) { return item.text; }
+			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+			return $item;
+		};
+		var map_classtype_placeholder = 'Select a classification';
+		$("#" + map_classtype_id).select2({
+			theme: 'classic',
+			allowClear: false,
+			placeholder: map_classtype_placeholder,
+			data: [{id:'ckmeans', text: 'Ckmeans clustering'},{id:'equal', text: 'Equal intervals'},{id:'quantile', text: 'Quantiles'}],
+			templateResult: formatClasstype,
+			templateSelection: formatClasstype
+		});
+		$("#" + map_classtype_id).val("ckmeans").trigger("change");
 
-			//Number of class intervals
-			//-------------------------
-			//id
-			var map_classnb_id = "map-classnb-selector";
-			//html
-			$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="Select the number of data intervals"></select>');
-			//jquery widget
-			var formatClassnb = function(item) {
-				if (!item.id) { return item.text; }
-				var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
-				return $item;
-			};
-			var map_classnb_placeholder = 'Select the number of intervals';
-			$("#" + map_classnb_id).select2({
-				theme: 'classic',
-				allowClear: false,
-				placeholder: map_classnb_placeholder,
-				data: [{id: '3', text: '3'},{id: '4', text: '4'}, {id: '5', text: '5'}],
-				templateResult: formatClassnb,
-				templateSelection: formatClassnb
-			});
-			$("#" + map_classnb_id).val("5").trigger("change");
-		}
+		//Number of class intervals
+		//-------------------------
+		//id
+		var map_classnb_id = "map-classnb-selector";
+		//html
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="Select the number of data intervals"></select>');
+		//jquery widget
+		var formatClassnb = function(item) {
+			if (!item.id) { return item.text; }
+			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+			return $item;
+		};
+		var map_classnb_placeholder = 'Select the number of intervals';
+		$("#" + map_classnb_id).select2({
+			theme: 'classic',
+			allowClear: false,
+			placeholder: map_classnb_placeholder,
+			data: [{id: '3', text: '3'},{id: '4', text: '4'}, {id: '5', text: '5'}],
+			templateResult: formatClassnb,
+			templateSelection: formatClassnb
+		});
+		$("#" + map_classnb_id).val("5").trigger("change");
 	}
 
 	/**
@@ -1611,7 +1609,7 @@
 				//2. Build UI from VARIABLES
 				//-------------------------------------------
 				var variables = this_.dataset_on_query.dsd.filter(function(item){if(item.definition == "variable") return item});
-				if(variables.length > 0){
+				if(variables.length > 0) if(this_.options.map.styling.dynamic){
 					
 					//VARIABLES handling as drop-down list
 					//------------------------------------
@@ -1689,7 +1687,7 @@
 				}
 				
 				//query form buttons
-				if(variables.length == 0) $("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
+				if(variables.length == 0 || !this_.options.map.styling.dynamic) $("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				this_.handleQueryFormButtons(2);
 
 				
@@ -2808,6 +2806,8 @@
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						this_.map.changed();
+						$("#datasetMapper").bootstrapBtn('reset');
+						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
@@ -2919,6 +2919,8 @@
 					layer.dsd = true;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					this_.map.changed();
+					$("#datasetMapper").bootstrapBtn('reset');
+					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
 					$('#dsd-ui-button-csv2').prop('disabled', false);
@@ -3017,6 +3019,8 @@
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						this_.map.changed();
+						$("#datasetMapper").bootstrapBtn('reset');
+						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
 						$('#dsd-ui-button-csv1').prop('disabled', false);
 						$('#dsd-ui-button-csv2').prop('disabled', false);
@@ -3130,6 +3134,8 @@
 					layer.dsd = true;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					this_.map.changed();
+					$("#datasetMapper").bootstrapBtn('reset');
+					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
 					$('#dsd-ui-button-csv1').prop('disabled', false);
 					$('#dsd-ui-button-csv2').prop('disabled', false);
