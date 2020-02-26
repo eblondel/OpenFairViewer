@@ -2209,8 +2209,8 @@
 				'VERSION': '1.1.0', //TODO support wmsVersion for 1.3.0,
 				'FORMAT' : 'image/png'
 		}
-		var olLayerClass = ol.layer.Image;
-		var olSourceClass = ol.source.ImageWMS;
+		var olLayerClass = ol.layer.Tile;
+		var olSourceClass = ol.source.TileWMS;
 		if(tiled){
 			layerParams['TILED'] = true;
 			layerParams['TILESORIGIN'] = [-180,-90].join(',');
@@ -2611,7 +2611,7 @@
 		layerTitle += '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="Remove from map" '
 		layerTitle += 'onclick="app.unselectDataset(this)"> X </button>';
 
-		if(strategyparams) if(strategyparams.length > 0){
+		if(strategyparams) if(strategyparams instanceof Array) if(strategyparams.length > 0){
 			var strategyName;
 			switch(dataset.strategy){
 				case "ogc_filters": strategyName = 'Filter'; break;
@@ -2801,7 +2801,9 @@
 					}else{
 						//static styling
 						this_.selectDataset(pid);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, strategyparams[0], null,null);
+						var cql_filter = null;
+						if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, cql_filter, null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -2974,7 +2976,7 @@
 							if(strategyparams_str != ""){
 								layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
 							}else{
-								delete layer.getSource().params_.CQL_FILTER;
+								layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 							}
 							layer.getSource().updateParams({'STYLES' : layerStyle});
 							if(envparams) layer.getSource().updateParams({'env' : envparams});
@@ -3016,7 +3018,11 @@
 						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
 						//static styling
 						layer.setProperties({title: layerTitle});
-						layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
+						if(strategyparams_str != ""){
+							layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
+						}else{
+							layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
+						}
 						layer.strategy = dataset.strategy;
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -3037,13 +3043,15 @@
 					}
 				}else{
 					console.log("Update layer with strategy 'ogc_filters' with simple CQL filter");
-					var cql_filter = null;
-					if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					layer.setProperties({title: layerTitle});
-					layer.getSource().updateParams({'CQL_FILTER': cql_filter});
+					if(strategyparams_str != ""){
+						layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
+					}else{
+						layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
+					}
 					this_.map.changed();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
