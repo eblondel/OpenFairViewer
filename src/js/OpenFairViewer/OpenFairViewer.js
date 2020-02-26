@@ -2805,6 +2805,7 @@
 						layer.strategy = dataset.strategy;
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						this_.addLayerTooltip(layer);
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
@@ -2918,6 +2919,7 @@
 					layer.strategy = dataset.strategy;
 					layer.dsd = true;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					this_.addLayerTooltip(layer);
 					this_.map.changed();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
