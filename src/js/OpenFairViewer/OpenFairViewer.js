@@ -2773,10 +2773,9 @@
 						});
 					}else{
 						//static styling
+						console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
 						this_.selectDataset(pid);
-						var cql_filter = null;
-						if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, cql_filter, null,null);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, strategyparams_str, null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
