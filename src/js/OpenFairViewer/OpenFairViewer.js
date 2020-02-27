@@ -1265,11 +1265,11 @@
 				var button_csv_aggregated = '<button id="dsd-ui-button-csv1" type="button" class="btn data-action-button data-csv-agg" title="Download aggregated data (CSV)" onclick="app.downloadDatasetCSV(true)"></button>';
 				$("#dsd-ui-buttons").append(button_csv_aggregated);
 			}
+			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="Open tabular data" onclick="app.displayTabularDataset()"></button>';
+			
+			$("#dsd-ui-buttons").append(button_tabulardata);
 			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="app.downloadDatasetCSV(false)"></button>';
 			$("#dsd-ui-buttons").append(button_csv_raw);
-
-			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="Open tabular data" onclick="app.displayTabularDataset()"></button>';
-			$("#dsd-ui-buttons").append(button_tabulardata);
 		}
 		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="app.downloadMapPNG()"></button>';
 		$("#dsd-ui-buttons").append(button_png_map);
