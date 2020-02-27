@@ -1498,8 +1498,7 @@
 					if(dsd_component.definition == "attribute"){
 						
 						//attribute with list values --> DROPDOWNLISTS
-						if(dsd_component.primitiveType == "xsd:string"){
-						  if(dsd_component.values){
+						if(dsd_component.values){
 							//id
 							var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
 							
@@ -1540,7 +1539,6 @@
 								templateSelection: attributeItem,
 								matcher: attributeMatcher
 							});	
-						  }
 						}
 						
 						//attribute with time --> datepicker / datetimepicker
