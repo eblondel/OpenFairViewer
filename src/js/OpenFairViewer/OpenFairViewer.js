@@ -1297,11 +1297,13 @@
 			$('#dsd-ui-button-csv2').prop('disabled', false);
 			$('#dsd-ui-button-table').prop('disabled', false);
 			$('#dsd-ui-button-png').prop('disabled', false);
+			$("#dsd-ui-export-options").show();
 		}else{
 			$('#dsd-ui-button-csv1').prop('disabled', true);
 			$('#dsd-ui-button-csv2').prop('disabled', true);
 			$('#dsd-ui-button-table').prop('disabled', true);
 			$('#dsd-ui-button-png').prop('disabled', true);
+			$("#dsd-ui-export-options").hide();
 		}
 		
 	}
