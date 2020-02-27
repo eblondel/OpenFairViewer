@@ -192,6 +192,20 @@
 		//baselayers
 		this.options.map.baselayers = [
 			new ol.layer.Tile({
+				title : "UN Clear Map",
+				type: 'base',
+				source : new ol.source.TileArcGISRest({							
+					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Topo/MapServer',
+					crossOrigin: 'anonymous',
+					wrapX: true
+				})
+			}),
+			new ol.layer.Tile({
+				title: "OpenStreetMaps",
+				type: 'base',
+				source: new ol.source.OSM()
+			}),
+			new ol.layer.Tile({
 				title : "World Imagery",
 				type: 'base',
 				source : new ol.source.XYZ({
@@ -203,47 +217,6 @@
 								.replace('{x}', tileCoord[1].toString())
 								.replace('{y}', (-tileCoord[2] - 1).toString());
 					},
-					crossOrigin: 'anonymous',
-					wrapX: true
-				})
-			}),
-			new ol.layer.Tile({
-				title: "OpenStreetMaps",
-				type: 'base',
-				source: new ol.source.OSM()
-			}),
-			/*new ol.layer.Tile({
-				title : "UN Clear Map (Plain)",
-				type: 'base',
-				source : new ol.source.TileArcGISRest({							
-					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Plain/MapServer',
-					crossOrigin: 'anonymous',
-					wrapX: true
-				})
-			}),
-			new ol.layer.Tile({
-				title : "UN Clear Map (Dark)",
-				type: 'base',
-				source : new ol.source.TileArcGISRest({							
-					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Dark/MapServer',
-					crossOrigin: 'anonymous',
-					wrapX: true
-				})
-			}),
-			new ol.layer.Tile({
-				title : "UN Clear Map (Gray)",
-				type: 'base',
-				source : new ol.source.TileArcGISRest({							
-					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Gray/MapServer',
-					crossOrigin: 'anonymous',
-					wrapX: true
-				})
-			}),*/
-			new ol.layer.Tile({
-				title : "UN Clear Map",
-				type: 'base',
-				source : new ol.source.TileArcGISRest({							
-					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Topo/MapServer',
 					crossOrigin: 'anonymous',
 					wrapX: true
 				})
