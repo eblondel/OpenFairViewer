@@ -3242,9 +3242,11 @@
 		//script body
 		script += "#packages\n";
 		script += "if(!require(ows4R)){\n	install.packages(\"ows4R\")\n	require(ows4R)\n}\n\n";
+		script += "if(!require(sp)){\n	install.packages(\"sp\")\n	require(sp)\n}\n\n";
 		
 		script += "#Dataset PID\n";
 		script += "pid <- \""+this.dataset_on_query.pid+"\"\n\n";
+		script += "layer <- \""+layerName+"\"\n\n";
 		
 		script += "#Connect to OGC CSW Catalogue to get METADATA\n";
 		script += "CSW <- CSWClient$new(\n";
@@ -3263,9 +3265,9 @@
 		script += "	serviceVersion = \""+serviceVersion+"\",\n";
 		script += "	logger = \"INFO\"\n"
 		script += ")\n";
-		script += "#Get feature type for dataset '"+this.dataset_on_query.pid+"'\n";
-		script += "ft <- WFS$capabilities$findFeatureTypeByName(pid)\n";
-		script += "#Get data features for dataset '"+this.dataset_on_query.pid+"'\n";	
+		script += "#Get feature type for dataset '"+this.dataset_on_query.pid+"' (layer = '"+layerName+"' )\n";
+		script += "ft <- WFS$capabilities$findFeatureTypeByName(layer)\n";
+		script += "#Get data features for dataset '"+this.dataset_on_query.pid+"' (layer = '"+layerName+"' )\n";	
 		script += "data.sf <- ft$getFeatures(";
 		if(strategyparams_str){
 			if(strategy == "ogc_filters") script += "cql_filter = URLencode(\"" + strategyparams_str + "\")";
