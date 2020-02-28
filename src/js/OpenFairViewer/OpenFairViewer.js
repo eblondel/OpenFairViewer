@@ -136,17 +136,24 @@
 		//--------------------------------------------------------------------------------------------------
 		this.options.query = {};
 		this.options.query.labels = {
+			filtering: 'Filtering',
 			attributes: 'Attributes',
-			variables: 'Variable',
-			options: 'Variable options'
+			variables: 'Variables',
+			thematicmapping: 'Thematic Mapping',
+			thematicmapping_variable: 'Select a variable',
+			thematicmapping_options: 'Map options'
+			
 		}
 		this.options.query.columns = 1;
 		this.options.query.time = 'datePicker';
 		if(options.query){
 			if(options.query.labels){
+				if(options.query.labels.filtering) this.options.query.labels.filtering = options.query.labels.filtering;
 				if(options.query.labels.attributes) this.options.query.labels.attributes = options.query.labels.attributes;
 				if(options.query.labels.variables) this.options.query.labels.variables = options.query.labels.variables;
-				if(options.query.labels.options) this.options.query.labels.options = options.query.labels.options;
+				if(options.query.labels.thematicmapping) this.options.query.labels.thematicmapping = options.query.labels.thematicmapping;
+				if(options.query.labels.thematicmapping_variable) this.options.query.labels.thematicmapping_variable = options.query.labels.thematicmapping_variable;
+				if(options.query.labels.thematicmapping_options) this.options.query.labels.thematicmapping_options = options.query.labels.thematicmapping_options;
 			}
 			if(options.query.columns){
 				if([1,2].indexOf(options.query.columns) != -1) this.options.query.columns = options.query.columns;
@@ -235,10 +242,8 @@
 
 		//styling
 		this.options.map.styling = {};
-		this.options.map.styling.dynamic = true;
 		this.options.map.styling.breaks = [""," to ",""]; 
 		if(options.map) if(options.map.styling){
-			this.options.map.styling.dynamic = (typeof options.map.styling.dynamic != "undefined")? options.map.styling.dynamic : true;
 			if(options.map.styling.breaks){
 				if(!(options.map.styling.breaks instanceof Array)){
 					console.error("Styling breaks should be an array");
@@ -1279,11 +1284,11 @@
 		export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
 		export_options += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
 		//option to prettify column names
-		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">Prettify column names</label></div>';
+		export_options += '<div class="form-check" style="float:left;margin-right:20px;"><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">Prettify column names</label></div>';
 		//option to enrich with data labels
 		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">Enrich with data labels</label></div>';
 		
-		export_options += '<p style="margin-top:10px;">More export methods?</p>';
+		export_options += '<span style="margin-top:10px;">More export methods?</span>';
 		export_options += '<div class="data-export-buttons">';
 		export_options += '<a id="dataset-export-option-wfs" href="" target="_blank" title="Get OGC WFS data request"><img src="js/OpenFairViewer/img/buttons/wfs-icon.png" width="50" height="50"/></a>';
 		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="Download R Script" onclick="app.downloadDatasetRScript()"></button>';
@@ -1396,7 +1401,7 @@
 		var this_ = this;
 		var pid = dataset.pid;
 		var entry = dataset.entry? dataset.entry : dataset;
-		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null};
+		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null, thematicmapping: false};
 				
 		//build UI
 		var bootstrapClass = "col-md-" + 12/this_.options.query.columns;
@@ -1445,146 +1450,169 @@
 					this_.handleFilter(dataset);
 					return;
 				}
-				this_.dataset_on_query = { pid: pid, entry: entry, strategy: dsd.strategy, dsd: dsd.components, query: null };
+				this_.dataset_on_query = { 
+					pid: pid, 
+					entry: entry, 
+					strategy: 
+					dsd.strategy, 
+					dsd: dsd.components, 
+					query: null, 
+					thematicmapping: dsd.components.filter(function(item){if(item.definition == "variable") return item}).length > 0
+				};
+				
 				
 				//build UI
 				var bootstrapClass = "col-md-" + 12/this_.options.query.columns;
-				
-				//1. Build UI from ATTRIBUTES
-				//-------------------------------------------
-				var attributeMatcher = function(params, data){
-					params.term = params.term || '';
-					if ($.trim(params.term) === '') {
-					  return data;
-					}  
-					term = params.term.toUpperCase();
-					var altText = data.alternateText? data.alternateText : '';
-					if (data.text.toUpperCase().indexOf(term) > -1  |
-						data.id.toUpperCase().indexOf(term) > -1    |
-						altText.toUpperCase().indexOf(term) > -1    ) {
-						return data;
-					}
-					return null;
-				}
 				$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
 				$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
 				$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
-				$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.attributes+'</label></p></div>');
-				for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
-					var dsd_component = this_.dataset_on_query.dsd[i];
-					if(dsd_component.definition == "attribute"){
-						
-						//attribute with list values --> DROPDOWNLISTS
-						if(dsd_component.values){
-							//id
-							var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
+				
+				//1. Build UI from ATTRIBUTES filtering
+				//-------------------------------------------
+				var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.definition == "attribute") return item});
+				if(attributes.length > 0){
+					$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
+					var attributeMatcher = function(params, data){
+						params.term = params.term || '';
+						if ($.trim(params.term) === '') {
+						  return data;
+						}  
+						term = params.term.toUpperCase();
+						var altText = data.alternateText? data.alternateText : '';
+						if (data.text.toUpperCase().indexOf(term) > -1  |
+							data.id.toUpperCase().indexOf(term) > -1    |
+							altText.toUpperCase().indexOf(term) > -1    ) {
+							return data;
+						}
+						return null;
+					}
+
+					$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.attributes+'</label></p></div>');
+					for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
+						var dsd_component = this_.dataset_on_query.dsd[i];
+						if(dsd_component.definition == "attribute"){
 							
-							//html
-							$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'"></select>');
-							
-							//jquery widget
-							var attributeItem = function(item) {
-							  if (!item.id) { return item.text; }
-							  //TODO vocabulary stuff for countries
-							  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
-								  var $item = $(
-									'<img src="js/OpenFairViewer/img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
-									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
-								  );
-							  }else{
-								  if(item.alternateText){
+							//attribute with list values --> DROPDOWNLISTS
+							if(dsd_component.values){
+								//id
+								var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
+								
+								//html
+								$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" multiple="multiple" class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'"></select>');
+								
+								//jquery widget
+								var attributeItem = function(item) {
+								  if (!item.id) { return item.text; }
+								  //TODO vocabulary stuff for countries
+								  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
 									  var $item = $(
-										'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'+
-										'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>'
-									  );
-								  }else{
-									  var $item = $(
+										'<img src="js/OpenFairViewer/img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
 										'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
 									  );
+								  }else{
+									  if(item.alternateText){
+										  var $item = $(
+											'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'+
+											'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>'
+										  );
+									  }else{
+										  var $item = $(
+											'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+										  );
+									  }
 								  }
-							  }
-							  return $item;
-							};
-							var dsd_component_placeholder = dsd_component.name;
-							
-							$("#" + dsd_component_id).select2({
-								theme: 'classic',
-								allowClear: true,
-								placeholder: dsd_component_placeholder,
-								data: dsd_component.values,
-								templateResult: attributeItem,
-								templateSelection: attributeItem,
-								matcher: attributeMatcher
-							});	
-						}
-						
-						//attribute with time --> datepicker / datetimepicker
-						if(dsd_component.primitiveType == "xsd:date" || dsd_component.primitiveType == "xsd:datetime"){
-							//indicates local tzone but required to display well the original date
-							var time_start_local = new Date(Date.parse(entry.time_start.split('Z')[0]));
-							var time_start_local_offset = time_start_local.getTimezoneOffset()*60000;
-							var time_start = new Date(time_start_local.getTime() + time_start_local_offset);
-							var time_end_local = new Date(Date.parse(entry.time_end.split('Z')[0]));
-							var time_end_local_offset = time_end_local.getTimezoneOffset()*60000;
-							var time_end = new Date(time_end_local.getTime() + time_end_local_offset);
-	
-							//id
-							var dsd_component_id_start = "dsd-ui-dimension-time-start-"+dsd_component.primitiveCode;
-							var dsd_component_id_end = "dsd-ui-dimension-time-end-"+dsd_component.primitiveCode;
-							//html
-							var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:25px;margin-bottom:5px;">';
-							dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" >'
-							if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" >'
-							$("#dsd-ui-col-1").append(dsd_component_time_html);
-							
-							var startRange = $("#"+dsd_component_id_start);
-							var endRange = $("#"+dsd_component_id_end);
-							
-							//jquery widget
-							if(dsd_component.primitiveType == "xsd:date"){
-								switch(dsd.strategy){
-									case "ogc_filters":
-										$.timepicker.dateRange(startRange, endRange,{
-											minDate: time_start, maxDate: time_end
-										}); break;
-									case "ogc_viewparams":
-										startRange.datetimepicker({
-											minDate: time_start, maxDate: time_end,
-											showHour: false, showMinute: false
-										}); break;
-								}
-							}else if(dsd_component.primitiveType == "xsd:datetime"){
-								switch(dsd.strategy){
-									case "ogc_filters":
-										$.timepicker.datetimeRange(startRange, endRange, {
-											minDate: time_start, maxDate: time_end,
-											dateFormat: 'yy-mm-dd', 
-											timeFormat: 'HH:mm:ss',
-											controlType: 'select',
-											oneLine: true,
-											start: {}, end: {}
-										});break;
-									case "ogc_viewparams":
-										startRange.datetimepicker({
-											minDate: time_start, maxDate: time_end,
-											dateFormat: 'yy-mm-dd', 
-											timeFormat: 'HH:mm:ss',
-											controlType: 'select',
-											oneLine: true
-										});break;
-								}
+								  return $item;
+								};
+								var dsd_component_placeholder = dsd_component.name;
+								
+								$("#" + dsd_component_id).select2({
+									theme: 'classic',
+									allowClear: true,
+									placeholder: dsd_component_placeholder,
+									data: dsd_component.values,
+									templateResult: attributeItem,
+									templateSelection: attributeItem,
+									matcher: attributeMatcher
+								});	
 							}
 							
-							$("#dsd-ui-col-1").append('</div>');
-						}
+							//attribute with time --> datepicker / datetimepicker
+							if(dsd_component.primitiveType == "xsd:date" || dsd_component.primitiveType == "xsd:datetime"){
+								//indicates local tzone but required to display well the original date
+								var time_start_local = new Date(Date.parse(entry.time_start.split('Z')[0]));
+								var time_start_local_offset = time_start_local.getTimezoneOffset()*60000;
+								var time_start = new Date(time_start_local.getTime() + time_start_local_offset);
+								var time_end_local = new Date(Date.parse(entry.time_end.split('Z')[0]));
+								var time_end_local_offset = time_end_local.getTimezoneOffset()*60000;
+								var time_end = new Date(time_end_local.getTime() + time_end_local_offset);
+		
+								//id
+								var dsd_component_id_start = "dsd-ui-dimension-time-start-"+dsd_component.primitiveCode;
+								var dsd_component_id_end = "dsd-ui-dimension-time-end-"+dsd_component.primitiveCode;
+								//html
+								var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:25px;margin-bottom:5px;">';
+								dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" >'
+								if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" >'
+								$("#dsd-ui-col-1").append(dsd_component_time_html);
+								
+								var startRange = $("#"+dsd_component_id_start);
+								var endRange = $("#"+dsd_component_id_end);
+								
+								//jquery widget
+								if(dsd_component.primitiveType == "xsd:date"){
+									switch(dsd.strategy){
+										case "ogc_filters":
+											$.timepicker.dateRange(startRange, endRange,{
+												minDate: time_start, maxDate: time_end
+											}); break;
+										case "ogc_viewparams":
+											startRange.datetimepicker({
+												minDate: time_start, maxDate: time_end,
+												showHour: false, showMinute: false
+											}); break;
+									}
+								}else if(dsd_component.primitiveType == "xsd:datetime"){
+									switch(dsd.strategy){
+										case "ogc_filters":
+											$.timepicker.datetimeRange(startRange, endRange, {
+												minDate: time_start, maxDate: time_end,
+												dateFormat: 'yy-mm-dd', 
+												timeFormat: 'HH:mm:ss',
+												controlType: 'select',
+												oneLine: true,
+												start: {}, end: {}
+											});break;
+										case "ogc_viewparams":
+											startRange.datetimepicker({
+												minDate: time_start, maxDate: time_end,
+												dateFormat: 'yy-mm-dd', 
+												timeFormat: 'HH:mm:ss',
+												controlType: 'select',
+												oneLine: true
+											});break;
+									}
+								}
+								
+								$("#dsd-ui-col-1").append('</div>');
+							}
 
+						}
 					}
 				}
 				
-				//2. Build UI from VARIABLES
-				//-------------------------------------------
+				// Next follow UI for variables
 				var variables = this_.dataset_on_query.dsd.filter(function(item){if(item.definition == "variable") return item});
-				if(variables.length > 0) if(this_.options.map.styling.dynamic){
+				
+				//2. Build UI from VARIABLES filtering
+				//-------------------------------------------
+				if(variables.length > 0) {
+						$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.variables+'</label></p></div>');
+						$("#dsd-ui-col-1").append('<p><em>Coming Soon!</em></p>');
+				}
+				
+				//3. Build UI for THEMATIC MAPPING on Variables
+				//---------------------------------------------	
+				if(this_.dataset_on_query.thematicmapping) {
 					
 					//VARIABLES handling as drop-down list
 					//------------------------------------
@@ -1625,9 +1653,9 @@
 						return variableItem(item, true);
 					}
 					
-					$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
-					$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
-					$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.variables+'</label></p></div>');
+					$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
+					
+					$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_variable+'</label></p></div>');
 					
 					//prepare dropdownlist items
 					var variable_items = new Array();
@@ -1647,22 +1675,23 @@
 					$("#dsd-ui-col-1").append('<select id = "'+dsd_variables_id+'" class="dsd-ui-dimension dsd-ui-dimension-variable" title="Select a variable"></select>');
 					$("#" + dsd_variables_id).select2({
 						theme: 'classic',
-						allowClear: false,
+						allowClear: true,
 						data: variable_items,
 						templateResult: variableItemResult,
 						templateSelection: variableItemSelection,
-						matcher: variableMatcher
-					});	
+						matcher: variableMatcher,
+						placeholder: {id: "", placeholder: this_.options.query.labels.variable}
+					}).val('').trigger('change');
 					
 					//VARIABLES OPTIONS
 					//------------------------------------
 					$("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
-					$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.options+'</label></p></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_options+'</label></p></div>');
 					this_.handleQueryMapOptions(2);
 				}
 				
 				//query form buttons
-				if(variables.length == 0 || !this_.options.map.styling.dynamic) $("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
+				if(variables.length == 0) $("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				this_.handleQueryFormButtons(2);
 
 				
@@ -2021,7 +2050,9 @@
 	 * OpenFairViewer.prototype.getStrategyVariable
 	 */
 	OpenFairViewer.prototype.getStrategyVariable = function(){
-		return $("#dsd-ui-dimension-variable").val();
+		var variable = $("#dsd-ui-dimension-variable").val();
+		if(variable == "") variable = null;
+		return variable;
 	}
          
       
@@ -2596,6 +2627,7 @@
 			layerTitle += '</br>';
 			layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>'+strategyName+':</b></br>';
 			if(dataset.strategy == "ogc_filters"){
+				console.log(strategyparams);
 				if(strategyparams[0].CQL_FILTER){
 					layerTitle += strategyparams[0].CQL_FILTER;
 				}else{
@@ -2697,7 +2729,7 @@
 		console.log("Strategy variable = " + strategyvariable);
 	    var layerTitle = this_.getDatasetViewTitle(dataset, strategyparams);
 		
-		//dynamic styling properties
+		//thematic mapping properties
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
 		
@@ -2712,8 +2744,8 @@
 			 case "ogc_filters":
 				if(dataset.dsd){
 					console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue");
-					if(this_.options.map.styling.dynamic){
-						//dynamic styling
+					if(strategyvariable && dataset.thematicmapping){
+						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series features");
 							console.log(features);
@@ -2826,9 +2858,9 @@
 				break;
 				
 			 case "ogc_viewparams":
-			    if(this_.options.map.styling.dynamic){
-					console.log("Add layer with strategy 'ogc_viewparams' (dynamic styling)");
-					//dynamic styling
+			    if(strategyvariable && dataset.thematicmapping){
+					console.log("Add layer with strategy 'ogc_viewparams' (thematic mapping)");
+					//thematic mapping
 					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
 						console.log("Data series features");
 						console.log(features);
@@ -2919,9 +2951,9 @@
 		    switch(dataset.strategy){
 			case "ogc_filters":
 				if(dataset.dsd){
-					if(this_.options.map.styling.dynamic){
-						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (dynamic styling)");
-						//dynamic styling
+					if(strategyvariable && dataset.thematicmapping){
+						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (thematic mapping)");
+						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series features");
 							console.log(features);
@@ -3041,9 +3073,9 @@
 			    //TODO
 			    break;
 			case "ogc_viewparams":
-			    if(this_.options.map.styling.dynamic){
-					console.log("Update layer with strategy 'ogc_viewparams' (dynamic styling)");
-					//dynamic styling
+			    if(strategyvariable && dataset.thematicmapping){
+					console.log("Update layer with strategy 'ogc_viewparams' (thematic mapping)");
+					//thematic mapping
 					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
 						console.log("Data series features");
 						console.log(features);
@@ -3760,7 +3792,7 @@
 			request += '&WIDTH=30';
 
 			//case of dynamic maps
-		 	if(breaks && this.options.map.styling.dynamic){
+		 	if(breaks){
 				var canvas = document.createElement('canvas');
 				document.body.appendChild(canvas);
 				var canvasHeight = breaks? (breaks.length-1) * 20 : 100;
@@ -4133,6 +4165,7 @@
 								}
 								return out;
 							});
+							if(queryparams.length == 01 && queryparams[0] == null) queryparams = new Array();
 							break;
 						case "ogc_dimensions": 
 							console.warn("Resolving URL query params for strategy 'ogc_dimensions' no supported yet");
@@ -4165,7 +4198,7 @@
 				encoded_datasets.push({
 					pid: pid, strategy: strategy, queryparams : queryparams, 
 					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, count : count, breaks: breaks, style: style, 
-					query: query
+					query: query, thematicmapping: (variable? true : false)
 				});
 			}
 
