@@ -2814,6 +2814,11 @@
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						this_.addLayerTooltip(layer);
+						layer.variable = null;
+						layer.envfun = null;
+						layer.envmaptype = null;
+						layer.count = null;
+						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
@@ -2928,6 +2933,11 @@
 					layer.dsd = true;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					this_.addLayerTooltip(layer);
+					layer.variable = null;
+					layer.envfun = null;
+					layer.envmaptype = null;
+					layer.count = null;
+					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
@@ -3024,6 +3034,7 @@
 						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
 						//static styling
 						layer.setProperties({title: layerTitle});
+						layer.getSource().updateParams({'STYLES' : ''});
 						if(strategyparams_str != ""){
 							layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
 						}else{
@@ -3032,6 +3043,11 @@
 						layer.strategy = dataset.strategy;
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.variable = null;
+						layer.envfun = null;
+						layer.envmaptype = null;
+						layer.count = null;
+						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
@@ -3145,10 +3161,16 @@
 					console.log("Update layer with strategy 'ogc_viewparams' (static styling)");
 					//static styling
 					layer.setProperties({title: layerTitle});
+					layer.getSource().updateParams({'STYLES' : ''});
 					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 					layer.strategy = dataset.strategy;
 					layer.dsd = true;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.variable = null;
+					layer.envfun = null;
+					layer.envmaptype = null;
+					layer.count = null;
+					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
