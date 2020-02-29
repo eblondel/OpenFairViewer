@@ -1551,8 +1551,8 @@
 								var dsd_component_id_end = "dsd-ui-dimension-time-end-"+dsd_component.primitiveCode;
 								//html
 								var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:25px;margin-bottom:5px;">';
-								dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" >'
-								if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" >'
+								dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" autocomplete="off" >'
+								if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" autocomplete="off">'
 								$("#dsd-ui-col-1").append(dsd_component_time_html);
 								
 								var startRange = $("#"+dsd_component_id_start);
