@@ -1290,7 +1290,7 @@
 		
 		export_options += '<span style="margin-top:10px;">More export methods?</span>';
 		export_options += '<div class="data-export-buttons">';
-		export_options += '<a id="dataset-export-option-wfs" href="" target="_blank" title="Get OGC WFS data request"><img src="js/OpenFairViewer/img/buttons/wfs-icon.png" width="50" height="50"/></a>';
+		export_options += '<a id="dataset-export-option-wfs" href="" target="_blank" title="Get OGC WFS data request"><img src="js/OpenFairViewer/img/buttons/ogc-wfs-icon.png" width="50" height="50"/></a>';
 		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="Download R Script" onclick="app.downloadDatasetRScript()"></button>';
 		export_options += '</div>';
 		export_options += '</fieldset>';
