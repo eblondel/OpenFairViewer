@@ -50,7 +50,7 @@ nav ul li.active { background-color: #0C71B8;}
 .browse-dialog { width: 25vw !important; height: 85% !important; top: 15% !important; }
 .query-dialog { width: 35vw !important; height: 85% !important; top: 15% !important; }
 .info-dialog { width: 100% !important; height: 100% !important; top: 0% !important; }
-.data-dialog { width: 65vw !important;height: 40vh !important; left:25vw !important; top: 60% !important; }
+.data-dialog { width: 65vw !important;height: 40vh !important; left:35vw !important; top: 60% !important; }
 .browse-dialog, .query-dialog, .info-dialog, .data-dialog{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
 .browse-dialog .ui-dialog-content, .query-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-titlebar{ color:#000; padding: .5em .1em}
 .browse-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;}
@@ -176,6 +176,7 @@ ul.pagination {margin: 0px !important;}
 .dsd-ui-dimension{ width:90%; text-align:left !important;}
 .dsd-ui-dimension-time{ margin: 10px auto;}
 .dsd-ui-dimension-datepicker{ width:115px; margin-right:10px;}
+.dsd-ui-dimension-slider{ margin:10px; }
 .dsd-ui-item-label{color: #0C71B8;}
 .dsd-ui-item-sublabel{font-style: italic; color: orange;}
 .dsd-ui-item-code{font-style: italic; color: #000;}

@@ -86,7 +86,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.0.9000", DATE: new Date(2020,4,9)}
+		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,4,16)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -1208,7 +1208,11 @@
 			if(fatName.length > 0) fatName = fatName[0].childNodes[1].textContent;
 			//def
 			var fatDef = $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:definition") return item;});
-			if(fatDef.length > 0) fatDef = fatDef[0].childNodes[1].textContent;
+			if(fatDef.length > 0) if(fatDef[0].childNodes.length > 0) {
+				fatDef = fatDef[0].childNodes[1].textContent;
+			}else{
+				fatDef = null;
+			}
 			//code
 			var fatCode = $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:code") return item;});
 			if(fatCode.length > 0) fatCode = fatCode[0].childNodes[1].textContent;
@@ -1251,7 +1255,8 @@
 					var listedValue = listedValues[j];
 					var props = listedValue.childNodes[1].childNodes;
 					var clCode = props[3].childNodes[1].textContent;
-					var clLabel = props[1].childNodes[1].textContent;
+					console.log(props[1].childNodes);
+					var clLabel = props[1].childNodes.length > 0? props[1].childNodes[1].textContent : "";
 					var clDefinition = undefined;
 					if(props[5]) if(props[5].childNodes.length > 0) clDefinition = props[5].childNodes[1].textContent;
 					var clItem = {id: clCode, text: clLabel, alternateText: (clDefinition? clDefinition : null), codelist: featureAttributeModel.primitiveCode};
