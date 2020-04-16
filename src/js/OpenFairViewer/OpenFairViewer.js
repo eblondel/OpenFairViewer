@@ -1578,7 +1578,7 @@
 									});
 									
 									//add info button
-									if(dsd_component.definition.length > 0){
+									if(dsd_component.definition) if(dsd_component.definition.length > 0){
 										$("#dsd-ui-col-1").append('<span class="glyphicon glyphicon-info-sign attribute-info" title="'+dsd_component.definition+'"></span>');
 									}
 								}else if(dsd_component.primitiveType == "xsd:int"){
@@ -1943,7 +1943,13 @@
 							var data_component_query = new Object();
 							var attribute = item.id.split('dsd-ui-dimension-attribute-')[1];
 							var attributeDef = dataset.dsd.filter(function(component){if(component.primitiveCode==attribute) return component})[0];
-							if(attributeDef.primitiveType == "xsd:string") values = values.map(function(item){return "'"+item+"'"});
+							if(attributeDef.primitiveType == "xsd:string"){
+								if(values instanceof Array){
+									values = values.map(function(item){return "'"+item+"'"});
+								}else{
+									values = "'"+values+"'";
+								}
+							}
 							data_component_query[attribute] = {type: 'list', content: values};
 							data_query.push(data_component_query);
 						}
