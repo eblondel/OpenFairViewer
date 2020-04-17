@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200409)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200417)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -86,7 +86,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,4,16)}
+		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,4,17)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -730,7 +730,7 @@
 	 */
 	OpenFairViewer.prototype.buildSpatialCoverageDataset = function(datasets, extended){
 		var this_ = this;
-		var features = datasets.map(function(dataset,i){console.log(dataset);return this_.buildSpatialCoverageFeature(dataset, extended)});
+		var features = datasets.map(function(dataset,i){return this_.buildSpatialCoverageFeature(dataset, extended)});
 		return features;
 	}
 	
@@ -1167,8 +1167,6 @@
 	 * @returns a DSD json object
 	 */
 	OpenFairViewer.prototype.parseFeatureCatalogue = function(response){
-
-		console.log($(response.childNodes[0].childNodes));
 	
 		//artisanal parsing of feature catalog XML
 		//TODO keep investigating ogc-schemas extension for gfc.xsd with jsonix!!!!
@@ -1199,7 +1197,6 @@
 		var ft = featureTypes[0];
 		//get carrier of characteristics
 		var characteristics = $(ft.childNodes[1].childNodes).filter(function(idx,item){ if(item.nodeName == "gfc:carrierOfCharacteristics") return item;});
-		console.log(characteristics);
 		for(var i=0;i<characteristics.length;i++){
 			var characteristic = characteristics[i];
 			var featureAttribute = characteristic.childNodes[1];
@@ -1229,7 +1226,6 @@
 					console.warn("No attribute/variable href defined as column type for attribute "+fatCode+" - default set to 'attribute'");
 					fatColType = "attribute";
 				}
-				console.log(fatColType);
 			}
 			//cardinality
 			var minOccurs = 1;
@@ -1255,7 +1251,6 @@
 					var listedValue = listedValues[j];
 					var props = listedValue.childNodes[1].childNodes;
 					var clCode = props[3].childNodes[1].textContent;
-					console.log(props[1].childNodes);
 					var clLabel = props[1].childNodes.length > 0? props[1].childNodes[1].textContent : "";
 					var clDefinition = undefined;
 					if(props[5]) if(props[5].childNodes.length > 0) clDefinition = props[5].childNodes[1].textContent;
@@ -1538,7 +1533,6 @@
 								if(dsd_component.primitiveType == "xsd:string"){
 								
 									//html
-									console.log(dsd_component.maxOccurs);
 									var isMultiple = dsd_component.maxOccurs == Infinity? true : false; 
 									$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '+ (isMultiple? 'multiple="multiple"' : '')+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>');
 									
@@ -1984,7 +1978,6 @@
 				//grab codelist values (including extra time codelists)
 				$.each($(".dsd-ui-dimension-attribute"), function(i,item){ 
 					var clazz = $("#"+item.id).attr('class');
-					console.log(clazz);
 					var widget = null;
 					if(clazz.indexOf("select2")>0) widget = "select2";
 					if(clazz.indexOf("slider")>0) widget = "slider";
@@ -2256,7 +2249,6 @@
 			crossOrigin: true,
 			type: 'GET',
 			success: function(response){
-				console.log(response);
 				var gml = new ol.format.GeoJSON();
 				var features = gml.readFeatures(response);
 				if(features.length > 0){
@@ -2486,7 +2478,7 @@
 			deferred.resolve(features);
 		},
 		error: function(error){
-			console.log(error);
+			console.error(error);
 			deferred.reject(error);
 		}
 	    });
@@ -2505,7 +2497,6 @@
 	OpenFairViewer.prototype.getDatasetNextFeatureInTime = function(layerUrl, serviceVersion, layerName, propertyName, propertyValue){
 	    var wfsRequest = this.getDatasetWFSLink(layerUrl, serviceVersion, layerName, 'ogc_filters', null, propertyName + ' > ' + propertyValue, null, 'json');
 	    wfsRequest += '&sortBy='+propertyName+'&maxFeatures=1';
-	    console.log(wfsRequest);
 	    var deferred = $.Deferred();
 	    $.ajax({
                 url: wfsRequest,
@@ -2517,7 +2508,7 @@
 			deferred.resolve(features);
 		},
 		error: function(error){
-			console.log(error);
+			console.error(error);
 			deferred.reject(error);
 		}
 	    });
@@ -2611,7 +2602,6 @@
 			layerTitle += '</br>';
 			layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>'+strategyName+':</b></br>';
 			if(dataset.strategy == "ogc_filters"){
-				console.log(strategyparams);
 				if(strategyparams[0].CQL_FILTER){
 					layerTitle += strategyparams[0].CQL_FILTER;
 				}else{
@@ -3217,7 +3207,6 @@
 		console.log("Download dataset as Rscript ready to use");
 		var this_ = this;
 		var wfsResources = this.dataset_on_query.entry.wfs;
-		console.log(wfsResources);
 		var baseWFS = wfsResources[0];
 		var baseLayerUrl = baseWFS.url;
 		var layerName = baseWFS.name;
@@ -4064,7 +4053,6 @@
 								var values = component.content;
 								if(component.type == "list"){
 									var clazz = $("#dsd-ui-dimension-attribute-"+key).attr('class');
-									console.log(key + " --> " + clazz);
 									var widget = null;
 									if(clazz.indexOf("select2")>0) widget = "select2";
 									if(clazz.indexOf("slider")>0) widget = "slider";
@@ -4173,7 +4161,6 @@
 				}
 				var pid = encoded_view_obj.pid;
 				var strategy = encoded_view_obj.strategy;
-				console.log(encoded_view_obj.par);
 				var queryparams = encoded_view_obj.par;
 				if(queryparams){
 					switch(strategy){
@@ -4204,7 +4191,6 @@
 							console.warn("Resolving URL query params for strategy 'ogc_dimensions' no supported yet");
 							break;
 						case "ogc_viewparams": 
-							console.log(queryparams.split(";"));
 							queryparams = queryparams.split(";").map(function(item){
 								var elems = item.split(":"); 
 								var attribute = elems[0];
