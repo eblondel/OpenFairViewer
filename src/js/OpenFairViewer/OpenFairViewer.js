@@ -1495,9 +1495,12 @@
 				
 				//build UI
 				var bootstrapClass = "col-md-" + 12/this_.options.query.columns;
-				$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
+				$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
+				$("#dsd-ui-header").append('<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>');
+
+				$("#dsd-ui").append('<div id="dsd-ui-body"></div>');
 				$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
-				$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
+				$("#dsd-ui-body").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 				
 				//1. Build UI from ATTRIBUTES filtering
 				//-------------------------------------------
@@ -1684,7 +1687,7 @@
 				
 				//3. Build UI for THEMATIC MAPPING on Variables
 				//---------------------------------------------	
-				$("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
+				$("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				if(this_.dataset_on_query.thematicmapping) {
 					
 					//VARIABLES handling as drop-down list
@@ -1763,7 +1766,7 @@
 				}
 				
 				//query form buttons
-				if(variables.length == 0) $("#dsd-ui-row").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
+				if(variables.length == 0) $("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				this_.handleQueryFormButtons(2);
 
 				
