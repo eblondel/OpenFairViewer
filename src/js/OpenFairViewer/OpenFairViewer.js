@@ -2192,8 +2192,8 @@
 				'VERSION': '1.1.0', //TODO support wmsVersion for 1.3.0,
 				'FORMAT' : 'image/png'
 		}
-		var olLayerClass = ol.layer.Tile;
-		var olSourceClass = ol.source.TileWMS;
+		var olLayerClass = ol.layer.Image;
+		var olSourceClass = ol.source.ImageWMS;
 		if(tiled){
 			layerParams['TILED'] = true;
 			layerParams['TILESORIGIN'] = [-180,-90].join(',');
