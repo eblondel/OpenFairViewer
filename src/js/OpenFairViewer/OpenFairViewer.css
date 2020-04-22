@@ -49,7 +49,12 @@ nav ul li.active { background-color: #0C71B8;}
 .partner-logos{text-align:center;}
 .browse-dialog { width: 25vw !important; height: 85% !important; top: 15% !important; }
 .query-dialog { width: 35vw !important; height: 85% !important; top: 15% !important; }
-.info-dialog { width: 100% !important; height: 100% !important; top: 0% !important; }
+.info-dialog {
+    width: 75vw !important;
+    left: 25vw !important;
+    height: 85% !important;
+    top: 15% !important;
+}
 .data-dialog { width: 65vw !important;height: 40vh !important; left:35vw !important; top: 60% !important; }
 .browse-dialog, .query-dialog, .info-dialog, .data-dialog{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
 .browse-dialog .ui-dialog-content, .query-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-titlebar{ color:#000; padding: .5em .1em}
