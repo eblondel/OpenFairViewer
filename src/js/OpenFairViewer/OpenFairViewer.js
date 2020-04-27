@@ -1860,7 +1860,8 @@
 						switch(item_component.type){
 							case "list":
 								if(!(item_values instanceof Array)) item_values = [item_values];
-								filter = '(' + fieldname + ' IN(' + item_values.join(',') + '))';
+								var item_values_str = item_values.map(function(item){return encodeURIComponent(item)}).join(',');
+								filter = '(' + fieldname + ' IN(' + item_values_str + '))';
 								break;
 							case "timeperiod":
 								filter = '(' + fieldname +' AFTER '+ item_values[0] + ' AND ' + fieldname + ' BEFORE ' + item_values[1] +')';
@@ -1942,9 +1943,9 @@
 							var attributeDef = dataset.dsd.filter(function(component){if(component.primitiveCode==attribute) return component})[0];
 							if(attributeDef.primitiveType == "xsd:string"){
 								if(values instanceof Array){
-									values = values.map(function(item){return "'"+item+"'"});
+									values = values.map(function(item){return "'"+item.replace(/[\']/g, "''")+"'"});
 								}else{
-									values = "'"+values+"'";
+									values = "'"+values.replace(/[\']/g, "''")+"'";
 								}
 							}
 							data_component_query[attribute] = {type: 'list', content: values};
@@ -2701,10 +2702,10 @@
 		}
 		
 	    var layer = this_.getLayerByProperty(dataset.entry.pid, 'id');
-		var strategyparams = from_query_form? this_.getStrategyParams(dataset, false) : dataset.queryparams;
+		var strategyparams = from_query_form? this_.getStrategyParams(dataset, false, false) : dataset.queryparams;
 		console.log(strategyparams);
 		var strategyparams_str = from_query_form? this_.getStrategyParams(dataset, true) : this_.stringifyStrategyParams(dataset, dataset.queryparams);
-		console.log("Strategy params = " + strategyparams_str);
+		console.log("Strategy params (for WMS) = " + strategyparams_str);
 		var strategyvariable = from_query_form? this_.getStrategyVariable(dataset): dataset.variable;
 		console.log("Strategy variable = " + strategyvariable);
 	    var layerTitle = this_.getDatasetViewTitle(dataset, strategyparams);
@@ -2744,7 +2745,7 @@
 							}
 							
 							this_.selectDataset(pid);
-							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, strategyparams_str, layerStyle, null, classType, envparams, (values? values.length : null));
+							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = true;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -2787,7 +2788,8 @@
 						//static styling
 						console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
 						this_.selectDataset(pid);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, strategyparams_str, null,null);
+						console.log(decodeURIComponent(strategyparams_str));
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -2968,7 +2970,7 @@
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 							layer.setProperties({title: layerTitle});
 							if(strategyparams_str != ""){
-								layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
+								layer.getSource().updateParams({'CQL_FILTER' : decodeURIComponent(strategyparams_str)});
 							}else{
 								layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 							}
@@ -3014,7 +3016,7 @@
 						layer.setProperties({title: layerTitle});
 						layer.getSource().updateParams({'STYLES' : ''});
 						if(strategyparams_str != ""){
-							layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
+							layer.getSource().updateParams({'CQL_FILTER' : decodeURIComponent(strategyparams_str)});
 						}else{
 							layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 						}
@@ -3048,7 +3050,7 @@
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					layer.setProperties({title: layerTitle});
 					if(strategyparams_str != ""){
-						layer.getSource().updateParams({'CQL_FILTER' : strategyparams_str});
+						layer.getSource().updateParams({'CQL_FILTER' : decodeURIComponent(strategyparams_str)});
 					}else{
 						layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 					}
@@ -3193,10 +3195,10 @@
 		layerUrl += "&request=GetFeature";
 		layerUrl += "&typeName=" + layerName;
 	    if(strategyparams_str){
-			if(strategy == "ogc_filters") layerUrl += "&CQL_FILTER=" + encodeURI(strategyparams_str);
+			if(strategy == "ogc_filters") layerUrl += "&CQL_FILTER=" + strategyparams_str;
 			if(strategy == "ogc_viewparams") layerUrl += "&VIEWPARAMS=" + strategyparams_str;
 		}
-	    if(cql_filter) layerUrl += "&CQL_FILTER=" + encodeURI(cql_filter);
+	    if(cql_filter) layerUrl += "&CQL_FILTER=" + cql_filter;
 	    if(propertyNames) layerUrl += "&propertyName=" + propertyNames.join(",");
 	    if(format) layerUrl += "&outputFormat=" + format;
  	    return layerUrl;	
@@ -3216,11 +3218,11 @@
 		var serviceVersion = baseWFS.version;
 		console.log(baseWFS);
 		var strategy = this.dataset_on_query.strategy;
-		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false);
+		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false, true);
 		var cql_filter = null;
 		var strategyparams_str = null;
 		if(strategyparams){
-			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true);
+			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true, true);
 			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
 		}
 		
@@ -3269,10 +3271,10 @@
 		script += "#Get data features for dataset '"+this.dataset_on_query.pid+"' (layer = '"+layerName+"' )\n";	
 		script += "data.sf <- ft$getFeatures(";
 		if(strategyparams_str){
-			if(strategy == "ogc_filters") script += "cql_filter = URLencode(\"" + strategyparams_str + "\")";
+			if(strategy == "ogc_filters") script += "cql_filter = gsub(\" \", \"%20\", gsub(\"''\", \"%27%27\", URLencode(\"" + strategyparams_str + "\")))";
 			if(strategy == "ogc_viewparams") script += "viewparams = \"" + strategyparams_str + "\"";
 		}else if(cql_filter){
-			 script += ", cql_filter = URLencode(\"" + cql_filter + "\")";
+			 script += ", cql_filter = gsub(\" \", \"%20\", gsub(\"''\", \"%27%27\", URLencode(\"" + cql_filter + "\")))";
 		}
 		script += ")\n";
 		script += "data.sp <- as(data.sf, \"Spatial\")\n";
@@ -3416,11 +3418,11 @@
 		var baseLayerUrl = baseWFS.url;
 		var layerName = baseWFS.name;
 		var serviceVersion = baseWFS.version;
-		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false);
+		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false, true);
 		var cql_filter = null;
 		var strategyparams_str = null;
 		if(strategyparams){
-			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true);
+			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true, true);
 			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
 		}
 		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.dataset_on_query.strategy, strategyparams_str, cql_filter, null, 'json');
@@ -3568,11 +3570,11 @@
 		var baseLayerUrl = baseWFS.url;
 		var layerName = baseWFS.name;
 		var serviceVersion = baseWFS.version;
-		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false);
+		var strategyparams =  this.getStrategyParams(this.dataset_on_query, false, true);
 		var cql_filter = null;
 		var strategyparams_str = null;
 		if(strategyparams){
-			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true);
+			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true, true);
 			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
 		}
 		
@@ -3593,7 +3595,7 @@
 				outputFormat: 'json',
 				sortBy: sortByPropertyName
 			}
-			if(this_.dataset_on_query.strategy == "ogc_filters")  wfsParams.cql_filter = encodeURI(strategyparams_str);
+			if(this_.dataset_on_query.strategy == "ogc_filters")  wfsParams.cql_filter = strategyparams_str;
 			if(this_.dataset_on_query.strategy == "ogc_viewparams") wfsParams.viewparams = strategyparams_str;
 			
 			this_.openDataDialog();
@@ -3975,7 +3977,7 @@
 	 * OpenFairViewer.prototype.resolveDatasetForQuery
 	 * @param datasetDef
 	 */
-	OpenFairViewer.prototype.resolveDatasetForQuery = function(datasetDef){
+	OpenFairViewer.prototype.resolveDatasetForQuery = function(datasetDef, resolveMap){
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
 		this_.openQueryDialog();
@@ -3997,6 +3999,7 @@
 								if(item.startsWith("'") && item.endsWith("'")){
 									item = item.substr(1,item.length-2);
 								}
+								item = item.replace("''", "'") //need to replace double single quote (in case of cql filter strings containing single quote)
 								return item;
 							});
 							if(component.type == "list"){
@@ -4095,6 +4098,10 @@
 						break;
 				}
 			}
+			
+			//resolve map
+			if(resolveMap) this_.resolveDatasetForMap(datasetDef);
+			
 		});
 	}
 
@@ -4143,7 +4150,7 @@
 					datasetDef.dsd = md_entry.dsd;
 					datasetDef.strategy = md_entry.metadata.contentInfo? "ogc_viewparams" : "ogc_filters";
 					this_.selection.push(datasetDef.entry);	
-					this_.resolveDatasetForQuery(datasetDef);		
+					this_.resolveDatasetForQuery(datasetDef, false);		
 				}
 			});
 		}
@@ -4155,7 +4162,7 @@
 			var encoded_datasets = new Array();
 			for(var i=0;i<encoded_views.length;i++){
 				var encoded_view = encoded_views[i];
-				var encoded_view_settings = encoded_view.split(",").map(function(item){var elems = item.split("="); var out = new Object(); out[elems[0]] = elems[1]; return out});
+				var encoded_view_settings = encoded_view.split(/(?!<(?:\(|\[)[^)\]]+),(?![^(\[]+(?:\)|\]))/g).map(function(item){var elems = item.split("="); var out = new Object(); out[elems[0]] = elems[1]; return out});
 				var encoded_view_obj = new Object();
 				for(var j=0;j<encoded_view_settings.length;j++){
 					var setting = encoded_view_settings[j];
@@ -4174,7 +4181,8 @@
 								if(item.indexOf('IN(') > 0){
 									var elems = item.split(" IN(");
 									var attribute = elems[0];
-									var values = elems[1].split(")")[0].split(',');
+									var values = elems[1].split(")")[0].split(/(?!'),(?![^'])/g);
+									values = values.map(function(item){return item}); //replace double single quote for cql filter text with single quote
 									out = new Object();
 									out[attribute] = {type: 'list', content: values};
 								}else if(item.indexOf('BEFORE')>0 && item.indexOf('AFTER')){
@@ -4241,10 +4249,11 @@
 					this_.selection.push(encoded_dataset);	
 					
 					//if it was the last dataset queried by user we fill the query interface with param values
-					if(encoded_dataset.query) this_.resolveDatasetForQuery(encoded_dataset);
-					
-					//resolve map
-					this_.resolveDatasetForMap(encoded_dataset);
+					if(encoded_dataset.query){
+						this_.resolveDatasetForQuery(encoded_dataset, true);
+					}else{
+						this_.resolveDatasetForMap(encoded_dataset);	
+					}
 
 					//popup coords
 					if(params.popup_id) if(params.popup_id == encoded_dataset.pid) {
