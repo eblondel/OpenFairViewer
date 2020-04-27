@@ -2705,7 +2705,7 @@
 		var strategyparams = from_query_form? this_.getStrategyParams(dataset, false, false) : dataset.queryparams;
 		console.log(strategyparams);
 		var strategyparams_str = from_query_form? this_.getStrategyParams(dataset, true) : this_.stringifyStrategyParams(dataset, dataset.queryparams);
-		console.log("Strategy params (for WMS) = " + strategyparams_str);
+		console.log("Strategy params = " + strategyparams_str);
 		var strategyvariable = from_query_form? this_.getStrategyVariable(dataset): dataset.variable;
 		console.log("Strategy variable = " + strategyvariable);
 	    var layerTitle = this_.getDatasetViewTitle(dataset, strategyparams);
@@ -2745,7 +2745,7 @@
 							}
 							
 							this_.selectDataset(pid);
-							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
+							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = true;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -2788,8 +2788,7 @@
 						//static styling
 						console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
 						this_.selectDataset(pid);
-						console.log(decodeURIComponent(strategyparams_str));
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, decodeURIComponent(strategyparams_str), null,null);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = true;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -2944,7 +2943,7 @@
 					if(strategyvariable && dataset.thematicmapping){
 						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (thematic mapping)");
 						//thematic mapping
-						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
+						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, (strategyparams == null)? null :  decodeURIComponent(strategyparams_str), null, (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series features");
 							console.log(features);
 							console.log("Data series values");
@@ -2970,7 +2969,7 @@
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 							layer.setProperties({title: layerTitle});
 							if(strategyparams_str != ""){
-								layer.getSource().updateParams({'CQL_FILTER' : decodeURIComponent(strategyparams_str)});
+								layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
 							}else{
 								layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 							}
@@ -3016,7 +3015,7 @@
 						layer.setProperties({title: layerTitle});
 						layer.getSource().updateParams({'STYLES' : ''});
 						if(strategyparams_str != ""){
-							layer.getSource().updateParams({'CQL_FILTER' : decodeURIComponent(strategyparams_str)});
+							layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
 						}else{
 							layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 						}
@@ -3050,7 +3049,7 @@
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					layer.setProperties({title: layerTitle});
 					if(strategyparams_str != ""){
-						layer.getSource().updateParams({'CQL_FILTER' : decodeURIComponent(strategyparams_str)});
+						layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
 					}else{
 						layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 					}
