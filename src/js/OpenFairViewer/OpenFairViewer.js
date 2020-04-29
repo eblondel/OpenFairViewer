@@ -136,6 +136,7 @@
 		//--------------------------------------------------------------------------------------------------
 		this.options.query = {};
 		this.options.query.labels = {
+			listedvalue_href_placeholder: 'More info...',
 			filtering: 'Filtering',
 			attributes: 'Attributes',
 			variables: 'Variables',
@@ -148,6 +149,7 @@
 		this.options.query.time = 'datePicker';
 		if(options.query){
 			if(options.query.labels){
+				if(options.query.labels.listedvalue_href_placeholder) this.options.query.labels.listedvalue_href_placeholder = options.query.labels.listedvalue_href_placeholder;
 				if(options.query.labels.filtering) this.options.query.labels.filtering = options.query.labels.filtering;
 				if(options.query.labels.attributes) this.options.query.labels.attributes = options.query.labels.attributes;
 				if(options.query.labels.variables) this.options.query.labels.variables = options.query.labels.variables;
@@ -1254,7 +1256,8 @@
 					var clLabel = props[1].childNodes.length > 0? props[1].childNodes[1].textContent : "";
 					var clDefinition = undefined;
 					if(props[5]) if(props[5].childNodes.length > 0) clDefinition = props[5].childNodes[1].textContent;
-					var clItem = {id: clCode, text: clLabel, alternateText: (clDefinition? clDefinition : null), codelist: featureAttributeModel.primitiveCode};
+					var clHref = props[3].childNodes[1].getAttribute('xlink:href');
+					var clItem = {id: clCode, text: clLabel, alternateText: (clDefinition? clDefinition : null), codelist: featureAttributeModel.primitiveCode, href: clHref};
 					featureAttributeModel.values.push(clItem);
 				}
 			}
@@ -1540,7 +1543,37 @@
 									$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '+ (isMultiple? 'multiple="multiple"' : '')+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>');
 									
 									//jquery widget
-									var attributeItem = function(item) {
+									var attributeItemSelection = function(item) {
+									  if (!item.id) { return item.text; }
+									  //TODO vocabulary stuff for countries
+									  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
+										  var $item = $(
+											'<img src="js/OpenFairViewer/img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
+											'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+										  );
+									  }else{
+										  if(item.alternateText){
+											  var $item = $(
+												'<span class="dsd-ui-item-label" >' + 
+													item.text + 
+													' <span class="dsd-ui-item-code">['+item.id+']</span>' + 	
+												'</span>'+
+												'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>' +
+												(item.href? ' <a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.query.labels.listedvalue_href_placeholder+'</a>' : '' )
+											  );
+										  }else{
+											  var $item = $(
+												'<span class="dsd-ui-item-label" >' + 
+													item.text + 
+													' <span class="dsd-ui-item-code">['+item.id+']</span>' + 
+												'</span>' +
+												(item.href? '<br><a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.query.labels.listedvalue_href_placeholder+'</a>' : '' )
+											  );
+										  }
+									  }
+									  return $item;
+									};
+									var attributeItemResult = function(item) {
 									  if (!item.id) { return item.text; }
 									  //TODO vocabulary stuff for countries
 									  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
@@ -1569,8 +1602,8 @@
 										allowClear: true,
 										placeholder: dsd_component_placeholder,
 										data: dsd_component.values,
-										templateResult: attributeItem,
-										templateSelection: attributeItem,
+										templateResult: attributeItemResult,
+										templateSelection: attributeItemSelection,
 										matcher: attributeMatcher
 									});
 									
