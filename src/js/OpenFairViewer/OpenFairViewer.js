@@ -1230,7 +1230,7 @@
 				}
 			}
 			//cardinality
-			var minOccurs = 1;
+			var minOccurs = 0;
 			var maxOccurs = 1;
 			var fatCardinality = $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:cardinality") return item;});
 			if(fatCardinality.length > 0) {
@@ -1293,7 +1293,7 @@
 		//Query and mapbutton
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
-		$("#dsd-ui-col-"+columnIdx).append('<button type="button" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary" onclick="app.mapDataset(app.dataset_on_query, true)">Query & Map</button>');
+		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">Query & Map</button>');
 		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">Ups! There is no data for this query...</span>');
 				
 		//download buttons
@@ -1447,7 +1447,7 @@
 		//id
 		var ogcfilter_component_id = "ui-ogc_filter";
 		//html
-		$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Filter</label></p></div>');
+		$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Filter</label></p></div>');
 		$("#dsd-ui-col-1").append('<input type="text" id = "'+ogcfilter_component_id+'" class="dsd-ui-dimension" title="Filter data with CQL" autofocus="true" ></select>');
 		
 		//query form buttons
@@ -1501,7 +1501,7 @@
 				$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
 				$("#dsd-ui-header").append('<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>');
 
-				$("#dsd-ui").append('<div id="dsd-ui-body"></div>');
+				$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="app.mapDataset(app.dataset_on_query, true);return false"></form>');
 				$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
 				$("#dsd-ui-body").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 				
@@ -1509,7 +1509,7 @@
 				//-------------------------------------------
 				var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "attribute") return item});
 				if(attributes.length > 0){
-					$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
+					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
 					var attributeMatcher = function(params, data){
 						params.term = params.term || '';
 						if ($.trim(params.term) === '') {
@@ -1525,7 +1525,7 @@
 						return null;
 					}
 
-					$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.attributes+'</label></p></div>');
+					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.attributes+'</label></p></div>');
 					for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
 						var dsd_component = this_.dataset_on_query.dsd[i];
 						if(dsd_component.columnType == "attribute"){
@@ -1535,12 +1535,18 @@
 								
 								//id
 								var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
-								
+									
+								var isRequired = dsd_component.minOccurs == 1? true : false;
+								var isMultiple = dsd_component.maxOccurs == Infinity? true : false; 								
+
 								if(dsd_component.primitiveType == "xsd:string"){
 								
 									//html
-									var isMultiple = dsd_component.maxOccurs == Infinity? true : false; 
-									$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '+ (isMultiple? 'multiple="multiple"' : '')+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>');
+									$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '
+										+ (isMultiple? 'multiple="multiple"' : '')
+										+ (isRequired? 'required' : '')
+										+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>'
+										+ (isRequired? '<span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>' : ''));
 									
 									//jquery widget
 									var attributeItemSelection = function(item) {
@@ -1658,7 +1664,7 @@
 								var dsd_component_id_start = "dsd-ui-dimension-time-start-"+dsd_component.primitiveCode;
 								var dsd_component_id_end = "dsd-ui-dimension-time-end-"+dsd_component.primitiveCode;
 								//html
-								var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:15px;margin-bottom:5px;">';
+								var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:0px;margin-bottom:5px;">';
 								dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label><br> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" autocomplete="off" >'
 								if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" autocomplete="off">'
 								$("#dsd-ui-col-1").append(dsd_component_time_html);
@@ -1714,7 +1720,7 @@
 				//2. Build UI from VARIABLES filtering
 				//-------------------------------------------
 				/*if(variables.length > 0) {
-						$("#dsd-ui-col-1").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.variables+'</label></p></div>');
+						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.variables+'</label></p></div>');
 						$("#dsd-ui-col-1").append('<p><em>Coming Soon!</em></p>');
 				}*/
 				
@@ -1762,9 +1768,9 @@
 						return variableItem(item, true);
 					}
 					
-					$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
 					
-					$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_variable+'</label></p></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_variable+'</label></p></div>');
 					
 					//prepare dropdownlist items
 					var variable_items = new Array();
@@ -1794,7 +1800,7 @@
 					
 					//VARIABLES OPTIONS
 					//------------------------------------
-					$("#dsd-ui-col-2").append('<div style="margin: 0 auto;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_options+'</label></p></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_options+'</label></p></div>');
 					this_.handleQueryMapOptions(2);
 				}
 				
@@ -4209,7 +4215,7 @@
 						case "ogc_filters":
 							queryparams = queryparams.split(") AND (").map(function(item){
 								var out = null;
-								item = item.substr(1, item.length-2);
+								if(item.startsWith('(') && item.endsWith(')')) item = item.substr(1, item.length-2);
 								if(item.indexOf('IN(') > 0){
 									var elems = item.split(" IN(");
 									var attribute = elems[0];
