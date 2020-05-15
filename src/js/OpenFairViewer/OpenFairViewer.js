@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200417)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200515)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -80,7 +80,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,4,17)}
+		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,5,15)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
