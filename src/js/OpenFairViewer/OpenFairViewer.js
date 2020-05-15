@@ -73,12 +73,6 @@
     		return this;
 	};	
 
-	//Proj4js projections
-	//===========================================================================================
-	proj4.defs("EPSG:4326","+proj=longlat +datum=WGS84 +no_defs");
-	proj4.defs("EPSG:3031","+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs");
-	proj4.defs("EPSG:2154","+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
-	
 	/**
 	 * Function to instantiate an OpenFairViewer
 	 */
@@ -169,9 +163,22 @@
 		//watermark
 		this.options.map.attribution = null;
 		if(options.map) this.options.map.attribution = options.map.attribution? options.map.attribution : null;
-		//projection
+		//projections
 		this.options.map.projection = 'EPSG:4326';
-		if(options.map) this.options.map.projection = options.map.projection? options.map.projection : 'EPSG:4326';
+		this.options.map.proj4defs = [
+			{epsgcode: "EPSG:4326", proj4string: "+proj=longlat +datum=WGS84 +no_defs"},
+			{epsgcode: "EPSG:3031", proj4string: "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"},
+			{epsgcode: "EPSG:2154", proj4string: "+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"}
+		];
+		if(options.map) {
+			if(options.map.projection) this.options.map.projection = options.map.projection;
+			if(options.map.proj4defs) for(var p = 0; p < options.map.proj4defs.length; p++) this.options.map.proj4defs.push(options.map.proj4defs[p]);
+			for(var i=0;i<this.options.map.proj4defs.length;i++){
+				var proj4def = this.options.map.proj4defs[i];
+				proj4.defs(proj4def.epsgcode, proj4def.proj4string);
+			}
+		}	
+			
 		//zoom
 		this.options.map.zoom = 3;
 		if(options.map) this.options.map.zoom = options.map.zoom? options.map.zoom : 3;
