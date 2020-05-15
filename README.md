@@ -68,6 +68,7 @@ Name | Type | Description| Default value
 extent | ``Array``| Bounding box to use to bind the map geographic extent | [-180, -90, 180, 90]
 zoom | ``Integer``| Zoom level to use for the map | 3
 projection|``String``|Default map projection|'EPSG:4326'
+proj4defs|``Array``|An array of Proj4 projection definitions in the form ``{epsgcode: "here the epsgcode", proj4string, : "here the proj4 string definition"}``|empty
 layergroups|``Array``| Array of layer groups. Each layer group should be an object in the form  ``{name: "<layergroup name>"}``| [{name: "Base overlays"},{name: "Statistical maps"}]
 mainlayergroup|``Integer``|Index within ``layergroups`` to define the main layer group (where layers loaded from the ``browse`` part will be added) | 1
 baselayers |``Array``| An array of baselayers defined with OpenLayers 3 layer objects| [UN Geospatial](https://geoservices.un.org) baselayers
