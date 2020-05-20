@@ -1624,7 +1624,8 @@
 									if(dsd_component.definition) if(dsd_component.definition.length > 0){
 										$("#dsd-ui-col-1").append('<span class="glyphicon glyphicon-info-sign attribute-info" title="'+dsd_component.definition+'"></span>');
 									}
-								}else if(dsd_component.primitiveType == "xsd:int"){
+								}else if(dsd_component.primitiveType == "xsd:int" ||
+										 dsd_component.primitiveType == "xsd:decimal"){
 									
 									var values = dsd_component.values.map(function(item){return parseInt(item.id)});
 									var values_min = Math.min.apply(Math, values);
@@ -1642,16 +1643,19 @@
 									
 									//jquery widget
 									$("#"+dsd_component_id_slider).slider({
-									  range: true, min: values_min, max: values_max,
-									  values: [ values_min, values_max ],
+									  range: isMultiple, min: values_min, max: values_max,
+									  values: (isMultiple? [ values_min, values_max ] : values_min),
 									  slide: function( event, ui ) {
-										$("#"+event.target.id.split("-slider")[0]+"-range").val(ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+										var value = ui.values? ui.values[ 0 ] + " - " + ui.values[ 1 ] : ui.value;
+										$("#"+event.target.id.split("-slider")[0]+"-range").val(value);
 									  },
 									  change: function( event, ui ) {
-										$("#"+event.target.id.split("-slider")[0]+"-range").val(ui.values[ 0 ] + " - " + ui.values[ 1 ] ); 
+										var value = ui.values? ui.values[ 0 ] + " - " + ui.values[ 1 ] : ui.value;
+										$("#"+event.target.id.split("-slider")[0]+"-range").val(value); 
 									  }
 									});
-									$("#"+dsd_component_id_range).val($("#"+dsd_component_id_slider).slider( "values", 0 ) + " - " +  $("#"+dsd_component_id_slider).slider( "values", 1 ));
+									var value = isMultiple? $("#"+dsd_component_id_slider).slider( "values", 0 ) + " - " +  $("#"+dsd_component_id_slider).slider( "values", 1 ) : $("#"+dsd_component_id_slider).slider( "value");
+									$("#"+dsd_component_id_range).val(value);
 									
 								}
 								
@@ -1815,69 +1819,6 @@
 				if(variables.length == 0) $("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				this_.handleQueryFormButtons(2);
 
-				
-				//2. Time start/end slider or datepickers
-				//-----------------------------------------
-				//TODO
-				/*
-				
-				//for time dimension
-				//year extent extracted from metadata, information always available
-				var time_start = this_.dataset_on_query.entry.time_start;
-				var year_start = parseInt(time_start.substring(0,4));
-				var time_end = this_.dataset_on_query.entry.time_end;
-				var year_end = parseInt(time_end.substring(0,4));
-				
-				
-				
-				this_.timeWidget = this_.options.query.time? this_.options.query.time : 'slider';
-				var dsd_time_dimensions = ["time_start", "time_end"];
-				var timeDimensions = this_.dataset_on_query.dsd.filter(function(item){if(dsd_time_dimensions.indexOf(item.serviceCode) != -1) return item});
-				var timeDimTypeList = this_.dataset_on_query.dsd.filter(function(i){if(i.serviceType=="TimeDimension"){return(i)}}).map(function(i){return(i.primitiveType)});
-				this_.timeDimensionType = "";
-				var timeDimTypes = new Array();
-				for(var i=0;i<timeDimTypeList.length;i++){ 
-					var timeDimType = timeDimTypeList[i];
-					if(timeDimTypes.indexOf(timeDimType) == -1){
-						timeDimTypes.push(timeDimType);
-					}
-				}
-				switch(timeDimTypes[0]){
-					case "xs:int":
-						this_.timeDimensionType = 'year'; break;
-					case "xs:dateTime":
-						this_.timeDimensionType = 'datetime'; break;
-				}
-				
-				if(this_.timeDimensionType == 'year'){ this_.timeWidget = "slider" }
-				if(timeDimensions.length == 2){
-					if(this_.timeWidget == "slider"){
-						//id
-						var dsd_component_id = "dsd-ui-time";
-						var dsd_component_id_range = dsd_component_id + "-range";
-						
-						//html
-						var dsd_component_time_html = '<div class="dsd-ui-dimension dsd-ui-dimension-time">' +
-						'<p style="margin:0;"><label for="'+dsd_component_id_range+'">Temporal extent</label>' +
-						'<input type="text" id="'+dsd_component_id_range+'" readonly style="margin-left:5px; border:0; color:#f6931f; font-weight:bold;"></p>' +
-						'<div id="'+dsd_component_id+'"></div>' +
-						'</div>';
-						$("#dsd-ui-col-2").append(dsd_component_time_html);
-						
-						//jquery widget
-						$("#"+dsd_component_id).slider({
-						  range: true, min: year_start, max: year_end,
-						  values: [ year_start, year_end ],
-						  slide: function( event, ui ) {
-							$("#"+dsd_component_id_range).val(ui.values[ 0 ] + " - " + ui.values[ 1 ] );
-						  }
-						});
-						$("#"+dsd_component_id_range).val($("#"+dsd_component_id).slider( "values", 0 ) + " - " +  $("#"+dsd_component_id).slider( "values", 1 ));
-					
-					}
-				}*/
-				
-	
 				deferred.resolve();
 			}
 		});
@@ -1978,9 +1919,16 @@
 								break;
 							case "slider": 
 								var slide = $($("#"+item.id).find(".ui-slider")[0]);
-								var min = slide.slider('values', 0);
-								var max = slide.slider('values', 1);
-								values = Array.apply(null, {length: max + 1 - min}).map(function(_, idx) { return idx + min; });
+								if(slide.slider('values').length > 0){
+									//multiple values
+									var min = slide.slider('values', 0);
+									var max = slide.slider('values', 1);
+									values = Array.apply(null, {length: max + 1 - min}).map(function(_, idx) { return idx + min; });
+								}else{
+									//single value
+									var value = slide.slider('value');
+									values = [value];
+								}
 								break;
 						}
 						if(values) if(values.length > 0){
@@ -2038,9 +1986,16 @@
 							break;
 						case "slider": 
 							var slide = $($("#"+item.id).find(".ui-slider")[0]);
-							var min = slide.slider('values', 0);
-							var max = slide.slider('values', 1);
-							values = Array.apply(null, {length: max + 1 - min}).map(function(_, idx) { return idx + min; });
+							if(slide.slider('values').length > 0){
+								//multiple values
+								var min = slide.slider('values', 0);
+								var max = slide.slider('values', 1);
+								values = Array.apply(null, {length: max + 1 - min}).map(function(_, idx) { return idx + min; });
+							}else{
+								//single value
+								var value = slide.slider('value');
+								values = [value];
+							}
 							break;
 					}
 					if(values) if(values.length > 0){
@@ -4059,10 +4014,14 @@
 									case "slider": 
 										var slide = $($("#dsd-ui-dimension-attribute-"+key).find(".ui-slider")[0]);
 										values = values.map(function(item){return parseInt(item)});
-										var min = Math.min.apply(Math, values);
-										var max = Math.max.apply(Math, values);
-										slide.slider("values", 0, min);
-										slide.slider("values", 1, max);
+										if(values.length > 1){
+											var min = Math.min.apply(Math, values);
+											var max = Math.max.apply(Math, values);
+											slide.slider("values", 0, min);
+											slide.slider("values", 1, max);
+										}else{
+											slide.slider("value", values[0]);
+										}
 										break;
 								}
 							}else if(component.type == "timeinstant"){
@@ -4114,10 +4073,14 @@
 										case "slider": 
 											var slide = $($("#dsd-ui-dimension-attribute-"+key).find(".ui-slider")[0]);
 											values = values.map(function(item){return parseInt(item)});
-											var min = Math.min.apply(Math, values);
-											var max = Math.max.apply(Math, values);
-											slide.slider("values", 0, min);
-											slide.slider("values", 1, max);
+											if(values.length > 1){
+												var min = Math.min.apply(Math, values);
+												var max = Math.max.apply(Math, values);
+												slide.slider("values", 0, min);
+												slide.slider("values", 1, max);
+											}else{
+												slide.slider("value", values[0]);
+											}
 											break;
 									}
 								}else if(component.type=="timeinstant"){
