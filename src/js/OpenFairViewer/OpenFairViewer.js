@@ -805,7 +805,7 @@
 			var csw_results = result.value.searchResults.any;
 			var datasets = new Array();	
 			//post-process results
-			for(var i=0;i<csw_results.length;i++){
+			if(csw_results) for(var i=0;i<csw_results.length;i++){
 				var csw_result = csw_results[i];    
 				var md_entry = this_.createMetadataEntry(csw_result.value);
 				datasets.push(md_entry);
