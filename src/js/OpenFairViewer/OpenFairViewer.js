@@ -1143,7 +1143,7 @@
 		
 		this.removeLayerByProperty(pid, "id");
 		this.map.changed();
-		this.openBrowseDialog();
+		if(pid == app.dataset_on_query.pid) this.openBrowseDialog();
 
 		return out;
 	}
