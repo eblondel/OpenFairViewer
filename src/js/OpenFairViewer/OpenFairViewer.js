@@ -1,5 +1,5 @@
 /**
- * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200515)
+ * OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer (20200522)
  * Copyright (c) 2018 Emmanuel Blondel
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
@@ -80,7 +80,7 @@
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,5,15)}
+		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,5,22)}
 		
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
@@ -271,6 +271,9 @@
 		this.options.map.tooltip.enabled = true;
 		this.options.map.tooltip.handler = function(layer, feature){
 
+			console.log("Inherit DSD from layer in popup");
+			console.log(layer.dsd);
+		
 			//patterns
 			var regexps = {
 			  DATE: new RegExp("^([1-9][0-9]{3})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])?$"),
@@ -285,6 +288,17 @@
 				var prop = props[propName];
 				if(prop){
 				
+				  //propName
+				  propNameLabel = '<b>'+propName+'</b>';
+				  if(layer.dsd) {
+					propFromDsd = layer.dsd.filter(function(item){if(item.primitiveCode == propName) return item});
+					if(propFromDsd.length > 0) {
+						propFromDsd = propFromDsd[0];
+						propNameLabel = '<b>' + propFromDsd.name + '</b> <span class="dsd-ui-item-code">['+propFromDsd.primitiveCode+']</span>';
+						if(propFromDsd.definition.length > 0) propNameLabel += ' <span class="glyphicon glyphicon-info-sign attribute-info" title="'+propFromDsd.definition+'"></span>'
+					}
+				  }
+				
 				  if(typeof prop == "string") if(prop.indexOf("http")==0){
 				    prop = '<a href="'+prop+'" target="_blank" style="color:#337ab7">Link</a>';
 				  }
@@ -298,9 +312,9 @@
 						var date = new Date(Date.parse(prop));
 						propToDisplay = date.toISOString().split("T")[0] + 'T' + date.toLocaleTimeString();
 					}
-					html += "<tr><td><b>" + propName + "</b></td><td>" + propToDisplay;
+					html += '<tr><td>' + propNameLabel + "</td><td>" + propToDisplay;
 					if(isDate || isDateTime){
-						html += '<button style="margin: 0px 10px" class="btn btn-xs" ';
+						html += '<button style="margin: 0px 10px;font-size:inherit;" class="btn btn-xs" ';
 						html += 'onclick="app.getNextFeatureInfoInTime(\''+layer.id+'\',\''+layer.baseDataUrl+'\',\'1.0.0\',\''+layer.getSource().getParams().LAYERS+'\',\''+propName+'\',\''+prop+'\')">Next</button>';
 					}
 					html += "</td></tr>";
@@ -1495,8 +1509,7 @@
 				this_.dataset_on_query = { 
 					pid: pid, 
 					entry: entry, 
-					strategy: 
-					dsd.strategy, 
+					strategy: dsd.strategy, 
 					dsd: dsd.components, 
 					query: null, 
 					thematicmapping: dsd.components.filter(function(item){if(item.columnType == "variable") return item}).length > 0
@@ -1823,7 +1836,7 @@
 				if(variables.length == 0) $("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 				this_.handleQueryFormButtons(2);
 
-				deferred.resolve();
+				deferred.resolve(this_.dataset_on_query);
 			}
 		});
 	
@@ -2752,7 +2765,7 @@
 							this_.selectDataset(pid);
 							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
-							layer.dsd = true;
+							layer.dsd = dataset.dsd;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 							layer.variable = strategyvariable;
 							layer.envfun = classType;
@@ -2795,7 +2808,7 @@
 						this_.selectDataset(pid);
 						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
-						layer.dsd = true;
+						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						this_.addLayerTooltip(layer);
 						layer.variable = null;
@@ -2871,7 +2884,7 @@
 						this_.selectDataset(pid);
 						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
 						layer.strategy = dataset.strategy;
-						layer.dsd = true;
+						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						layer.variable = strategyvariable;
 						layer.envfun = classType;
@@ -2914,7 +2927,7 @@
 					this_.selectDataset(pid);
 					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
-					layer.dsd = true;
+					layer.dsd = dataset.dsd;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					this_.addLayerTooltip(layer);
 					layer.variable = null;
@@ -2970,7 +2983,7 @@
 							
 							//update viewparams, envparams & legend
 							layer.strategy = dataset.strategy;
-							layer.dsd = true;
+							layer.dsd = dataset.dsd;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 							layer.setProperties({title: layerTitle});
 							if(strategyparams_str != ""){
@@ -3025,7 +3038,7 @@
 							layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 						}
 						layer.strategy = dataset.strategy;
-						layer.dsd = true;
+						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						layer.variable = null;
 						layer.envfun = null;
@@ -3097,7 +3110,7 @@
 						}
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
-						layer.dsd = true;
+						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						layer.setProperties({title: layerTitle});
 						if(strategyparams_str != ""){
@@ -3148,7 +3161,7 @@
 					layer.getSource().updateParams({'STYLES' : ''});
 					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 					layer.strategy = dataset.strategy;
-					layer.dsd = true;
+					layer.dsd = dataset.dsd;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 					layer.variable = null;
 					layer.envfun = null;
@@ -3985,8 +3998,9 @@
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
 		this_.openQueryDialog();
-		this_.handleQueryForm(datasetDef).then(function(){					
+		this_.handleQueryForm(datasetDef).then(function(dataset){					
 
+			datasetDef.dsd = dataset.dsd;
 			if(datasetDef.query){
 				
 				switch(datasetDef.strategy){
