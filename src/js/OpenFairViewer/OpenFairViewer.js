@@ -3274,6 +3274,7 @@
 		script += ")\n";
 		script += "#Get metadata for dataset '"+this.dataset_on_query.pid+"'\n";
 		script += "md <- CSW$getRecordById(pid, outputSchema = \"http://www.isotc211.org/2005/gmd\")\n";
+		script += "fc <- CSW$getRecordById(paste0(pid,\"_dsd\"), outputSchema = \"http://www.isotc211.org/2005/gfc\")\n";
 		script += "\n";
 		
 		script += "#Connect to OGC WFS to get DATA\n";
