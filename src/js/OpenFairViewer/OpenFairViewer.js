@@ -295,7 +295,7 @@
 					if(propFromDsd.length > 0) {
 						propFromDsd = propFromDsd[0];
 						propNameLabel = '<b>' + propFromDsd.name + '</b> <span class="dsd-ui-item-code">['+propFromDsd.primitiveCode+']</span>';
-						if(propFromDsd.definition.length > 0) propNameLabel += ' <span class="glyphicon glyphicon-info-sign attribute-info" title="'+propFromDsd.definition+'"></span>'
+						if(propFromDsd.definition) if(propFromDsd.definition.length > 0) propNameLabel += ' <span class="glyphicon glyphicon-info-sign attribute-info" title="'+propFromDsd.definition+'"></span>'
 					}
 				  }
 				
