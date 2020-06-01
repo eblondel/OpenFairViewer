@@ -287,6 +287,8 @@
 				var propName = propNames[i];
 				var prop = props[propName];
 				if(prop){
+					
+				  var propFromDsd = null;
 				
 				  //propName
 				  propNameLabel = '<b>'+propName+'</b>';
@@ -313,6 +315,9 @@
 						propToDisplay = date.toISOString().split("T")[0] + 'T' + date.toLocaleTimeString();
 					}
 					html += '<tr><td>' + propNameLabel + "</td><td>" + propToDisplay;
+					if(propFromDsd) if(propFromDsd.uom) {
+						html += ' '+ propFromDsd.uom;
+					}
 					if(isDate || isDateTime){
 						html += '<button style="margin: 0px 10px;font-size:inherit;" class="btn btn-xs" ';
 						html += 'onclick="app.getNextFeatureInfoInTime(\''+layer.id+'\',\''+layer.baseDataUrl+'\',\'1.0.0\',\''+layer.getSource().getParams().LAYERS+'\',\''+propName+'\',\''+prop+'\')">Next</button>';
@@ -1263,9 +1268,27 @@
 					maxOccurs = parseInt(fatCardinality[3].childNodes[1].textContent);
 				}
 			}
+			//measurementUnit
+			var gmlUnitIdentifier = null;
+			var gmlUnitName = null;
+			var fatMeasurementUnit = $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:valueMeasurementUnit") return item;});
+			if(fatMeasurementUnit.length > 0){
+				if(fatMeasurementUnit[0].childNodes.length > 0){
+					var gmlUnit = $(fatMeasurementUnit[0].childNodes[1]);
+					gmlUnitIdentifier = gmlUnit.children().filter(function(i,item){if(item.nodeName == "gml:identifier") return item;});
+					if(gmlUnitIdentifier.length > 0) gmlUnitIdentifier = gmlUnitIdentifier[0].textContent;
+					gmlUnitName = gmlUnit.children().filter(function(i,item){if(item.nodeName == "gml:name") return item;});
+					if(gmlUnitName.length > 0) gmlUnitName = gmlUnitName[0].textContent;
+				}
+			}
 			
 			//featureAttributeModel
-			var featureAttributeModel = {name : fatName, definition : fatDef, primitiveCode: fatCode, primitiveType: fatPrimType, columnType: fatColType, minOccurs: minOccurs, maxOccurs: maxOccurs, values: null};
+			var featureAttributeModel = {
+				name : fatName, definition : fatDef, primitiveCode: fatCode, primitiveType: fatPrimType, columnType: fatColType, 
+				minOccurs: minOccurs, maxOccurs: maxOccurs,
+				uom : gmlUnitIdentifier, uomLabel: gmlUnitName,
+				values: null
+			};
 			//values
 			var listedValues = $(featureAttribute.childNodes).filter(function(i,item){if(item.nodeName == "gfc:listedValue") return item;});
 			if(listedValues.length > 0){
