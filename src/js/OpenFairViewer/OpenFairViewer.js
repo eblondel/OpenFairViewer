@@ -136,7 +136,10 @@
 			variables: 'Variables',
 			thematicmapping: 'Thematic Mapping',
 			thematicmapping_variable: 'Select a variable',
-			thematicmapping_options: 'Map options'
+			thematicmapping_options: 'Map options',
+			ogc_filters: "Filters",
+			ogc_dimensions: "Dimensions",
+			ogc_viewparams: "View parameters"
 			
 		}
 		this.options.query.columns = 1;
@@ -150,6 +153,9 @@
 				if(options.query.labels.thematicmapping) this.options.query.labels.thematicmapping = options.query.labels.thematicmapping;
 				if(options.query.labels.thematicmapping_variable) this.options.query.labels.thematicmapping_variable = options.query.labels.thematicmapping_variable;
 				if(options.query.labels.thematicmapping_options) this.options.query.labels.thematicmapping_options = options.query.labels.thematicmapping_options;
+				if(options.query.labels.ogc_filters) this.options.query.ogc_filters = options.query.labels.ogc_filters;
+				if(options.query.labels.ogc_dimensions) this.options.query.ogc_dimensions = options.query.labels.ogc_dimensions;
+				if(options.query.labels.ogc_viewparams) this.options.query.ogc_viewparams = options.query.labels.ogc_viewparams;
 			}
 			if(options.query.columns){
 				if([1,2].indexOf(options.query.columns) != -1) this.options.query.columns = options.query.columns;
@@ -2633,6 +2639,7 @@
 	 * @param strategyparams
 	 */
 	OpenFairViewer.prototype.getDatasetViewTitle = function(dataset, strategyparams){
+		
 		var layerTitle = dataset.entry.title;
 		layerTitle += '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="Remove from map" '
 		layerTitle += 'onclick="app.unselectDataset(this)"> X </button>';
@@ -2640,9 +2647,9 @@
 		if(strategyparams) if(strategyparams instanceof Array) if(strategyparams.length > 0){
 			var strategyName;
 			switch(dataset.strategy){
-				case "ogc_filters": strategyName = 'Filter'; break;
-				case "ogc_dimensions": strategyName = 'Dimensions'; break;
-				case "ogc_viewparams": strategyName = 'View parameters'; break;
+				case "ogc_filters": strategyName = this.options.query.labels.ogc_filters; break;
+				case "ogc_dimensions": strategyName = this.options.query.labels.ogc_dimensions; break;
+				case "ogc_viewparams": strategyName = this.options.query.labels.ogc_viewparams; break;
 			}
 			layerTitle += '</br>';
 			layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>'+strategyName+':</b></br>';
@@ -3839,22 +3846,34 @@
 		 	if(breaks){
 				var canvas = document.createElement('canvas');
 				document.body.appendChild(canvas);
-				var canvasHeight = breaks? (breaks.length-1) * 20 : 100;
+				var palYStart = 20;
+				var canvasHeight = breaks? ((breaks.length-1) * 20 + palYStart) : 100;
 				canvas.height = String(canvasHeight);
 				canvas.width = '200';
 				var ctx = canvas.getContext('2d');
+				
+				//add variable (+uom) header
+				ctx.font = "bold 8pt Arial";
+				var variable = lyr.dsd.filter(function(item){if(item.primitiveCode == lyr.variable) return item});
+				if(variable.length > 0) variable = variable[0];
+				var varLabel = variable.name; 
+				if(variable.uom) varLabel = varLabel +' ('+variable.uom + ')';
+				ctx.fillText(varLabel, 4, 10);
+				ctx.font = "normal 8pt Arial";
+				
+				//add palette
 				var palette = new Image();
 				palette.crossOrigin = "anonymous";
 				palette.src = request;
 				palette.onload = function() {
 				    //draw color palette
-   				    ctx.drawImage(palette, 0, 0, 32, canvasHeight);
+   				    ctx.drawImage(palette, 0, palYStart, 32, canvasHeight - palYStart);
 				    //draw break legends
 				    ctx.font = "9pt Arial";
 				    var breakPt = 14;
 				    var breakSpace = 6;
 				    var dx = 36;
-				    var dy = breakPt;
+				    var dy = breakPt + palYStart;
 				    if(breaks){
 						var break_signs = this_.options.map.styling.breaks;
 						for(var i=1;i<breaks.length;i++){
@@ -3872,7 +3891,7 @@
 								breakLegend = (lyr.count == 1)? maxVal : minVal;
 							} 
 							ctx.fillText(breakLegend, dx, dy);
-							dy = breakPt*(i+1) + breakSpace*i;
+							dy = breakPt*(i+1) + breakSpace*i + palYStart;
 						} 
 						lyr.legendGraphic = canvas.toDataURL("image/png");
 				    }
