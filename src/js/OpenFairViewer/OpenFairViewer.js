@@ -407,7 +407,7 @@
 		//init widgets
 		this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0);
 		this.initDialog("findDialog", "Find", {"ui-dialog": "find-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
-		this.initDialog("queryDialog", "Access", {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
+		this.initDialog("accessDialog", "Access", {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
 		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 		this.initDialog("dataDialog", "Tabular data", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
 
@@ -4396,7 +4396,7 @@
 			position = { my: "center", at: "top", of: window };
 		}
 		$( "#" + id ).dialog({
-			width: ((id=='queryDialog')? ((this_.options.access.columns * 400)+'px') : undefined),
+			width: ((id=='accessDialog')? ((this_.options.access.columns * 400)+'px') : undefined),
 			autoOpen: false,
 			draggable: false,
 			resizable: false,
@@ -4478,14 +4478,14 @@
 	OpenFairViewer.prototype.openAccessDialog = function(){
 		this.closeAboutDialog();
 		this.closeFindDialog();
-		this.openDialog("queryDialog");
+		this.openDialog("accessDialog");
 	}
    
    	/**
 	* OpenFairViewer.prototype.closeAccessDialog Close 'Query' dialog
 	*/
 	OpenFairViewer.prototype.closeAccessDialog = function(){
-		this.closeDialog("queryDialog");
+		this.closeDialog("accessDialog");
 	}
 	
 	/**
