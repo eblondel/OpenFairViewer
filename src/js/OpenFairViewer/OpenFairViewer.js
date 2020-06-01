@@ -380,7 +380,7 @@
     /**
 	 * OpenFairViewer.prototype.init
 	 */
-	OpenFairViewer.prototype.init = function(){
+	OpenFairViewer.prototype.init = function(intro){
 		var this_ = this;
 		this.selection = new Array();
 		this.initBrowseCatalogue();
@@ -411,12 +411,30 @@
 		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 		this.initDialog("dataDialog", "Tabular data", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
 
-		this.openAboutDialog();
+		this.closeAccessDialog();
+		this.closeDataDialog();
+		this.closeInfoDialog();
+		this.openFindDialog();
+		
+		if(intro) this.openAboutDialog();
 		
 		//resolve viewer from URL
 		this.resolveViewer();
 		
 		this._copyright();
+	}
+	
+	/**
+	 * OpenFairViewer.prototype.reset
+	 */
+	OpenFairViewer.prototype.reset = function(){
+		var mainpage = document.location.href.split('?')[0];
+		if(window.history.replaceState){
+			window.history.replaceState('', '', mainpage);
+		}else{
+			document.location.href = mainpage;
+		}
+		this.init(false);
 	}
         
 	//Utils
