@@ -12,17 +12,16 @@ $(document).ready(function(){
 	app = new OpenFairViewer({
 		OGC_CSW_BASEURL: "http://localhost:8080/geonetwork/srv/eng/csw"
 	},{
-		browse : {
+		find : {
 			filters: [],
 			filterByWMS: true,
 			datasetInfoHandler : function(metadata){
-				//var datasetInfoUrl = "https://geonetwork.d4science.org/geonetwork/srv/en/main.home?uuid=" + metadata.fileIdentifier;
-				var datasetInfoUrl = "https://geonetwork-sdi-lab.d4science.org/geonetwork/srv/eng/catalog.search#/metadata/" + metadata.fileIdentifier;
+				var datasetInfoUrl = "https://localhost:8080/geonetwork/srv/eng/catalog.search#/metadata/" + metadata.fileIdentifier;
 				$('#datasetInfo').empty().html('<iframe src="'+datasetInfoUrl+'" style="overflow: hidden; height: 100%; width: 100%; position: absolute;"> frameborder="0" marginheight="0"></iframe>');
 				app.openInfoDialog();
 			}
 		},
-		query: {
+		access: {
 			time: 'slider'
 		},
 		map : {

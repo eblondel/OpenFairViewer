@@ -103,8 +103,8 @@
         <nav class="topbarContent">
             <ul>
                 <li data-where="#pageMap" onclick="app.openAboutDialog()" title="About WECAFC-FIRMS Atlas">About</li>
-                <li data-where="#pageMap" onclick="app.openBrowseDialog()" title="Browse data catalog">Browse</li>
-                <li data-where="#pageMap" onclick="app.openQueryDialog()" title="Query data">Query</li>
+                <li data-where="#pageMap" onclick="app.openFindDialog()" title="Find data by browsing the data catalogue">Find</li>
+                <li data-where="#pageMap" onclick="app.openAccessDialog()" title="Access and query data">Access</li>
             </ul>
         </nav>
       
@@ -136,7 +136,7 @@
         <p>Welcome to the <b>SDI-Lab data portal!</b></p>
         <p>The SDI-lab provides a test data viewer on top of the SDI-Lab catalogue</p>
     </div>
-    <div id="browseDialog">
+    <div id="findDialog">
         <div id="dataset-form">
           <!-- Search form -->
           <section class="col-xs-12 col-sm-12 col-md-12 search" style="margin-bottom:5px;">
@@ -249,7 +249,7 @@
         {{#queryable}}
 	    <button class="btn btn-xs dataset-button dataset-button-add pid"
 		    data-pid="{{pid}}" title="Query & Map dataset"
-		    onclick="app.openQueryDialog();app.displayDatasetQueryForm(this);"><span class="glyphicon glyphicon-globe"></span></button>
+		    onclick="app.openAccessDialog();app.displayDatasetQueryForm(this);"><span class="glyphicon glyphicon-globe"></span></button>
 	    {{/queryable}}
         </div>
       </article>

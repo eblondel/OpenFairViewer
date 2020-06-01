@@ -94,29 +94,29 @@
 		
 		//BROWSE options
 		//--------------------------------------------------------------------------------------------------
-		this.options.browse = {};
-		this.options.browse.maxitems = null;
-		this.options.browse.filters = [];
-		this.options.browse.filterByWMS = false;
-		this.options.browse.datasetInfoHandler = function(metadata){
+		this.options.find = {};
+		this.options.find.maxitems = null;
+		this.options.find.filters = [];
+		this.options.find.filterByWMS = false;
+		this.options.find.datasetInfoHandler = function(metadata){
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
 			window.open(datasetInfoUrl, '_blank');
 		}
-		if(options.browse){
-			if(options.browse.maxitems) this.options.browse.maxitems = options.browse.maxitems;
-			if(options.browse.filters) this.options.browse.filters = options.browse.filters;
-			if(options.browse.datasetInfoHandler) this.options.browse.datasetInfoHandler = options.browse.datasetInfoHandler;
-			if(options.browse.filterByWMS){
-				this.options.browse.filterByWMS = options.browse.filterByWMS;
-				this.options.browse.filters.push( {name: 'csw:OnlineResourceType', value: '%WMS%'} );
+		if(options.find){
+			if(options.find.maxitems) this.options.find.maxitems = options.find.maxitems;
+			if(options.find.filters) this.options.find.filters = options.find.filters;
+			if(options.find.datasetInfoHandler) this.options.find.datasetInfoHandler = options.find.datasetInfoHandler;
+			if(options.find.filterByWMS){
+				this.options.find.filterByWMS = options.find.filterByWMS;
+				this.options.find.filters.push( {name: 'csw:OnlineResourceType', value: '%WMS%'} );
 			}
 		}
 		
 		//spatial coverage vector layer params
-		this.options.browse.defaultStyle = new ol.style.Style({
+		this.options.find.defaultStyle = new ol.style.Style({
 		   stroke : new ol.style.Stroke({color : [0, 153, 255, 1], width: 3})
 		})
-		this.options.browse.hoverStyle = new ol.style.Style({
+		this.options.find.hoverStyle = new ol.style.Style({
 		   image: new ol.style.Circle({
 			    radius: 3,
 				fill : new ol.style.Fill({color: [255, 255, 255, 0.2]}),
@@ -128,11 +128,12 @@
 		
 		//QUERY options
 		//--------------------------------------------------------------------------------------------------
-		this.options.query = {};
-		this.options.query.labels = {
+		this.options.access = {};
+		this.options.access.labels = {
 			listedvalue_href_placeholder: 'More info...',
 			filtering: 'Filtering',
 			attributes: 'Attributes',
+			variable: 'Variable',
 			variables: 'Variables',
 			thematicmapping: 'Thematic Mapping',
 			thematicmapping_variable: 'Select a variable',
@@ -142,25 +143,26 @@
 			ogc_viewparams: "View parameters"
 			
 		}
-		this.options.query.columns = 1;
-		this.options.query.time = 'datePicker';
-		if(options.query){
-			if(options.query.labels){
-				if(options.query.labels.listedvalue_href_placeholder) this.options.query.labels.listedvalue_href_placeholder = options.query.labels.listedvalue_href_placeholder;
-				if(options.query.labels.filtering) this.options.query.labels.filtering = options.query.labels.filtering;
-				if(options.query.labels.attributes) this.options.query.labels.attributes = options.query.labels.attributes;
-				if(options.query.labels.variables) this.options.query.labels.variables = options.query.labels.variables;
-				if(options.query.labels.thematicmapping) this.options.query.labels.thematicmapping = options.query.labels.thematicmapping;
-				if(options.query.labels.thematicmapping_variable) this.options.query.labels.thematicmapping_variable = options.query.labels.thematicmapping_variable;
-				if(options.query.labels.thematicmapping_options) this.options.query.labels.thematicmapping_options = options.query.labels.thematicmapping_options;
-				if(options.query.labels.ogc_filters) this.options.query.ogc_filters = options.query.labels.ogc_filters;
-				if(options.query.labels.ogc_dimensions) this.options.query.ogc_dimensions = options.query.labels.ogc_dimensions;
-				if(options.query.labels.ogc_viewparams) this.options.query.ogc_viewparams = options.query.labels.ogc_viewparams;
+		this.options.access.columns = 2;
+		this.options.access.time = 'datePicker';
+		if(options.access){
+			if(options.access.labels){
+				if(options.access.labels.listedvalue_href_placeholder) this.options.access.labels.listedvalue_href_placeholder = options.access.labels.listedvalue_href_placeholder;
+				if(options.access.labels.filtering) this.options.access.labels.filtering = options.access.labels.filtering;
+				if(options.access.labels.attributes) this.options.access.labels.attributes = options.access.labels.attributes;
+				if(options.access.labels.variable) this.options.access.labels.variable = options.access.labels.variable;
+				if(options.access.labels.variables) this.options.access.labels.variables = options.access.labels.variables;
+				if(options.access.labels.thematicmapping) this.options.access.labels.thematicmapping = options.access.labels.thematicmapping;
+				if(options.access.labels.thematicmapping_variable) this.options.access.labels.thematicmapping_variable = options.access.labels.thematicmapping_variable;
+				if(options.access.labels.thematicmapping_options) this.options.access.labels.thematicmapping_options = options.access.labels.thematicmapping_options;
+				if(options.access.labels.ogc_filters) this.options.access.ogc_filters = options.access.labels.ogc_filters;
+				if(options.access.labels.ogc_dimensions) this.options.access.ogc_dimensions = options.access.labels.ogc_dimensions;
+				if(options.access.labels.ogc_viewparams) this.options.access.ogc_viewparams = options.access.labels.ogc_viewparams;
 			}
-			if(options.query.columns){
-				if([1,2].indexOf(options.query.columns) != -1) this.options.query.columns = options.query.columns;
+			if(options.access.columns){
+				if([1,2].indexOf(options.access.columns) != -1) this.options.access.columns = options.access.columns;
 			}
-			if(options.query.time) this.options.query.time = options.query.time;
+			if(options.access.time) this.options.access.time = options.access.time;
 		}
 
 		//MAP options
@@ -404,8 +406,8 @@
 				
 		//init widgets
 		this.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0);
-		this.initDialog("browseDialog", "Browse", {"ui-dialog": "browse-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
-		this.initDialog("queryDialog", "Query", {"ui-dialog": "query-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
+		this.initDialog("findDialog", "Find", {"ui-dialog": "find-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
+		this.initDialog("queryDialog", "Access", {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
 		this.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 		this.initDialog("dataDialog", "Tabular data", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
 
@@ -592,7 +594,7 @@
 		});
 		//spatial coverage layer extended or not
 		$('#dataset-spatial-coverage-extended').change(function() {
-			this_.setSpatialCoverageLayer(this_.records_on_browse, this.checked, $('#dataset-spatial-coverage-visible').is(":checked"));
+			this_.setSpatialCoverageLayer(this_.records_on_find, this.checked, $('#dataset-spatial-coverage-visible').is(":checked"));
 		});
 	}
 	
@@ -751,7 +753,7 @@
 		}
 		feature = new ol.Feature({
 			geometry: feature_geom,
-			style : this_.options.browse.defaultStyle
+			style : this_.options.find.defaultStyle
 		});
 		feature.setId(dataset.pid);
 		
@@ -796,7 +798,7 @@
 			layerPointer.on('select', function(evt){
 				if(evt.selected) if(evt.selected.length>0){
 					evt.selected.forEach(function(feature){
-						feature.setStyle(this_.options.browse.hoverStyle);
+						feature.setStyle(this_.options.find.hoverStyle);
 						$("#"+feature.getId()).addClass("hovered");
 					});
 					
@@ -849,8 +851,8 @@
 		//base filter
 		//var filter = new Ows4js.Filter().PropertyName(['dc:type']).isLike('dataset');
 		var filter = undefined;
-		for(var i=0;i<this.options.browse.filters.length;i++){
-			var inputFilter = this.options.browse.filters[i];
+		for(var i=0;i<this.options.find.filters.length;i++){
+			var inputFilter = this.options.find.filters[i];
 			var cswFilter = new Ows4js.Filter().PropertyName([inputFilter.name]).isLike(inputFilter.value);
 			if(typeof filter == 'undefined'){
 				filter = cswFilter;
@@ -903,7 +905,7 @@
 		//get CSW records for page
 		this_.getRecords(maxrecords, page, thefilter).then(function(records){
 			
-			this_.records_on_browse = records;
+			this_.records_on_find = records;
 			
 			$("#dataset-loader").hide();
 			
@@ -929,7 +931,7 @@
 				if(vectorFeature && $("#dataset-spatial-coverage-visible").is(":checked")){
 					var select = this_.map.getInteractions().getArray().filter(function(item){return item instanceof ol.interaction.Select});
 					if(select.length>0) select = select[0];
-					vectorFeature.setStyle(this_.options.browse.hoverStyle);
+					vectorFeature.setStyle(this_.options.find.hoverStyle);
 					select.getFeatures().push(vectorFeature);
 					select.dispatchEvent('select');
 				}
@@ -976,9 +978,9 @@
 				var numberOfRecordsMatched = response.value.searchResults.numberOfRecordsMatched;
 				console.log("CSW GetRecords matched "+numberOfRecordsMatched+" records");
 				var maxNb = numberOfRecordsMatched;
-				if(this_.options.browse.maxitems && numberOfRecordsMatched > this_.options.browse.maxitems){
-					console.log("Max items option set. Restraining number of records retrieved to "+this_.options.browse.maxitems+" records");
-					maxNb = this_.options.browse.maxitems;
+				if(this_.options.find.maxitems && numberOfRecordsMatched > this_.options.find.maxitems){
+					console.log("Max items option set. Restraining number of records retrieved to "+this_.options.find.maxitems+" records");
+					maxNb = this_.options.find.maxitems;
 				}
 
 				//add datasets counting
@@ -1044,7 +1046,7 @@
 		var pid = elm.getAttribute('data-pid');
 		console.log("Display metadata dataset with pid = " + pid);
 		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
-		this.options.browse.datasetInfoHandler(dataset.metadata);
+		this.options.find.datasetInfoHandler(dataset.metadata);
 	}
 	  
 	/**
@@ -1168,7 +1170,7 @@
 		
 		this.removeLayerByProperty(pid, "id");
 		this.map.changed();
-		if(pid == app.dataset_on_query.pid) this.openBrowseDialog();
+		if(pid == app.dataset_on_query.pid) this.openFindDialog();
 
 		return out;
 	}
@@ -1489,7 +1491,7 @@
 		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null, thematicmapping: false};
 				
 		//build UI
-		var bootstrapClass = "col-md-" + 12/this_.options.query.columns;
+		var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
 
 		$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
 		$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
@@ -1546,7 +1548,7 @@
 				
 				
 				//build UI
-				var bootstrapClass = "col-md-" + 12/this_.options.query.columns;
+				var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
 				$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
 				$("#dsd-ui-header").append('<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>');
 
@@ -1562,7 +1564,7 @@
 				//-------------------------------------------
 				var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "attribute") return item});
 				if(attributes.length > 0){
-					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
+					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.access.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
 					var attributeMatcher = function(params, data){
 						params.term = params.term || '';
 						if ($.trim(params.term) === '') {
@@ -1578,7 +1580,7 @@
 						return null;
 					}
 
-					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.attributes+'</label></p></div>');
+					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.access.labels.attributes+'</label></p></div>');
 					for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
 						var dsd_component = this_.dataset_on_query.dsd[i];
 						if(dsd_component.columnType == "attribute"){
@@ -1618,7 +1620,7 @@
 													' <span class="dsd-ui-item-code">['+item.id+']</span>' + 	
 												'</span>'+
 												'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>' +
-												(item.href? ' <a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.query.labels.listedvalue_href_placeholder+'</a>' : '' )
+												(item.href? ' <a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.access.labels.listedvalue_href_placeholder+'</a>' : '' )
 											  );
 										  }else{
 											  var $item = $(
@@ -1626,7 +1628,7 @@
 													item.text + 
 													' <span class="dsd-ui-item-code">['+item.id+']</span>' + 
 												'</span>' +
-												(item.href? '<br><a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.query.labels.listedvalue_href_placeholder+'</a>' : '' )
+												(item.href? '<br><a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.access.labels.listedvalue_href_placeholder+'</a>' : '' )
 											  );
 										  }
 									  }
@@ -1777,7 +1779,7 @@
 				//2. Build UI from VARIABLES filtering
 				//-------------------------------------------
 				/*if(variables.length > 0) {
-						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.query.labels.variables+'</label></p></div>');
+						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.access.labels.variables+'</label></p></div>');
 						$("#dsd-ui-col-1").append('<p><em>Coming Soon!</em></p>');
 				}*/
 				
@@ -1825,9 +1827,9 @@
 						return variableItem(item, true);
 					}
 					
-					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.query.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.access.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
 					
-					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_variable+'</label></p></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.access.labels.thematicmapping_variable+'</label></p></div>');
 					
 					//prepare dropdownlist items
 					var variable_items = new Array();
@@ -1852,12 +1854,12 @@
 						templateResult: variableItemResult,
 						templateSelection: variableItemSelection,
 						matcher: variableMatcher,
-						placeholder: this_.options.query.labels.thematicmapping_variable
+						placeholder: this_.options.access.labels.thematicmapping_variable
 					});
 					
 					//VARIABLES OPTIONS
 					//------------------------------------
-					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.query.labels.thematicmapping_options+'</label></p></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.access.labels.thematicmapping_options+'</label></p></div>');
 					this_.handleQueryMapOptions(2);
 				}
 				
@@ -2647,9 +2649,9 @@
 		if(strategyparams) if(strategyparams instanceof Array) if(strategyparams.length > 0){
 			var strategyName;
 			switch(dataset.strategy){
-				case "ogc_filters": strategyName = this.options.query.labels.ogc_filters; break;
-				case "ogc_dimensions": strategyName = this.options.query.labels.ogc_dimensions; break;
-				case "ogc_viewparams": strategyName = this.options.query.labels.ogc_viewparams; break;
+				case "ogc_filters": strategyName = this.options.access.labels.ogc_filters; break;
+				case "ogc_dimensions": strategyName = this.options.access.labels.ogc_dimensions; break;
+				case "ogc_viewparams": strategyName = this.options.access.labels.ogc_viewparams; break;
 			}
 			layerTitle += '</br>';
 			layerTitle += '<p style="font-weight:normal !important;font-size:90%;margin-left:20px;overflow-wrap:break-word;"><b>'+strategyName+':</b></br>';
@@ -3765,7 +3767,7 @@
 		var geom = this.processWKT(wkt);
 		var feature = new ol.Feature({
 			geometry: geom,
-			style : this_.options.browse.defaultStyle
+			style : this_.options.find.defaultStyle
 		});
 		feature.setId(id);
 
@@ -4040,7 +4042,7 @@
 	OpenFairViewer.prototype.resolveDatasetForQuery = function(datasetDef, resolveMap){
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
-		this_.openQueryDialog();
+		this_.openAccessDialog();
 		this_.handleQueryForm(datasetDef).then(function(dataset){					
 
 			datasetDef.dsd = dataset.dsd;
@@ -4376,7 +4378,7 @@
 			position = { my: "center", at: "top", of: window };
 		}
 		$( "#" + id ).dialog({
-			width: ((id=='queryDialog')? ((this_.options.query.columns * 400)+'px') : undefined),
+			width: ((id=='queryDialog')? ((this_.options.access.columns * 400)+'px') : undefined),
 			autoOpen: false,
 			draggable: false,
 			resizable: false,
@@ -4424,8 +4426,8 @@
      * OpenFairViewer.prototype.openAboutDialog Open 'About' dialog
      */
 	OpenFairViewer.prototype.openAboutDialog = function(){
-		this.closeBrowseDialog();
-		this.closeQueryDialog();
+		this.closeFindDialog();
+		this.closeAccessDialog();
 		this.openDialog("aboutDialog");
 	}
 	
@@ -4437,34 +4439,34 @@
 	}
    
     /**
-	 * OpenFairViewer.prototype.openBrowseDialog Open 'Data' dialog
+	 * OpenFairViewer.prototype.openFindDialog Open 'Data' dialog
 	 */
-	OpenFairViewer.prototype.openBrowseDialog = function(){
+	OpenFairViewer.prototype.openFindDialog = function(){
 		this.closeAboutDialog();
-		this.closeQueryDialog();
-		this.openDialog("browseDialog");
+		this.closeAccessDialog();
+		this.openDialog("findDialog");
 	}
    
     /**
-	* OpenFairViewer.prototype.closeBrowseDialog Close 'Data' dialog
+	* OpenFairViewer.prototype.closeFindDialog Close 'Data' dialog
 	*/
-	OpenFairViewer.prototype.closeBrowseDialog = function(){
-		this.closeDialog("browseDialog");
+	OpenFairViewer.prototype.closeFindDialog = function(){
+		this.closeDialog("findDialog");
 	}
 	
 	/**
-	* OpenFairViewer.prototype.openQueryDialog Open 'Query' dialog
+	* OpenFairViewer.prototype.openAccessDialog Open 'Query' dialog
 	*/
-	OpenFairViewer.prototype.openQueryDialog = function(){
+	OpenFairViewer.prototype.openAccessDialog = function(){
 		this.closeAboutDialog();
-		this.closeBrowseDialog();
+		this.closeFindDialog();
 		this.openDialog("queryDialog");
 	}
    
    	/**
-	* OpenFairViewer.prototype.closeQueryDialog Close 'Query' dialog
+	* OpenFairViewer.prototype.closeAccessDialog Close 'Query' dialog
 	*/
-	OpenFairViewer.prototype.closeQueryDialog = function(){
+	OpenFairViewer.prototype.closeAccessDialog = function(){
 		this.closeDialog("queryDialog");
 	}
 	

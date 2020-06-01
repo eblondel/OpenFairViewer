@@ -49,21 +49,21 @@ nav ul li.active { background-color: #0C71B8;}
 .about-dialog .ui-dialog-titlebar{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000; border-radius:0px;}
 .partner-logo{ height:40px; margin-top:10px; margin-right:5px;}
 .partner-logos{text-align:center;}
-.browse-dialog { width: 25vw !important; height: 85% !important; top: 15% !important; }
-.query-dialog { width: 35vw !important; height: 85% !important; top: 15% !important; }
+.find-dialog { width: 35vw !important; height: 85% !important; top: 15% !important; }
+.access-dialog { width: 35vw !important; height: 85% !important; top: 15% !important; }
 .info-dialog {
-    width: 75vw !important;
-    left: 25vw !important;
+    width: 65vw !important;
+    left: 35vw !important;
     height: 85% !important;
     top: 15% !important;
 }
 .data-dialog { width: 65vw !important;height: 40vh !important; left:35vw !important; top: 60% !important; }
-.browse-dialog, .query-dialog, .info-dialog, .data-dialog{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
-.browse-dialog .ui-dialog-content, .query-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-titlebar{ color:#000; padding: .5em .1em}
-.browse-dialog .ui-dialog-titlebar, .query-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;}
+.find-dialog, .access-dialog, .info-dialog, .data-dialog{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
+.find-dialog .ui-dialog-content, .access-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-titlebar{ color:#000; padding: .5em .1em}
+.find-dialog .ui-dialog-titlebar, .access-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar{background-color:#fff; opacity:0.95; color:#000;}
 
-#browseDialog {height: 95% !important; font-size: 12px !important;overflow: auto; }
-#queryDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
+#findDialog {height: 95% !important; font-size: 12px !important;overflow: auto; }
+#accessDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
 #infoDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
 #dataDialog {height: auto; font-size: 12px !important; overflow: hidden;}
 
