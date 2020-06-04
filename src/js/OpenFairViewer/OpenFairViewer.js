@@ -277,14 +277,10 @@
 		//tooltip
 		this.options.map.tooltip = {};
 		this.options.map.tooltip.enabled = true;
-		this.options.map.tooltip.handler = function(layer, feature){
+		//default handlers
+		this.options.map.tooltip.DEFAULT_HANDLER = function(layer, feature){
 			console.log(layer);
 			console.log(feature);
-			console.log("Inherit DSD from layer in popup");
-			console.log(layer.dsd);
-			console.log("Inherit properties for custom popup");
-			console.log(feature.geometry_column);
-			console.log(feature.popup_coordinates);
 			
 			//patterns
 			var regexps = {
@@ -359,7 +355,11 @@
 			}
 			html += '</table>';
 			return html;
-		}
+		} 
+		
+		//Set default handler
+		this.options.map.tooltip.handler = this.options.map.tooltip.DEFAULT_HANDLER;
+		//handler option
 		if(options.map) if(options.map.tooltip) {
 			if(options.map.tooltip.enabled) this.options.map.tooltip.enabled = options.map.tooltip.enabled;
 			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
