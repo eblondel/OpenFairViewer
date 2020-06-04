@@ -278,10 +278,14 @@
 		this.options.map.tooltip = {};
 		this.options.map.tooltip.enabled = true;
 		this.options.map.tooltip.handler = function(layer, feature){
-
+			console.log(layer);
+			console.log(feature);
 			console.log("Inherit DSD from layer in popup");
 			console.log(layer.dsd);
-		
+			console.log("Inherit properties for custom popup");
+			console.log(feature.geometry_column);
+			console.log(feature.popup_coordinates);
+			
 			//patterns
 			var regexps = {
 			  DATE: new RegExp("^([1-9][0-9]{3})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])?$"),
@@ -2322,8 +2326,14 @@
 			success: function(response){
 				var gml = new ol.format.GeoJSON();
 				var features = gml.readFeatures(response);
+				console.log(response);
 				if(features.length > 0){
 					var feature = features[0];
+					feature.geometry_column = null;
+					if(layer.dsd) {
+						feature.geometry_column = layer.dsd.filter(function(item){if(item.primitiveType.startsWith("gml")) return item})[0].primitiveCode;
+					}
+					feature.popup_coordinates = coords;
 					popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
 					this_.popup = {id: layer.id, coords: coords};
 				}else{
