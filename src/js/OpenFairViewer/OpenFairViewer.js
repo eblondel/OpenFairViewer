@@ -2331,7 +2331,18 @@
 		return layer;
 	}
 
-    	/**
+	/**
+	 * OpenFairViewer.prototype.getGeometryColumn
+	 * @param dsd
+	 */
+	
+	OpenFairViewer.prototype.getGeometryColumn = function(dsd){
+		var gmlProperty = dsd.filter(function(item){if(item.primitiveType.startsWith("gml")) return item});
+		if(gmlProperty.length == 0) return null;
+		return gmlProperty[0].primitiveCode;
+	}
+	
+	/**
 	 * OpenFairViewer.prototype.getFeatureInfo
 	 * @param layer
 	 * @param coords
@@ -2351,10 +2362,7 @@
 				console.log(response);
 				if(features.length > 0){
 					var feature = features[0];
-					feature.geometry_column = null;
-					if(layer.dsd) {
-						feature.geometry_column = layer.dsd.filter(function(item){if(item.primitiveType.startsWith("gml")) return item})[0].primitiveCode;
-					}
+					feature.geometry_column = this_.getGeometryColumn(layer.dsd);
 					feature.popup_coordinates = coords;
 					popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
 					this_.popup = {id: layer.id, coords: coords};
@@ -2674,11 +2682,12 @@
 
 	/**
 	 * OpenFairViewer.prototype.buildEnvParams
+	 * @param geom
 	 * @param variable
 	 * @param breaks
 	 */
-	OpenFairViewer.prototype.buildEnvParams = function(variable, breaks){
-	    var envparams = "var:"+variable+";";
+	OpenFairViewer.prototype.buildEnvParams = function(geom, variable, breaks){
+	    var envparams = "geom:"+ geom +";var:"+variable+";";
 	    for(var i=1;i<=breaks.length;i++){
 		envparams += "v"+ i +":"+ breaks[i-1] + ";";
 	    }
@@ -2832,6 +2841,7 @@
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
+							var geom = this_.getGeometryColumn(dataset.dsd);
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -2841,7 +2851,7 @@
 								breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(strategyvariable, breaks);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
 							}
 							
 							this_.selectDataset(pid);
@@ -2952,6 +2962,7 @@
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
+						var geom = this_.getGeometryColumn(dataset.dsd);
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -2961,7 +2972,7 @@
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(strategyvariable, breaks);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
 						}
 						this_.selectDataset(pid);
 						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
@@ -3050,6 +3061,7 @@
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
+							var geom = this_.getGeometryColumn(dataset.dsd);
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -3060,7 +3072,7 @@
 								var breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(strategyvariable, breaks);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
 							}
 							
 							//update viewparams, envparams & legend
@@ -3178,6 +3190,7 @@
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
+						var geom = this_.getGeometryColumn(dataset.dsd);
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -3188,7 +3201,7 @@
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(strategyvariable, breaks);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
 						}
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;

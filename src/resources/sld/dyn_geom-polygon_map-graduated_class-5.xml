@@ -49,11 +49,16 @@
                     </sld:PolygonSymbolizer>
 					-->
 					<sld:PointSymbolizer>
-						<!--<sld:Geometry>
+						<sld:Geometry>
                           <ogc:Function name="centroid">
-							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+							<ogc:Function name="property">
+                            	<ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                  	<ogc:Literal>the_geom</ogc:Literal>
+                              	</ogc:Function>
+                            </ogc:Function> 
                           </ogc:Function>
-						</sld:Geometry>-->
+						</sld:Geometry>
 						<sld:Graphic>
 							<sld:Mark>
 								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
@@ -111,11 +116,16 @@
                     </sld:PolygonSymbolizer>
 					-->
 					<sld:PointSymbolizer>
-						<!--<sld:Geometry>
+						<sld:Geometry>
                           <ogc:Function name="centroid">
-							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+							<ogc:Function name="property">
+                            	<ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                  	<ogc:Literal>the_geom</ogc:Literal>
+                              	</ogc:Function>
+                            </ogc:Function> 
                           </ogc:Function>
-						</sld:Geometry>-->
+						</sld:Geometry>
 						<sld:Graphic>
 							<sld:Mark>
 								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
@@ -173,11 +183,16 @@
                     </sld:PolygonSymbolizer>
 					-->
 					<sld:PointSymbolizer>
-						<!--<sld:Geometry>
+						<sld:Geometry>
                           <ogc:Function name="centroid">
-							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+							<ogc:Function name="property">
+                            	<ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                  	<ogc:Literal>the_geom</ogc:Literal>
+                              	</ogc:Function>
+                            </ogc:Function>  
                           </ogc:Function>
-						</sld:Geometry>-->
+						</sld:Geometry>
 						<sld:Graphic>
 							<sld:Mark>
 								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
@@ -235,11 +250,16 @@
                     </sld:PolygonSymbolizer>
 					-->
 					<sld:PointSymbolizer>
-						<!--<sld:Geometry>
+						<sld:Geometry>
                           <ogc:Function name="centroid">
-							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+							<ogc:Function name="property">
+                            	<ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                  	<ogc:Literal>the_geom</ogc:Literal>
+                              	</ogc:Function>
+                            </ogc:Function> 
                           </ogc:Function>
-						</sld:Geometry>-->
+						</sld:Geometry>
 						<sld:Graphic>
 							<sld:Mark>
 								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
@@ -297,11 +317,16 @@
                     </sld:PolygonSymbolizer>
 					-->
 					<sld:PointSymbolizer>
-						<!--<sld:Geometry>
+						<sld:Geometry>
                           <ogc:Function name="centroid">
-							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+							<ogc:Function name="property">
+                            	<ogc:Function name="env">
+                                    <ogc:Literal>geom</ogc:Literal>
+                                  	<ogc:Literal>the_geom</ogc:Literal>
+                              	</ogc:Function>
+                            </ogc:Function> 
                           </ogc:Function>
-						</sld:Geometry>-->
+						</sld:Geometry>
 						<sld:Graphic>
 							<sld:Mark>
 								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
