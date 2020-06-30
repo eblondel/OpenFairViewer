@@ -216,6 +216,15 @@
 		//baselayers
 		this.options.map.baselayers = [
 			new ol.layer.Tile({
+				title : "UN Clear Map (Dark)",
+				type: 'base',
+				source : new ol.source.TileArcGISRest({							
+					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Dark/MapServer',
+					crossOrigin: 'anonymous',
+					wrapX: true
+				})
+			}),
+			new ol.layer.Tile({
 				title : "UN Clear Map",
 				type: 'base',
 				source : new ol.source.TileArcGISRest({							
@@ -281,6 +290,11 @@
 		this.options.map.tooltip.DEFAULT_HANDLER = function(layer, feature){
 			console.log(layer);
 			console.log(feature);
+			console.log("Inherit DSD from layer in popup");
+			console.log(layer.dsd);
+			console.log("Inherit properties for custom popup");
+			console.log(feature.geometry_column);
+			console.log(feature.popup_coordinates);
 			
 			//patterns
 			var regexps = {
@@ -1512,11 +1526,19 @@
 		var entry = dataset.entry? dataset.entry : dataset;
 		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null, thematicmapping: false};
 				
+		
 		//build UI
 		var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
+		$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
+		$("#dsd-ui-header").append('<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>');
 
-		$("#dsd-ui").append('<div id="dsd-ui-row" class="row"></div>');
-		$("#dsd-ui-row").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
+		$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="app.mapDataset(app.dataset_on_query, true);return false"></form>');
+		$(document).on('submit', '#dsd-ui-body', function(event) {
+			event.preventDefault();
+		});
+				
+		$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
+		$("#dsd-ui-body").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 
 		//id
 		var ogcfilter_component_id = "ui-ogc_filter";

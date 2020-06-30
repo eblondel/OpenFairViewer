@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" type="text/css" href="js/vendor/select2/select2.css" />
+    <link rel="stylesheet" type="text/css" href="css/vendor/academicons/academicons.css">
     <link rel="stylesheet" type="text/css" href="js/OpenFairViewer/OpenFairViewer.css" />
     <link rel="stylesheet" type="text/css" href="css/main.css" />
 
@@ -61,12 +62,13 @@
     <script type="application/javascript" src="js/vendor/jquery/jquery.js"></script>
     <script type="application/javascript" src="js/vendor/jquery/jquery-ui.js"></script>
     <script type="application/javascript" src="//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script type="application/javascript" src="js/vendor/jquery/jquery-ui-timepicker-addon.js"></script>
     <!--Bootstrap-->
     <script type="application/javascript" src="js/vendor/bootstrap/bootstrap.js"></script>
     <!--Jquery Select2-->
     <script type="application/javascript" src="js/vendor/select2/select2.js"></script>
-	<!--Proj4Js-->
-	<script type="application/javascript" src="js/vendor/proj4js/proj4.js"></script>
+    <!--Proj4Js-->
+    <script type="application/javascript" src="js/vendor/proj4js/proj4.js"></script>
     <!--OpenLayers 3-->
     <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/ol3/3.18.2/ol-debug.js"></script>
     <script type="application/javascript" src="js/vendor/ol3/ol3-loadingpanel.js"></script>
@@ -102,7 +104,7 @@
         <!-- Topbar menu -->
         <nav class="topbarContent">
             <ul>
-                <li data-where="#pageMap" onclick="app.openAboutDialog()" title="About WECAFC-FIRMS Atlas">About</li>
+                <li data-where="#pageMap" onclick="app.openAboutDialog()" title="About SDI Lab Atlas">About</li>
                 <li data-where="#pageMap" onclick="app.openFindDialog()" title="Find data by browsing the data catalogue">Find</li>
                 <li data-where="#pageMap" onclick="app.openAccessDialog()" title="Access and query data">Access</li>
             </ul>
@@ -133,8 +135,10 @@
     
     <!-- Dialog contents -->
     <div id="aboutDialog">
-        <p>Welcome to the <b>SDI-Lab data portal!</b></p>
-        <p>The SDI-lab provides a test data viewer on top of the SDI-Lab catalogue</p>
+        <p>Welcome to the <b>Blue-Cloud SDI-Lab data portal!</b></p>
+        <p>The SDI-lab provides a digital map viewer on top of the SDI-Lab catalogue in support of Blue-Cloud Fisheries and Aquaculture atlas demonstrators</p>
+	<p style="text-align:center;"><img src="https://www.blue-cloud.org/sites/all/themes/arcadia/logo.png" height=50/></p>
+	
     </div>
     <div id="findDialog">
         <div id="dataset-form">
@@ -148,6 +152,7 @@
 	      <br>
 	      <div class="collapse multi-collapse" id="dataset-search-advanced">
       		<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">
+		 <div class="col-md-6">
               	  <div class="form-check" >
                      <label class="form-check-label" style="font-weight:100">
                   	<input id ="dataset-search-bbox-on-search" type="checkbox" class="form-check-input">
@@ -160,18 +165,21 @@
                   	Auto-Search on map move
                      </label>
               	  </div>
-				  <div class="form-check" >
+		 </div>
+		 <div>
+		  <div class="form-check" >
                      <label class="form-check-label" style="font-weight:100">
                   	<input id ="dataset-spatial-coverage-visible" type="checkbox" class="form-check-input" checked>
-                  	Display dataset spatial coverage layer (if any)
+                  	Display dataset bounding box (if any)
                      </label>
               	  </div>
 				  <div class="form-check" >
                      <label class="form-check-label" style="font-weight:100">
                   	<input id ="dataset-spatial-coverage-extended" type="checkbox" class="form-check-input">
-                  	Include dataset spatial coverage extended geometries (if any)
+                  	Display dataset extent geometries (if any)
                      </label>
               	  </div>
+		 </div>
 		</fieldset>
 	      </div>
               <input type="submit" class="btn btn-primary btn-sm" style="float:right;" value="Search"></input>
@@ -238,7 +246,7 @@
 	    {{#doi}}
 	    <button class="btn btn-xs dataset-button dataset-button-doi" 
 		    data-pid="{{pid}}" title="Access resource with DOI" 
-		    onclick="app.resolveDatasetDOI(this)"><span class="glyphicon glyphicon-link"></span></button>
+		    onclick="app.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>
 	    {{/doi}}
 	    <button class="btn btn-xs dataset-button dataset-button-info"
 		    data-pid="{{pid}}" title="Access dataset metadata"
