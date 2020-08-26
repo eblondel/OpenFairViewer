@@ -216,6 +216,20 @@
 		//baselayers
 		this.options.map.baselayers = [
 			new ol.layer.Tile({
+				title: "EMODnet Bathymetry World baselayer",
+				extent: [-180,-90,180,90],
+				type: 'base',
+				source : new ol.source.WMTS({
+					url : 'https://tiles.emodnet-bathymetry.eu/2020/{Layer}/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.png',
+					layer : 'baselayer',
+					requestEncoding : 'REST',
+					matrixSet : 'inspire_quad',
+					format : 'image/png',
+					projection : "EPSG:4326",
+					tileGrid : this_.inspireWgs84Grid(12, '')
+				})
+			}),
+			new ol.layer.Tile({
 				title : "UN Clear Map (Dark)",
 				type: 'base',
 				source : new ol.source.TileArcGISRest({							
@@ -457,6 +471,32 @@
         
 	//Utils
 	//===========================================================================================
+	
+	/**
+	 * OpenFairViewer.prototype.inspireWgs84Grid
+	 * @param levels
+	 * @param prefix
+	 */
+	OpenFairViewer.prototype.inspireWgs84Grid = function(levels, prefix) {
+		var projection = ol.proj.get('EPSG:4326');
+
+		var projectionExtent = projection.getExtent();
+		var resolution = ol.extent.getWidth(projectionExtent) / 512;
+		
+		var resolutions = new Array(levels);
+		var matrixIds = new Array(levels);
+		
+		for (var z = 0; z < levels; z++) {
+			resolutions[z] = resolution / Math.pow(2, z);
+			matrixIds[z] = z;
+		}
+		
+		return new ol.tilegrid.WMTS({
+			origin: ol.extent.getTopLeft(projectionExtent),
+			resolutions: resolutions,
+			matrixIds: matrixIds
+		});				
+	}
 	
 	/**
 	 * OpenFairViewer.prototype.rewriteURL
