@@ -2888,7 +2888,7 @@
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
 		
-		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="") return item}).length-2 : null);
+		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="") return item}).length-3 : null);
 		var layerStyle =  from_query_form? this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb) : dataset.style;
 
 		if(!layer){
@@ -4479,7 +4479,7 @@
 				var query = encoded_view_obj.q == "true";
 				var breaks = undefined;
 				if(envparams){
-					breaks = envparams.split(";"); breaks.splice(-1,1); breaks.splice(0,1);
+					breaks = envparams.split(";"); breaks.splice(-1,1); breaks.splice(0,2);
 					breaks = breaks.map(function(key){return parseFloat(key.split(":")[1])});
 				}
 				encoded_datasets.push({
