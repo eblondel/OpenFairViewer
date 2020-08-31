@@ -2,6 +2,19 @@
 ###The 'data' object in output containing the data, the associated metadata as well as the retrieved parameters. 
 ###This module can be integrated into a shiny application intended to offer a dashboard or a popup under OpenFairViewer.
 
+
+####Extraction of the metadata associated to data to retrieve the complete labels, type of variable and units of measures
+getColumnDefinitions = function(fc) {
+  do.call("rbind",lapply(fc$featureType[[1]]$carrierOfCharacteristics,function(x){data.frame(MemberCode=ifelse(!is.null(x$code),x$code,""),
+                                                                                             MemberName=ifelse(!is.null(x$memberName$value),x$memberName$value,""),
+                                                                                             MemberType=ifelse(!is.null(x$valueType$aName$attrs[['xlink:href']]),x$valueType$aName$attrs[['xlink:href']],""),
+                                                                                             PrimitiveType=ifelse(!is.null(x$valueType$aName$value),sub(".*:", "", x$valueType$aName$value),""),
+                                                                                             MinOccurs=ifelse(!is.null(x$cardinality$range$lower),x$cardinality$range$lower,""),
+                                                                                             MaxOccurs=ifelse(!is.null(x$cardinality$range$upper$value),x$cardinality$range$upper$value,""),
+                                                                                             Definition=ifelse(!is.null(x$definition),x$definition,""),
+                                                                                             MeasureUnitSymbol=ifelse(!is.null(x$valueMeasurementUnit$identifier$value),x$valueMeasurementUnit$identifier$value,""),
+                                                                                             MeasureUnitName=ifelse(!is.null(x$valueMeasurementUnit$name$value),x$valueMeasurementUnit$name$value,""))}))
+}   
 # Function for module UI
 QueryInfoUI <- function(id) {
   ns <- NS(id)
