@@ -7,79 +7,6 @@
 
 var app = app || {};
 var appVersion = "1.0-beta"
-
-//Shiny app handler for OpenFairviewer popups
-var popupShinyHandler = function(shinyAppUrl, layer, feature){
-	console.log("Custom popup handler with Shiny app");
-	console.log(feature);
-	var pid = layer.id;
-	var layername = layer.getSource().getParams().LAYERS;
-	var shinyapp_url = shinyAppUrl + "?";
-	shinyapp_url += "pid=" + pid;
-	shinyapp_url += "&layer=" + layername;
-	shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
-	shinyapp_url += "&wfs_version=1.0.0";
-	shinyapp_url += "&strategy=" + layer.strategy;
-	var params = null;
-	switch(layer.strategy){
-		case "ogc_filters": params = layer.getSource().getParams().CQL_FILTER; break;
-		case "ogc_viewparams": params = layer.getSource().getParams().VIEWPARAMS; break;
-	}
-	if(params) shinyapp_url += "&par=" + params;
-	shinyapp_url += "&geom=" + feature.geometry_column;
-	shinyapp_url += "&x=" + feature.popup_coordinates[0];
-	shinyapp_url += "&y=" + feature.popup_coordinates[1];
-	shinyapp_url += "&srs=EPSG:4326";
-
-	if(layer.dsd){
-		var dsd_small = layer.dsd.map(function(item){ 
-			var newItem = item; 
-			delete newItem.values; 
-			if(newItem.definition) if(newItem.definition.length == 0) newItem.definition = null ; 
-			return newItem
-		});
-		console.log(JSON.stringify(dsd_small));
-		shinyapp_url += "&dsd="+ encodeURI(JSON.stringify(dsd_small));
-	}
-
-	var html = '<iframe src ="' + shinyapp_url + '" width="400" height="300" frameborder="0" marginheight="0"></iframe>';
-	return html;
-}
-
-//Shiny app handler for OpenFairviewer dashboard
-var dashboardShinyHandler = function(shinyAppUrl, layer){
-	console.log("Custom dashboard handler with Shiny app");
-	var pid = layer.id;
-	var layername = layer.getSource().getParams().LAYERS;
-	var shinyapp_url = shinyAppUrl + "?";
-	shinyapp_url += "pid=" + pid;
-	shinyapp_url += "&layer=" + layername;
-	shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
-	shinyapp_url += "&wfs_version=1.0.0";
-	shinyapp_url += "&strategy=" + layer.strategy;
-	var params = null;
-	switch(layer.strategy){
-		case "ogc_filters": params = layer.getSource().getParams().CQL_FILTER; break;
-		case "ogc_viewparams": params = layer.getSource().getParams().VIEWPARAMS; break;
-	}
-	if(params) shinyapp_url += "&par=" + params;
-	shinyapp_url += "&srs=EPSG:4326";
-
-	if(layer.dsd){
-		var dsd_small = layer.dsd.map(function(item){ 
-			var newItem = item; 
-			delete newItem.values; 
-			if(newItem.definition) if(newItem.definition.length == 0) newItem.definition = null ; 
-			return newItem
-		});
-		console.log(JSON.stringify(dsd_small));
-		shinyapp_url += "&dsd="+ encodeURI(JSON.stringify(dsd_small));
-	}
-
-	var html = '<iframe src ="' + shinyapp_url + '" width="100%" height="100%" frameborder="0" marginheight="0"></iframe>';
-	return html;
-}
-
  
 $(document).ready(function(){
 	app = new OpenFairViewer({
@@ -100,7 +27,7 @@ $(document).ready(function(){
 				enabled: true,
 				handler: function(layer){
 					if(layer.id.startsWith('fao_capture')) {	
-						return dashboardShinyHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer);
+						return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
 					}else{
 						console.log("Default dashboard handler with OpenFairViewer");
 						return;
@@ -137,7 +64,7 @@ $(document).ready(function(){
 						console.log("Default popup handler with OpenFairViewer");
 						return this.DEFAULT_HANDLER(layer, feature);
 					}else{
-						return popupShinyHandler("https://abennici.shinyapps.io/ShinysdilabPopup", layer, feature);
+						return OpenFairViewerUtils.shiny.popupHandler("https://abennici.shinyapps.io/ShinysdilabPopup", layer, feature, false);
 					}
 				}
 			}

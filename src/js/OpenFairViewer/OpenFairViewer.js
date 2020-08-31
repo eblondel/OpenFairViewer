@@ -2388,8 +2388,12 @@
 			alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
 	    }
 	    layer.overlayGroup = this.options.map.layergroups[mainOverlayGroup];
-		this.layers.overlays[mainOverlayGroup].getLayers().push(layer);
-		return layer;
+	    this.layers.overlays[mainOverlayGroup].getLayers().push(layer);
+	    
+ 	    //inherit properties
+	    layer.csw_server = this.config.OGC_CSW_BASEURL;
+	    layer.csw_version = this.config.OGC_CSW_VERSION;
+	    return layer;
 	}
 
 	/**

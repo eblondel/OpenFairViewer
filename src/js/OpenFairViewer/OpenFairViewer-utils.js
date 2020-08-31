@@ -24,7 +24,7 @@ OpenFairViewerUtils = {};
 //Shiny
 OpenFairViewerUtils.shiny = {};
 //Shiny app handler for popups
-OpenFairViewerUtils.shiny.popupHandler = function(shinyAppUrl, layer, feature){
+OpenFairViewerUtils.shiny.popupHandler = function(shinyAppUrl, layer, feature, withGeom){
 	console.log("Custom popup handler with Shiny app");
 	console.log(feature);
 	var pid = layer.id;
@@ -32,8 +32,11 @@ OpenFairViewerUtils.shiny.popupHandler = function(shinyAppUrl, layer, feature){
 	var shinyapp_url = shinyAppUrl + "?";
 	shinyapp_url += "pid=" + pid;
 	shinyapp_url += "&layer=" + layername;
+	shinyapp_url += "&csw_server=" + layer.csw_server;
+	shinyapp_url += "&csw_version=" + layer.csw_version;
 	shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
 	shinyapp_url += "&wfs_version=1.0.0";
+	shinyapp_url += "&wfs_geom=" + withGeom;
 	shinyapp_url += "&strategy=" + layer.strategy;
 	var params = null;
 	switch(layer.strategy){
@@ -62,15 +65,18 @@ OpenFairViewerUtils.shiny.popupHandler = function(shinyAppUrl, layer, feature){
 };
 
 //Shiny app handler for OpenFairviewer dashboard
-OpenFairViewerUtils.shiny.dashboardHandler = function(shinyAppUrl, layer){
+OpenFairViewerUtils.shiny.dashboardHandler = function(shinyAppUrl, layer, withGeom){
 	console.log("Custom dashboard handler with Shiny app");
 	var pid = layer.id;
 	var layername = layer.getSource().getParams().LAYERS;
 	var shinyapp_url = shinyAppUrl + "?";
 	shinyapp_url += "pid=" + pid;
 	shinyapp_url += "&layer=" + layername;
+	shinyapp_url += "&csw_server=" + layer.csw_server;
+	shinyapp_url += "&csw_version=" + layer.csw_version;
 	shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
 	shinyapp_url += "&wfs_version=1.0.0";
+	shinyapp_url += "&wfs_geom=" + withGeom;
 	shinyapp_url += "&strategy=" + layer.strategy;
 	var params = null;
 	switch(layer.strategy){
