@@ -68,6 +68,12 @@ QueryInfo <- function(input, output, session) {
       NULL
     }
     
+    wfs_geom <-if (!is.null(query$wfs_geom)){
+      query$wfs_geom
+    }else{
+      TRUE
+    }
+    
     csw_server <-if (!is.null(query$csw_server)){
       as.character(query$csw_server)
     }else{
@@ -152,6 +158,8 @@ QueryInfo <- function(input, output, session) {
       #Get data features for dataset
       
       coord<-NULL
+      
+      if(wfs_geom){
       if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
       coord<-paste0("BBOX(",geom,",",x,",",y,",",x,",",y,",",srs,")")}
       if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures()
@@ -167,6 +175,29 @@ QueryInfo <- function(input, output, session) {
                           "ogc_filters"=ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(paste0(par," AND ",coord))))),
                           "ogc_viewparams"=ft$getFeatures(viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
         )
+      }
+      }else{
+        nonGeomColumn<-meta[!substring(meta$PrimitiveType,1,3)=="gml","MemberCode"]
+        propertyName<-paste(nonGeomColumn, collapse = ',')
+        
+        if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
+          coord<-paste0("BBOX(",geom,",",x,",",y,",",x,",",y,",",srs,")")}
+        if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName)
+        if(is.null(par)&&!is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+        if(!is.null(par)&&is.null(coord)){
+          data.sf <- switch(strategy,
+                            "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
+                            "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par))
+          )
+        }
+        if(!is.null(par)&&!is.null(coord)){
+          data.sf <- switch(strategy,
+                            "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(paste0(par," AND ",coord))))),
+                            "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+          )
+        }
+        data.sf<-subset(data.sf,select=nonGeomColumn)
+        meta<-subset(meta,MemberCode%in%nonGeomColumn)
       }
       #return(list(data.sf = reactive(data.sf) , 
       #            meta   = reactive(meta)))
@@ -185,6 +216,7 @@ QueryInfo <- function(input, output, session) {
             "layer: ", data$query$layer, "\n",
             "wfs_server: ",data$query$wfs_server, "\n",
             "wfs_version: ", data$query$wfs_version, "\n",
+            "wfs_geom: ", data$query$wfs_geom, "\n",
             "csw_server: ",data$query$csw_server, "\n",
             "csw_version: ", data$query$csw_version, "\n",
             "strategy: ", data$query$strategy, "\n",
