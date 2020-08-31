@@ -2,6 +2,19 @@
 ###The 'data' object in output containing the data, the associated metadata as well as the retrieved parameters. 
 ###This module can be integrated into a shiny application intended to offer a dashboard or a popup under OpenFairViewer.
 
+
+####Extraction of the metadata associated to data to retrieve the complete labels, type of variable and units of measures
+getColumnDefinitions = function(fc) {
+  do.call("rbind",lapply(fc$featureType[[1]]$carrierOfCharacteristics,function(x){data.frame(MemberCode=ifelse(!is.null(x$code),x$code,""),
+                                                                                             MemberName=ifelse(!is.null(x$memberName$value),x$memberName$value,""),
+                                                                                             MemberType=ifelse(!is.null(x$valueType$aName$attrs[['xlink:href']]),x$valueType$aName$attrs[['xlink:href']],""),
+                                                                                             PrimitiveType=ifelse(!is.null(x$valueType$aName$value),sub(".*:", "", x$valueType$aName$value),""),
+                                                                                             MinOccurs=ifelse(!is.null(x$cardinality$range$lower),x$cardinality$range$lower,""),
+                                                                                             MaxOccurs=ifelse(!is.null(x$cardinality$range$upper$value),x$cardinality$range$upper$value,""),
+                                                                                             Definition=ifelse(!is.null(x$definition),x$definition,""),
+                                                                                             MeasureUnitSymbol=ifelse(!is.null(x$valueMeasurementUnit$identifier$value),x$valueMeasurementUnit$identifier$value,""),
+                                                                                             MeasureUnitName=ifelse(!is.null(x$valueMeasurementUnit$name$value),x$valueMeasurementUnit$name$value,""))}))
+}   
 # Function for module UI
 QueryInfoUI <- function(id) {
   ns <- NS(id)
@@ -53,6 +66,12 @@ QueryInfo <- function(input, output, session) {
       as.character(query$wfs_version)
     }else{
       NULL
+    }
+    
+    wfs_geom <-if (!is.null(query$wfs_geom)){
+      query$wfs_geom
+    }else{
+      TRUE
     }
     
     csw_server <-if (!is.null(query$csw_server)){
@@ -139,6 +158,8 @@ QueryInfo <- function(input, output, session) {
       #Get data features for dataset
       
       coord<-NULL
+      
+      if(wfs_geom){
       if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
       coord<-paste0("BBOX(",geom,",",x,",",y,",",x,",",y,",",srs,")")}
       if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures()
@@ -154,6 +175,29 @@ QueryInfo <- function(input, output, session) {
                           "ogc_filters"=ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(paste0(par," AND ",coord))))),
                           "ogc_viewparams"=ft$getFeatures(viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
         )
+      }
+      }else{
+        nonGeomColumn<-meta[!substring(meta$PrimitiveType,1,3)=="gml","MemberCode"]
+        propertyName<-paste(nonGeomColumn, collapse = ',')
+        
+        if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
+          coord<-paste0("BBOX(",geom,",",x,",",y,",",x,",",y,",",srs,")")}
+        if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName)
+        if(is.null(par)&&!is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+        if(!is.null(par)&&is.null(coord)){
+          data.sf <- switch(strategy,
+                            "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
+                            "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par))
+          )
+        }
+        if(!is.null(par)&&!is.null(coord)){
+          data.sf <- switch(strategy,
+                            "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(paste0(par," AND ",coord))))),
+                            "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+          )
+        }
+        data.sf<-subset(data.sf,select=nonGeomColumn)
+        meta<-subset(meta,MemberCode%in%nonGeomColumn)
       }
       #return(list(data.sf = reactive(data.sf) , 
       #            meta   = reactive(meta)))
@@ -172,6 +216,7 @@ QueryInfo <- function(input, output, session) {
             "layer: ", data$query$layer, "\n",
             "wfs_server: ",data$query$wfs_server, "\n",
             "wfs_version: ", data$query$wfs_version, "\n",
+            "wfs_geom: ", data$query$wfs_geom, "\n",
             "csw_server: ",data$query$csw_server, "\n",
             "csw_version: ", data$query$csw_version, "\n",
             "strategy: ", data$query$strategy, "\n",
