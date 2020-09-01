@@ -177,7 +177,8 @@ QueryInfo <- function(input, output, session) {
         )
       }
       }else{
-        nonGeomColumn<-ft$getDescription(TRUE)[ft$getDescription(TRUE)$type!="geometry","name"]
+        desc <- ft$getDescription(TRUE) 
+        nonGeomColumn<-desc[desc$type!="geometry","name"]
         propertyName<-paste(nonGeomColumn, collapse = ',')
         
         if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
