@@ -177,7 +177,7 @@ QueryInfo <- function(input, output, session) {
         )
       }
       }else{
-        nonGeomColumn<-meta[!substring(meta$PrimitiveType,1,3)=="gml","MemberCode"]
+        nonGeomColumn<-ft$getDescription(TRUE)[ft$getDescription(TRUE)$type!="geometry","name"]
         propertyName<-paste(nonGeomColumn, collapse = ',')
         
         if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
