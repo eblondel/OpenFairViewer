@@ -60,7 +60,7 @@ OpenFairViewerUtils.shiny.popupHandler = function(shinyAppUrl, layer, feature, w
 		shinyapp_url += "&dsd="+ encodeURI(JSON.stringify(dsd_small));
 	}
 
-	var html = '<iframe src ="' + shinyapp_url + '" width="400" height="300" frameborder="0" marginheight="0"></iframe>';
+	var html = '<iframe src ="' + shinyapp_url + '" width="400" height="350" frameborder="0" marginheight="0"></iframe>';
 	return html;
 };
 
