@@ -174,7 +174,7 @@ QueryInfo <- function(input, output, session) {
       
       if(wms$server){
         
-        wms <- WMSClient$new(url = wms$server, serviceVersion = wms$version, logger = "INFO")
+        wms <- WMSClient$new(url = wms_server, serviceVersion = wms_version, logger = "INFO")
         Layer <- wms$capabilities$findLayerByName(layer)
         
         srs <- NULL
@@ -240,7 +240,7 @@ QueryInfo <- function(input, output, session) {
                             "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
           )
         }
-        data<-subset(Data,select=nonGeomColumn)
+        Data<-subset(Data,select=nonGeomColumn)
         dsd<-subset(dsd,MemberCode%in%nonGeomColumn)
       }
 
