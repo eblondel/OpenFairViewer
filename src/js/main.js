@@ -23,9 +23,9 @@ var faoPopupHandler = function(shinyAppUrl, layer, feature, withGeom){
 	shinyapp_url += "&csw_version=" + layer.csw_version;
 	shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
 	shinyapp_url += "&wfs_version=1.0.0";
-	shinyapp_url += "&wfs_geom=" + withGeom;
 	shinyapp_url += "&wms_server=" + layer.getSource().getUrl().replace('ows?service=WMS','wms');
 	shinyapp_url += "&wms_version=" + layer.getSource().getParams().VERSION;
+	shinyapp_url += "&feature_geom=" + withGeom;
 	shinyapp_url += "&strategy=" + layer.strategy;
 	var params = null;
 	switch(layer.strategy){
@@ -64,7 +64,7 @@ var faoDashboardHandler = function(shinyAppUrl, layer, withGeom){
 	shinyapp_url += "&csw_version=" + layer.csw_version;
 	shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
 	shinyapp_url += "&wfs_version=1.0.0";
-	shinyapp_url += "&wfs_geom=" + withGeom;
+	shinyapp_url += "&feature_geom=" + withGeom;
 	shinyapp_url += "&strategy=" + layer.strategy;
 	var params = null;
 	switch(layer.strategy){
