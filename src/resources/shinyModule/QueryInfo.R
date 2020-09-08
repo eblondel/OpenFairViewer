@@ -140,15 +140,16 @@ QueryInfo <- function(input, output, session) {
       NULL
     }
     
+    # Columns definition 
+   
+       if(!is.null(dsd)){
+        names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
+        dsd[is.na(dsd)]<-""
+        }
     
-    if(!is.null(dsd)){
-      names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
-      dsd[is.na(dsd)]<-""
-    }
-    #cat(nrow(dsd))
-    if(is.null(dsd)){ 
+      if(is.null(dsd)){ 
       # #Connect to OGC CSW Catalogue to get METADATA
-      CSW <- CSWClient$new(
+        CSW <- CSWClient$new(
         url = csw_server,
         serviceVersion = csw_version,
         logger = "INFO"
@@ -169,13 +170,20 @@ QueryInfo <- function(input, output, session) {
       #Get feature type for dataset
       ft <- WFS$capabilities$findFeatureTypeByName(layer)
       #Get data features for dataset
-      
+      desc <- ft$getDescription(TRUE) 
+      nonGeomColumn<-desc[desc$type!="geometry","name"]
+      propertyName<-paste(nonGeomColumn, collapse = ',')
       coord<-NULL
       
-      if(wms$server){
+      if(!is.null(wms_server)){
         
-        wms <- WMSClient$new(url = wms_server, serviceVersion = wms_version, logger = "INFO")
-        Layer <- wms$capabilities$findLayerByName(layer)
+        WMS <- WMSClient$new(
+          url = wms_server, 
+          serviceVersion = wms_version, 
+          logger = "INFO"
+          )
+        
+        Layer <- WMS$capabilities$findLayerByName(layer)
         
         srs <- NULL
         crs <- NULL
@@ -185,28 +193,32 @@ QueryInfo <- function(input, output, session) {
         }else if(wms_version == "1.3.0"){
           crs <- srs
         }
-        bbox <- paste0(x-0.1,",",y-0.1,",",x+0.1,",",y+0.1,")")
+        bbox <- paste0(x-0.1,",",y-0.1,",",x+0.1,",",y+0.1)
         
         if(!is.null(par)){
           Data <- switch(strategy,
                             "ogc_filters"=Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName,)),
-                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox, viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par))),propertyName = propertyName)
+                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox, viewparams = URLencode(par),propertyName = propertyName)
           )
         }
         
         if(is.null(par)){
-          Data <- switch(strategy,
-                            "ogc_filters"=layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,propertyName = propertyName,),
-                            "ogc_viewparams"=layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,propertyName = propertyName)
-          )
+
+          Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,propertyName = propertyName)
+
         }
       }
       
-      if(wfs_geom){
+      if(wfs_geom && is.null(wms_server)){
       if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
       coord<-paste0("BBOX(",geom,",",x,",",y,",",x,",",y,",",srs,")")}
-      if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures()
-      if(is.null(par)&&!is.null(coord))data.sf <- ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+     
+       if(is.null(par)&&is.null(coord)){
+       Data <- ft$getFeatures() 
+      } 
+      if(is.null(par)&&!is.null(coord)) {
+        Data <- ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+      }
       if(!is.null(par)&&is.null(coord)){
         Data <- switch(strategy,
                           "ogc_filters"=ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
@@ -220,14 +232,14 @@ QueryInfo <- function(input, output, session) {
         )
       }
       }else{
-        desc <- ft$getDescription(TRUE) 
-        nonGeomColumn<-desc[desc$type!="geometry","name"]
-        propertyName<-paste(nonGeomColumn, collapse = ',')
-        
         if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
           coord<-paste0("BBOX(",geom,",",x,",",y,",",x,",",y,",",srs,")")}
-        if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName)
-        if(is.null(par)&&!is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+        if(is.null(par)&&is.null(coord)){
+          Data <- ft$getFeatures(propertyName=propertyName)
+        }
+        if(is.null(par)&&!is.null(coord)){
+          Data <- ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
+        }
         if(!is.null(par)&&is.null(coord)){
           Data <- switch(strategy,
                             "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
