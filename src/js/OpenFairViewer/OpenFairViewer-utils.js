@@ -26,6 +26,7 @@ OpenFairViewerUtils.shiny = {};
 //Shiny app handler for popups
 OpenFairViewerUtils.shiny.popupHandler = function(shinyAppUrl, layer, feature, withGeom){
 	console.log("Custom popup handler with Shiny app");
+	console.log(layer);
 	console.log(feature);
 	var pid = layer.id;
 	var layername = layer.getSource().getParams().LAYERS;
@@ -37,6 +38,8 @@ OpenFairViewerUtils.shiny.popupHandler = function(shinyAppUrl, layer, feature, w
 	shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
 	shinyapp_url += "&wfs_version=1.0.0";
 	shinyapp_url += "&wfs_geom=" + withGeom;
+	shinyapp_url += "&wms_server=" + layer.getSource().getUrl().replace('ows?service=WMS','wms');
+	shinyapp_url += "&wms_version=" + layer.getSource().getParams().VERSION;
 	shinyapp_url += "&strategy=" + layer.strategy;
 	var params = null;
 	switch(layer.strategy){

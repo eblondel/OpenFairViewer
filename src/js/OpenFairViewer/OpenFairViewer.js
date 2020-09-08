@@ -3658,7 +3658,7 @@
 						}
 					}
 				}
-				if(prop_keys.indexOf("geometry") != -1){
+				if(prop_keys.indexOf("geometry") != -1) if(props["geometry"]){
 					newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
 				}
 				featuresToExport.push(newprops);
@@ -3713,7 +3713,7 @@
 					}
 				}
 			}
-			if(prop_keys.indexOf("geometry") != -1){
+			if(prop_keys.indexOf("geometry") != -1) if(props["geometry"]) {
 				newprops["geometry"] = new ol.format.WKT().writeGeometry(props["geometry"]);
 			}
 			featuresToExport.push(newprops);
@@ -3851,14 +3851,16 @@
 						//case of geometry
 						if(meta.col == data_columns.indexOf('geometry')){
 							var wkt = data;
-							var button_id_zoom = 'zoom_feature-'+row[0];
-							var button_id_disp = 'display_feature'+row[0];
-							//button to zoom to feature
-							data = '<button id="'+button_id_zoom+'" class="btn btn-xs dataset-button-zoom" title="Zoom to feature" ';
+							if(wkt == "–"){
+								var button_id_zoom = 'zoom_feature-'+row[0];
+								var button_id_disp = 'display_feature'+row[0];
+								//button to zoom to feature
+								data = '<button id="'+button_id_zoom+'" class="btn btn-xs dataset-button-zoom" title="Zoom to feature" ';
 								data += 'onclick="app.zoomToFeature(\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-zoom-in"></span></button>';
-							//button to display feature
+								//button to display feature
 								data += '<button id="'+button_id_disp+'" class="btn btn-xs dataset-button-add" style="margin-left:10px"  title="Display feature" ';
 								data += 'onclick="app.highlightFeature(\''+this_.dataset_on_query.pid+'\',\''+row[0]+'\',\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-map-marker"></span></button>';
+							}
 						}
 						return data;
 					}
