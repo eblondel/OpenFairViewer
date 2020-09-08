@@ -35,14 +35,15 @@ QueryInfoUI <- function(id) {
 # Function for module server logic
 QueryInfo <- function(input, output, session) {
   data <- reactiveValues(
-    data.sf=NULL,meta=NULL,query=NULL,time=NULL
+    data=NULL,dsd=NULL,query=NULL,time=NULL
   )
   
   observe({
     start_time <- Sys.time()
     
     query <- parseQueryString(session$clientData$url_search)
-    #Validation of url parameter
+    
+    #Extraction of url parameter
     
     pid <- if (!is.null(query$pid)){
       as.character(query$pid)
@@ -72,6 +73,17 @@ QueryInfo <- function(input, output, session) {
       query$wfs_geom
     }else{
       TRUE
+    }
+    
+    wms_server <-if (!is.null(query$wms_server)){
+      as.character(query$wms_server)
+    }else{
+      NULL
+    }
+    wms_version <-if (!is.null(query$wms_version)){
+      as.character(query$wms_version)
+    }else{
+      NULL
     }
     
     csw_server <-if (!is.null(query$csw_server)){
@@ -122,19 +134,19 @@ QueryInfo <- function(input, output, session) {
       "'EPSG:4326'"
     }
     
-    meta<-if (!is.null(query$dsd)){
+    dsd<-if (!is.null(query$dsd)){
       jsonlite::fromJSON(query$dsd)
     }else{
       NULL
     }
     
     
-    if(!is.null(meta)){
-      names(meta)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
-      meta[is.na(meta)]<-""
+    if(!is.null(dsd)){
+      names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
+      dsd[is.na(dsd)]<-""
     }
-    cat(nrow(meta))
-    if(is.null(meta)){ 
+    #cat(nrow(dsd))
+    if(is.null(dsd)){ 
       # #Connect to OGC CSW Catalogue to get METADATA
       CSW <- CSWClient$new(
         url = csw_server,
@@ -143,8 +155,9 @@ QueryInfo <- function(input, output, session) {
       )
       
       fc <- CSW$getRecordById(paste0(pid,"_dsd"), outputSchema = "http://www.isotc211.org/2005/gfc")
-      meta<-getColumnDefinitions(fc)}
-    if(!is.null(layer)&!is.null(wfs_server)&!is.null(wfs_version)&!is.null(strategy)){
+      dsd<-getColumnDefinitions(fc)}
+    
+    if(!is.null(layer)&(!is.null(wfs_server)|!is.null(wms_server))&!is.null(strategy)){
       
       
       #Connect to OGC WFS to get DATA
@@ -159,19 +172,49 @@ QueryInfo <- function(input, output, session) {
       
       coord<-NULL
       
+      if(wms$server){
+        
+        wms <- WMSClient$new(url = wms_server, serviceVersion = wms_version, logger = "INFO")
+        Layer <- wms$capabilities$findLayerByName(layer)
+        
+        srs <- NULL
+        crs <- NULL
+        
+        if(startsWith(wms_version, "1.1")){
+          srs <- srs
+        }else if(wms_version == "1.3.0"){
+          crs <- srs
+        }
+        bbox <- paste0(x-0.1,",",y-0.1,",",x+0.1,",",y+0.1,")")
+        
+        if(!is.null(par)){
+          Data <- switch(strategy,
+                            "ogc_filters"=Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName,)),
+                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox, viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par))),propertyName = propertyName)
+          )
+        }
+        
+        if(is.null(par)){
+          Data <- switch(strategy,
+                            "ogc_filters"=layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,propertyName = propertyName,),
+                            "ogc_viewparams"=layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,propertyName = propertyName)
+          )
+        }
+      }
+      
       if(wfs_geom){
       if(!is.null(geom)&&!is.null(x)&&!is.null(y)){
       coord<-paste0("BBOX(",geom,",",x,",",y,",",x,",",y,",",srs,")")}
       if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures()
       if(is.null(par)&&!is.null(coord))data.sf <- ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
       if(!is.null(par)&&is.null(coord)){
-        data.sf <- switch(strategy,
+        Data <- switch(strategy,
                           "ogc_filters"=ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
                           "ogc_viewparams"=ft$getFeatures(viewparams = URLencode(par))
         )
       }
       if(!is.null(par)&&!is.null(coord)){
-        data.sf <- switch(strategy,
+        Data <- switch(strategy,
                           "ogc_filters"=ft$getFeatures(cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(paste0(par," AND ",coord))))),
                           "ogc_viewparams"=ft$getFeatures(viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
         )
@@ -186,25 +229,24 @@ QueryInfo <- function(input, output, session) {
         if(is.null(par)&&is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName)
         if(is.null(par)&&!is.null(coord))data.sf <- ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
         if(!is.null(par)&&is.null(coord)){
-          data.sf <- switch(strategy,
+          Data <- switch(strategy,
                             "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
                             "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par))
           )
         }
         if(!is.null(par)&&!is.null(coord)){
-          data.sf <- switch(strategy,
+          Data <- switch(strategy,
                             "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(paste0(par," AND ",coord))))),
                             "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(coord))))
           )
         }
-        data.sf<-subset(data.sf,select=nonGeomColumn)
-        meta<-subset(meta,MemberCode%in%nonGeomColumn)
+        Data<-subset(Data,select=nonGeomColumn)
+        dsd<-subset(dsd,MemberCode%in%nonGeomColumn)
       }
-      #return(list(data.sf = reactive(data.sf) , 
-      #            meta   = reactive(meta)))
-     data$data.sf<-data.sf
-     data$meta<-meta
-     print(meta)
+
+     data$data<-Data
+     data$dsd<-dsd
+     print(dsd)
      data$query<-query
     }
     end_time <- Sys.time()
@@ -217,6 +259,8 @@ QueryInfo <- function(input, output, session) {
             "layer: ", data$query$layer, "\n",
             "wfs_server: ",data$query$wfs_server, "\n",
             "wfs_version: ", data$query$wfs_version, "\n",
+            "wms_server: ",data$query$wms_server, "\n",
+            "wms_version: ", data$query$wms_version, "\n",
             "wfs_geom: ", data$query$wfs_geom, "\n",
             "csw_server: ",data$query$csw_server, "\n",
             "csw_version: ", data$query$csw_version, "\n",
@@ -229,7 +273,7 @@ QueryInfo <- function(input, output, session) {
             "dsd: ",data$query$dsd, "\n"
       )
     })
-      output$value <- renderText({paste(sep = "","number of values : ",nrow(data$data.sf))})
+      output$value <- renderText({paste(sep = "","number of values : ",nrow(data$data))})
       
       output$time <- renderText({paste(sep = "","running time : ",round(data$time,2)," sec")})
       
