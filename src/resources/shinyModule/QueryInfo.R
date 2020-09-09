@@ -69,11 +69,11 @@ QueryInfo <- function(input, output, session) {
       NULL
     }
     
-    # feature_geom <-if (!is.null(query$feature_geom)){
-    #   query$feature_geom
-    # }else{
-    #   TRUE
-    # }
+    feature_geom <-if (!is.null(query$feature_geom)){
+      query$feature_geom
+    }else{
+      TRUE
+    }
     
     wms_server <-if (!is.null(query$wms_server)){
       as.character(query$wms_server)
@@ -180,7 +180,7 @@ QueryInfo <- function(input, output, session) {
       #Get columns names for propertyName argument
       desc <- ft$getDescription(TRUE) 
       
-      if(shiny_type=="dashboard"){
+      if(!feature_geom){
       ColumnName<-desc[desc$type!="geometry","name"]
       }else{
       ColumnName<-desc[,"name"]  
@@ -262,7 +262,7 @@ QueryInfo <- function(input, output, session) {
             "wfs_version: ", data$query$wfs_version, "\n",
             "wms_server: ",data$query$wms_server, "\n",
             "wms_version: ", data$query$wms_version, "\n",
-            #"feature_geom: ", data$query$feature_geom, "\n",
+            "feature_geom: ", data$query$feature_geom, "\n",
             "csw_server: ",data$query$csw_server, "\n",
             "csw_version: ", data$query$csw_version, "\n",
             "strategy: ", data$query$strategy, "\n",
