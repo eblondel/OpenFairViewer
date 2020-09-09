@@ -70,10 +70,11 @@ QueryInfo <- function(input, output, session) {
     }
     
     feature_geom <-if (!is.null(query$feature_geom)){
-      query$feature_geom
+      as.logical(query$feature_geom)
     }else{
       TRUE
     }
+    if(is.na(feature_geom)) feature_geom<-TRUE
     
     wms_server <-if (!is.null(query$wms_server)){
       as.character(query$wms_server)
