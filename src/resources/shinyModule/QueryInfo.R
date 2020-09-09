@@ -117,13 +117,13 @@ QueryInfo <- function(input, output, session) {
     }
     
     x <-if (!is.null(query$x)){
-      query$x
+      as.numeric(query$x)
     }else{
       NULL
     }
     
     y <-if (!is.null(query$y)){
-      query$y
+      as.numeric(query$y)
     }else{
       NULL
     }
@@ -161,6 +161,8 @@ QueryInfo <- function(input, output, session) {
       
       fc <- CSW$getRecordById(paste0(pid,"_dsd"), outputSchema = "http://www.isotc211.org/2005/gfc")
       dsd<-getColumnDefinitions(fc)
+      #cat("DSD :")
+      #print(dsd)
       }
 #####
 
@@ -246,7 +248,8 @@ QueryInfo <- function(input, output, session) {
     
      data$data<-Data
      data$dsd<-dsd
-     print(dsd)
+     #cat("DATA:")
+     #print(data)
      data$query<-query
     }
     end_time <- Sys.time()
