@@ -109,13 +109,13 @@ $(document).ready(function(){
 			dashboard: {
 				enabled: true,
 				handler: function(layer){
-					return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
-					/*if(layer.id.startsWith('fao_capture')) {	
-						return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
+					//return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
+					if(layer.id.startsWith('fao_capture')) {	
+						//return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
+						return faoDashboardHandler("https://abennici.shinyapps.io/FaoCaptureDashboard", layer, false);
 					}else{
-						console.log("Default dashboard handler with OpenFairViewer");
-						return;
-					}*/
+						return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
+					}
 				}
 			}
 		},
