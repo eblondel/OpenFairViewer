@@ -1693,13 +1693,15 @@
 							//attribute with list values --> DROPDOWNLISTS
 							if(dsd_component.values){
 								
+								var withNames = dsd_component.values.map(function(item){return item.text}).every(function(element, index, array){return element != null});
+								
 								//id
 								var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
 									
 								var isRequired = dsd_component.minOccurs == 1? true : false;
 								var isMultiple = dsd_component.maxOccurs == Infinity? true : false; 								
 
-								if(dsd_component.primitiveType == "xsd:string"){
+								if(dsd_component.primitiveType == "xsd:string" || withNames){
 								
 									//html
 									$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '
@@ -1777,8 +1779,8 @@
 									if(dsd_component.definition) if(dsd_component.definition.length > 0){
 										$("#dsd-ui-col-1").append('<span class="glyphicon glyphicon-info-sign attribute-info" title="'+dsd_component.definition+'"></span>');
 									}
-								}else if(dsd_component.primitiveType == "xsd:int" ||
-										 dsd_component.primitiveType == "xsd:decimal"){
+								}else if((dsd_component.primitiveType == "xsd:int" ||
+										 dsd_component.primitiveType == "xsd:decimal") && !withNames){
 									
 									var values = dsd_component.values.map(function(item){return parseInt(item.id)});
 									var values_min = Math.min.apply(Math, values);
