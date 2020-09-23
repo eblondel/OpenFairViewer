@@ -235,8 +235,8 @@ QueryInfo <- function(input, output, session) {
 
         if(!is.null(par)){
           Data <- switch(strategy,
-                            "ogc_filters"=ft$getFeatures(propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
-                            "ogc_viewparams"=ft$getFeatures(propertyName=propertyName,viewparams = URLencode(par))
+                            "ogc_filters"=ft$getFeatures(outputFormat ="json",propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
+                            "ogc_viewparams"=ft$getFeatures(outputFormat ="json",propertyName=propertyName,viewparams = URLencode(par))
           )
         }
 
