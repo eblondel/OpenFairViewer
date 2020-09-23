@@ -3881,9 +3881,13 @@
 	 */
 	OpenFairViewer.prototype.checkDatasetDashboardAvailability = function(layer){
 		if(!layer) return;
-		var dashboard_html = this.options.access.dashboard.handler(layer);
-		if(dashboard_html){
-			$("#dsd-ui-button-dashboard").show();
+		if(this.options.access.dashboard.enabled) if(this.options.access.dashboard.handler){
+			var dashboard_html = this.options.access.dashboard.handler(layer);
+			if(dashboard_html){
+				$("#dsd-ui-button-dashboard").show();
+			}else{
+				$("#dsd-ui-button-dashboard").hide();
+			}
 		}else{
 			$("#dsd-ui-button-dashboard").hide();
 		}
