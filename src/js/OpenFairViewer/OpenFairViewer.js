@@ -423,6 +423,20 @@
 	//Init
 	//==========================================================================================
     /**
+	 * OpenFairViewer.prototype.initMarkup
+	 *
+	 */
+	OpenFairViewer.prototype.initMarkup = function(){
+		
+		//main div
+		$("body").append("<div id='ofv'></div>");
+		
+		//add all elements to ofv
+		
+		
+	}
+	
+	/**
 	 * OpenFairViewer.prototype.init
 	 */
 	OpenFairViewer.prototype.init = function(intro){
@@ -1693,7 +1707,7 @@
 							//attribute with list values --> DROPDOWNLISTS
 							if(dsd_component.values){
 								
-								var withNames = dsd_component.values.map(function(item){return item.text}).every(function(element, index, array){return element != null});
+								var withNames = dsd_component.values.map(function(item){return item.text}).every(function(element, index, array){return element != null && element != ""});
 								
 								//id
 								var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;

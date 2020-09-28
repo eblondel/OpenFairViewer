@@ -311,7 +311,7 @@ div.sidePanel:hover, .ol-unselectable.ol-control.layer-switcher.shown { box-shad
 .ol-popup:after, .ol-popup:before { border: solid transparent; content: " "; height: 0; pointer-events: none; position: absolute; top: 100%; width: 0; }
 .ol-popup:after { border-top-color: rgba(255,255,255,.8); border-width: 10px; left: 48px; margin-left: -10px; }
 .ol-popup:before { border-top-color: transparent; border-width: 11px; left: 48px; margin-left: -11px; }
-.ol-popup-content { background-color: rgba(255,255,255,.9); border-radius: 8px; box-shadow: 2px 2px 2px rgba(0,0,0,.4); color: rgba(0,0,0,.8); font-family: Verdana, Geneva, Helvetica, Arial, sans-serif; font-size: 9px; max-height: 400px; min-width: 175px; overflow-x: auto; padding: 4px 8px; }
+.ol-popup-content { background-color: rgba(255,255,255,.9); border-radius: 8px; box-shadow: 2px 2px 2px rgba(0,0,0,.4); color: rgba(0,0,0,.8); font-family: Verdana, Geneva, Helvetica, Arial, sans-serif; font-size: 9px; max-height: 420px; min-width: 175px; overflow-x: auto; padding: 4px 8px; }
 .ol-popup-closer { font-size:100% !important; }
 
 .table-condensed>tbody>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>thead>tr>th { padding:2px; }
