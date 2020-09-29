@@ -2443,7 +2443,7 @@
 				console.log(response);
 				if(features.length > 0){
 					var feature = features[0];
-					feature.geometry_column = this_.getGeometryColumn(layer.dsd);
+					feature.geometry_column = response.features[0].geometry_name;
 					feature.popup_coordinates = coords;
 					popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
 					this_.popup = {id: layer.id, coords: coords};
@@ -3867,7 +3867,7 @@
 						//case of geometry
 						if(meta.col == data_columns.indexOf('geometry')){
 							var wkt = data;
-							if(wkt == "–"){
+							if(wkt == "ï¿½"){
 								var button_id_zoom = 'zoom_feature-'+row[0];
 								var button_id_disp = 'display_feature'+row[0];
 								//button to zoom to feature
