@@ -49,7 +49,7 @@ var faoPopupHandler = function(shinyAppUrl, layer, feature, withGeom){
 		shinyapp_url += "&dsd="+ encodeURI(JSON.stringify(dsd_small));
 	}
 
-	var html = '<iframe src ="' + shinyapp_url + '" width="400" height="350" frameborder="0" marginheight="0"></iframe>';
+	var html = '<iframe src ="' + shinyapp_url + '" width="400" height="400" frameborder="0" marginheight="0"></iframe>';
 	return html;
 };
 
@@ -150,7 +150,7 @@ $(document).ready(function(){
 						return this.DEFAULT_HANDLER(layer, feature);
 					}else if(layer.id.startsWith('fao_capture')){
 						//return OpenFairViewerUtils.shiny.popupHandler("https://abennici.shinyapps.io/ShinysdilabPopup", layer, feature, false);
-						return faoPopupHandler("https://abennici.shinyapps.io/FaoCapturePop", layer, feature, false);
+						return faoPopupHandler("https://shinyproxy.d4science.org/app_direct/FaoCapturePop/", layer, feature, false);
 					}else{
 						return OpenFairViewerUtils.shiny.popupHandler("https://abennici.shinyapps.io/ShinysdilabPopup", layer, feature, false);
 					}
