@@ -82,7 +82,7 @@ ul.pagination {margin: 0px !important;}
 .search-result .col-md-9{ position: relative; }
 .search-result h6{ margin-top: 0 !important; margin-bottom: 0px !important; font-weight: bold; width: 90%;cursor: default;}
 .search-result h6 > a, .search-result i { color: #248dc1 !important; }
-.search-result p { font-size:90%; margin-right:45px;}
+.search-result p { font-size:90%; margin-right:45px; cursor: default;}
 
 .ellipsis {
     	display: -webkit-box;
