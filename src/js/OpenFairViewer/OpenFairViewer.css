@@ -74,7 +74,7 @@ ul.pagination {margin: 0px !important;}
 .search-result .thumbnail { border-radius: 0 !important; padding: 0px; height: 100%; margin-bottom: 0px;}
 .search-result .thumbnail img { height: 100%;}
 .search-result:first-child { margin-top: 0 !important; }
-.search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 100px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px;}
+.search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 100px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px; background-color: ghostwhite;}
 .search-result:hover, .search-result.hovered {background-color: lightsteelblue;}
 .search-result ul { padding-left: 0 !important; list-style: none;  }
 .search-result ul li { line-height: 30px; }
