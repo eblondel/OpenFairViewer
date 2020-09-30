@@ -114,7 +114,8 @@ $(document).ready(function(){
 						//return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
 						return faoDashboardHandler("https://abennici.shinyapps.io/FaoCaptureDashboard", layer, false);
 					}else{
-						return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
+						//return OpenFairViewerUtils.shiny.dashboardHandler("https://abennici.shinyapps.io/Shiny_sdilab_dashboard", layer, false);
+						return;
 					}
 				}
 			}
@@ -152,7 +153,8 @@ $(document).ready(function(){
 						//return OpenFairViewerUtils.shiny.popupHandler("https://abennici.shinyapps.io/ShinysdilabPopup", layer, feature, false);
 						return faoPopupHandler("https://shinyproxy.d4science.org/app_direct/FaoCapturePop/", layer, feature, false);
 					}else{
-						return OpenFairViewerUtils.shiny.popupHandler("https://abennici.shinyapps.io/ShinysdilabPopup", layer, feature, false);
+						//return OpenFairViewerUtils.shiny.popupHandler("https://abennici.shinyapps.io/ShinysdilabPopup", layer, feature, false);
+						return this.DEFAULT_HANDLER(layer, feature);
 					}
 				}
 			}
