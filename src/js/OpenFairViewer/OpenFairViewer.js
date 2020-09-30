@@ -3865,9 +3865,10 @@
 							data = '<img src="'+data+'" width="100%" style="margin:2px;" alt="'+meta.col+'" title="'+meta.col+'"/>';
 						}
 						//case of geometry
+						console.log(meta.col);
 						if(meta.col == data_columns.indexOf('geometry')){
 							var wkt = data;
-							if(wkt == "�"){
+							if(wkt != "–"){
 								var button_id_zoom = 'zoom_feature-'+row[0];
 								var button_id_disp = 'display_feature'+row[0];
 								//button to zoom to feature
