@@ -82,7 +82,16 @@ ul.pagination {margin: 0px !important;}
 .search-result .col-md-9{ position: relative; }
 .search-result h6{ margin-top: 0 !important; margin-bottom: 0px !important; font-weight: bold; width: 90%;cursor: default;}
 .search-result h6 > a, .search-result i { color: #248dc1 !important; }
-.search-result p { font-size:80%;}
+.search-result p { font-size:90%; margin-right:45px;}
+
+.ellipsis {
+    	display: -webkit-box;
+	-webkit-line-clamp: 6;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .pagination>li { display: inline-block; }
 .loader { text-align:center; display:none; position: absolute; margin: 30% 0; width: 100%;}
 .loader img { .hwa; width: 48px; height: 48px;}
@@ -367,3 +376,4 @@ div.ol-custom-overviewmap:not(.ol-collapsed) button{bottom: auto;left: auto;righ
 
 /* data table */
 table.dataTable thead th, table.dataTable thead td {padding: 5px 5px;}
+
