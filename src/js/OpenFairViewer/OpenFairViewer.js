@@ -2445,16 +2445,16 @@
 		var viewProjection = this_.map.getView().getProjection().getCode();
 		var popup = this.map.getOverlayById(layer.id);
 		$.ajax({
-			url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/json"}),
+			url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"}),
 			crossOrigin: true,
 			type: 'GET',
-			success: function(response){
-				var gml = new ol.format.GeoJSON();
-				var features = gml.readFeatures(response);
-				console.log(response);
+			success: function(text){
+				var parser = new ol.format.WMSGetFeatureInfo();
+				var features = parser.readFeatures(text);
+				console.log(features);
 				if(features.length > 0){
 					var feature = features[0];
-					feature.geometry_column = response.features[0].geometry_name;
+					feature.geometry_column = feature.getGeometryName();
 					feature.popup_coordinates = coords;
 					popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
 					this_.popup = {id: layer.id, coords: coords};
