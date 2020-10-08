@@ -2444,8 +2444,12 @@
 		var viewResolution = this_.map.getView().getResolution();
 		var viewProjection = this_.map.getView().getProjection().getCode();
 		var popup = this.map.getOverlayById(layer.id);
+
+		var featureInfoUrl = layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"});
+		if(this.secure) featureInfoUrl = featureInfoUrl.replace("http://", "https://");
+
 		$.ajax({
-			url: layer.getSource().getGetFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"}),
+			url: featureInfoUrl,
 			crossOrigin: true,
 			type: 'GET',
 			success: function(text){
@@ -2613,7 +2617,6 @@
 				layerUrl = onLines[i].ciOnlineResource.linkage.url;
 				if(layerUrl.indexOf("ows?")>0) layerUrl = layerUrl.split("ows?")[0] + "ows?service="+ protocol;
 				if(layerUrl.indexOf(protocol.toLowerCase()+"?")>0) layerUrl = layerUrl.split(protocol.toLowerCase()+"?")[0] + "ows?service=" + protocol;
-				if(this.secure) layerUrl = layerUrl.replace("http://", "https://");
 				//layerName
 				layerName = onLines[i].ciOnlineResource.name;
 				if(layerSuffix) layerName = layerName + layerSuffix;
