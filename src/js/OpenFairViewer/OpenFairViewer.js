@@ -82,6 +82,10 @@
 		//version
 		this.versioning = {VERSION: "1.1-beta", DATE: new Date(2020,8,31)}
 		
+		//protocol
+		this.protocol = window.origin.split("://")[0];
+		this.secure = this.protocol == "https";
+
 		if(!config.OGC_CSW_BASEURL){
 			alert("OpenFairViewer cannot be instantiated. Missing CSW endpoint")
 		}
@@ -2609,6 +2613,7 @@
 				layerUrl = onLines[i].ciOnlineResource.linkage.url;
 				if(layerUrl.indexOf("ows?")>0) layerUrl = layerUrl.split("ows?")[0] + "ows?service="+ protocol;
 				if(layerUrl.indexOf(protocol.toLowerCase()+"?")>0) layerUrl = layerUrl.split(protocol.toLowerCase()+"?")[0] + "ows?service=" + protocol;
+				if(this.secure) layerUrl = layerUrl.replace("http://", "https://");
 				//layerName
 				layerName = onLines[i].ciOnlineResource.name;
 				if(layerSuffix) layerName = layerName + layerSuffix;
@@ -4541,7 +4546,7 @@
 						this_.resolveDatasetForQuery(encoded_dataset, true);
 					}else{
 						this_.resolveDatasetForMap(encoded_dataset);	
-					}
+					} 
 
 					//popup coords
 					if(params.popup_id) if(params.popup_id == encoded_dataset.pid) {
