@@ -374,6 +374,26 @@ div.ol-custom-overviewmap div.ol-overviewmap-map {border: none; width: 300px;}
 div.ol-custom-overviewmap div.ol-overviewmap-box {border: 2px solid red;}
 div.ol-custom-overviewmap:not(.ol-collapsed) button{bottom: auto;left: auto;right: 1px;bottom: 1px;}
 
+/**
+* MousePosition control
+*/
+.ol-mouse-position {
+	top:unset;
+	right:320px;
+	bottom: 0px;
+	font-size: 12px !important;
+	position: absolute;
+	background-color: rgba(55,96,146,.6);
+    	border-radius: 10px 10px 0px 0px;
+    	color: rgba(255,255,255,.9);
+    	font-size: 100%;
+    	margin: 0;
+   	padding: 5px 10px;
+    	text-align: center;
+	cursor: default;
+}
+
+
 /* data table */
 table.dataTable thead th, table.dataTable thead td {padding: 5px 5px;}
 

@@ -2266,6 +2266,13 @@
 			controls: [],
 			logo: false
 		});
+		map.addControl( new ol.control.MousePosition({
+    			projection: 'EPSG:4326',
+    			coordinateFormat: function(coordinate) {
+      				return ol.coordinate.format(coordinate, 'Lat: {y} Lon: {x}', 2);
+    			},
+			undefinedHTML: 'Lat: - Lon: -'
+ 		}) );
 		map.addControl( new ol.control.LoadingPanel() );
 		map.addControl( new ol.control.OverviewMap({
 			className: 'ol-overviewmap ol-custom-overviewmap',
@@ -3868,6 +3875,8 @@
 						console.log(meta.col);
 						if(meta.col == data_columns.indexOf('geometry')){
 							var wkt = data;
+							console.log(meta.col);
+							console.log(wkt);
 							if(wkt != "–"){
 								var button_id_zoom = 'zoom_feature-'+row[0];
 								var button_id_disp = 'display_feature'+row[0];
