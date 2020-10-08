@@ -1628,7 +1628,7 @@
 		//query form buttons
 		this.handleQueryFormButtons(1);
 		
-		deferred.resolve();
+		deferred.resolve(dataset);
 		return deferred.promise();
 	}
 
