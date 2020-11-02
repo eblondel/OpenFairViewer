@@ -1,0 +1,55 @@
+{
+  "name": "OpenFairViewer",
+  "version": "1.0.0",
+  "description": "OpenFairViewer: a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics",
+  "main": "src/OpenFairViewer.js",
+  "homepage": "https://github.com/eblondel/OpenFairViewer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eblondel/OpenFairViewer.git"
+  },
+  "scripts": {
+	"build": "parcel build --public-url ./ index.html"
+  },
+  "staticFiles": {
+    "staticPath": [
+      {
+        "staticPath": "src",
+        "staticOutDir": ""
+      }
+    ]
+  },
+  "author": "Emmanuel Blondel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eblondel/OpenFairViewer/issues"
+  },
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4",
+    "parcel-plugin-static-files-copy": "^2.5.0"
+  },
+  "dependencies": {
+    "bootpag": "^1.0.7",
+    "bootstrap": "^3.4.1",
+    "cesium": "^1.74.0",
+    "datatables.net": "^1.10.22",
+    "datatables.net-dt": "^1.10.22",
+    "dist": "^0.1.2",
+    "file-saver": "^2.0.2",
+    "jquery": "^1.12.4",
+    "jquery-datetimepicker": "^2.5.21",
+    "jquery-ui-dist": "^1.12.1",
+    "jsonix": "^3.0.0",
+    "mustache": "^3.2.0",
+    "ogc-schemas": "^2.6.1",
+    "ol": "^6.4.3",
+    "ol-layerswitcher": "^3.7.0",
+    "ol-popup": "^4.0.0",
+    "olcs": "^2.11.3",
+    "proj4": "^2.6.2",
+    "select2": "^4.0.13",
+    "simple-statistics": "^7.3.1",
+    "w3c-schemas": "^1.4.0"
+  }
+}

@@ -1,0 +1,32 @@
+<script id="datasetTpl" type="text/html">
+  <article id="{{pid}}" class="search-result row" title="{{_abstract}}">
+	<div class="col-xs-3 col-sm-3 col-md-3 thumbnail-wrapper">
+		<span class="thumbnail"><img class="graphic_overview" src="{{graphic_overview}}" alt="{{pid}}" /></span>
+	</div>
+	<div class="col-xs-9 col-sm-9 col-md-9 excerpet">
+	
+	<div class="ellipsis">
+		<h6>{{title}}</h6>
+		<p>{{_abstract}}</p>
+	</div>
+
+	
+	{{#doi}}
+	<button class="btn btn-xs dataset-button dataset-button-doi" 
+		data-pid="{{pid}}" title="Access resource with DOI" 
+		onclick="{{OFV_ID}}.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>
+	{{/doi}}
+	<button class="btn btn-xs dataset-button dataset-button-info"
+		data-pid="{{pid}}" title="Access dataset metadata"
+		onclick="{{OFV_ID}}.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>
+	<button class="btn btn-xs dataset-button dataset-button-zoom"
+		data-pid="{{pid}}" title="Zoom to dataset spatial extent"
+		onclick="{{OFV_ID}}.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>
+	{{#queryable}}
+	<button class="btn btn-xs dataset-button dataset-button-add pid"
+		data-pid="{{pid}}" title="Query & Map dataset"
+		onclick="{{OFV_ID}}.openAccessDialog();{{OFV_ID}}.displayDatasetQueryForm(this);"><span class="glyphicon glyphicon-globe"></span></button>
+	{{/queryable}}
+	</div>
+  </article>
+</script>

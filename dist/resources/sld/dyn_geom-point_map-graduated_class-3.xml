@@ -1,0 +1,198 @@
+<sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml" version="1.0.0">
+    <sld:UserLayer>
+        <sld:LayerFeatureConstraints>
+            <sld:FeatureTypeConstraint/>
+        </sld:LayerFeatureConstraints>
+		<sld:UserStyle>
+            <sld:Name>Variable</sld:Name>
+      		<sld:Title>Variable</sld:Title>
+            <sld:FeatureTypeStyle>
+              
+				<!-- Rule 1 -->
+				<sld:Rule>
+                    <sld:Name>rule01</sld:Name>
+                    <sld:Title></sld:Title>
+                    <ogc:Filter>
+                        <ogc:And>
+                            <ogc:PropertyIsGreaterThanOrEqualTo>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
+                                <ogc:Function name="env">
+                                  <ogc:Literal>v1</ogc:Literal>
+                                  <ogc:Literal>0</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyIsGreaterThanOrEqualTo>
+                            <ogc:PropertyIsLessThan>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
+                                <ogc:Function name="env">
+                                  <ogc:Literal>v2</ogc:Literal>
+                                  <ogc:Literal>500</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyIsLessThan>
+                        </ogc:And>
+                    </ogc:Filter>
+					<!--
+                    <sld:PolygonSymbolizer>
+                        <sld:Fill>
+                            <sld:CssParameter name="fill">#fee5d9</sld:CssParameter>
+                            <sld:CssParameter name="fill-opacity">0.7</sld:CssParameter>
+                        </sld:Fill>
+                    </sld:PolygonSymbolizer>
+					-->
+					<sld:PointSymbolizer>
+						<sld:Geometry>
+							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+						</sld:Geometry>
+						<sld:Graphic>
+							<sld:Mark>
+								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
+								<sld:Fill>
+									<sld:CssParameter name="fill">#FF4500</sld:CssParameter>
+                                  	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
+								</sld:Fill>
+                                <sld:Stroke>
+                                  <sld:CssParameter name="stroke">#FFFFFF</sld:CssParameter>
+                                  <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                              	</sld:Stroke>
+							</sld:Mark>
+							<sld:Size>6</sld:Size>
+						</sld:Graphic>
+					</sld:PointSymbolizer>
+                </sld:Rule>
+                <!-- Rule 2 -->
+                <sld:Rule>
+                    <sld:Name>rule02</sld:Name>
+                    <sld:Title></sld:Title>
+                    <ogc:Filter>
+                        <ogc:And>
+                            <ogc:PropertyIsGreaterThanOrEqualTo>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
+                                <ogc:Function name="env">
+                                  <ogc:Literal>v2</ogc:Literal>
+                                  <ogc:Literal>500</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyIsGreaterThanOrEqualTo>
+                            <ogc:PropertyIsLessThan>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
+                                <ogc:Function name="env">
+                                  <ogc:Literal>v3</ogc:Literal>
+                                  <ogc:Literal>1000</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyIsLessThan>
+                        </ogc:And>
+                    </ogc:Filter>
+					<!--
+                    <sld:PolygonSymbolizer>
+                        <sld:Fill>
+                            <sld:CssParameter name="fill">#fcae91</sld:CssParameter>
+                            <sld:CssParameter name="fill-opacity">0.7</sld:CssParameter>
+                        </sld:Fill>
+                    </sld:PolygonSymbolizer>
+					-->
+					<sld:PointSymbolizer>
+						<sld:Geometry>
+                          <ogc:Function name="centroid">
+							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+                          </ogc:Function>
+						</sld:Geometry>
+						<sld:Graphic>
+							<sld:Mark>
+								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
+								<sld:Fill>
+									<sld:CssParameter name="fill">#FF4500</sld:CssParameter>
+                                  	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
+								</sld:Fill>
+                                <sld:Stroke>
+                                  <sld:CssParameter name="stroke">#FFFFFF</sld:CssParameter>
+                                  <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                              	</sld:Stroke>
+							</sld:Mark>
+							<sld:Size>15</sld:Size>
+						</sld:Graphic>
+					</sld:PointSymbolizer>				
+                </sld:Rule>
+                <!-- Rule 3 -->
+                <sld:Rule>
+                    <sld:Name>rule03</sld:Name>
+                    <sld:Title></sld:Title>
+                    <ogc:Filter>
+                        <ogc:And>
+                            <ogc:PropertyIsGreaterThanOrEqualTo>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
+                                <ogc:Function name="env">
+                                  <ogc:Literal>v3</ogc:Literal>
+                                  <ogc:Literal>1000</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyIsGreaterThanOrEqualTo>
+                            <ogc:PropertyIsLessThanOrEqualTo>
+                                <ogc:Function name="property">
+                                  <ogc:Function name="env">
+                                     <ogc:Literal>var</ogc:Literal>
+                                  	 <ogc:Literal>variable</ogc:Literal>
+                                  </ogc:Function>
+                              	</ogc:Function>
+                                <ogc:Function name="env">
+                                  <ogc:Literal>v4</ogc:Literal>
+                                  <ogc:Literal>2500</ogc:Literal>
+                                </ogc:Function>
+                            </ogc:PropertyIsLessThanOrEqualTo>
+                        </ogc:And>
+                    </ogc:Filter>
+					<!--
+                    <sld:PolygonSymbolizer>
+                        <sld:Fill>
+                            <sld:CssParameter name="fill">#fb6a4a</sld:CssParameter>
+                            <sld:CssParameter name="fill-opacity">0.7</sld:CssParameter>
+                        </sld:Fill>
+                    </sld:PolygonSymbolizer>
+					-->
+					<sld:PointSymbolizer>
+						<sld:Geometry>
+                          <ogc:Function name="centroid">
+							<ogc:PropertyName xmlns="http://www.opengis.net/ogc">the_geom</ogc:PropertyName>  
+                          </ogc:Function>
+						</sld:Geometry>
+						<sld:Graphic>
+							<sld:Mark>
+								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
+								<sld:Fill>
+									<sld:CssParameter name="fill">#FF4500</sld:CssParameter>
+                                  	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
+								</sld:Fill>
+                                <sld:Stroke>
+                                  <sld:CssParameter name="stroke">#FFFFFF</sld:CssParameter>
+                                  <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
+                              	</sld:Stroke>
+							</sld:Mark>
+							<sld:Size>26</sld:Size>
+						</sld:Graphic>
+					</sld:PointSymbolizer>
+                </sld:Rule>
+            </sld:FeatureTypeStyle>
+        </sld:UserStyle>
+    </sld:UserLayer>
+</sld:StyledLayerDescriptor>
