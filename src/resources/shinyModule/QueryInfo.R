@@ -135,12 +135,13 @@ QueryInfo <- function(input, output, session) {
       "'EPSG:4326'"
     }
     
+    print(query$dsd)
     dsd<-if (!is.null(query$dsd)){
-      jsonlite::fromJSON(query$dsd)
+      jsonlite::fromJSON(URLdecode(query$dsd))
     }else{
       NULL
     }
-    
+    print(dsd)
     #Type of shiny apps 
     shiny_type <- ifelse(!is.null(wms_server),"popup","dashboard")
     
@@ -150,7 +151,7 @@ QueryInfo <- function(input, output, session) {
    
        if(!is.null(dsd)){
         names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
-        dsd[is.na(dsd)]<-""
+        #dsd[is.na(dsd)]<-""
         }
     
       if(is.null(dsd)){ 
@@ -193,7 +194,7 @@ QueryInfo <- function(input, output, session) {
       ###Get data feature for popup apps with WMS service
       
       if(shiny_type=="popup"){
-        
+        print("MODE POPUP")  
         WMS <- WMSClient$new(
           url = wms_server, 
           serviceVersion = wms_version, 
@@ -228,7 +229,7 @@ QueryInfo <- function(input, output, session) {
       ###Get data feature for dashboard apps with WFS service
       
       if(shiny_type=="dashboard"){
-      
+        print("MODE DASHBOARD")
         if(is.null(par)){
           Data <- ft$getFeatures(propertyName=propertyName)
         }
@@ -249,12 +250,16 @@ QueryInfo <- function(input, output, session) {
     
      data$data<-Data
      data$dsd<-dsd
-     #cat("DATA:")
-     #print(data)
+     cat("DATA:")
+     print(data)
      data$query<-query
+     
     }
     end_time <- Sys.time()
     data$time <-end_time - start_time
+    print(data$time)
+    print(data$data)
+    print(data)
   })
   
     # Parameters selection viewer
