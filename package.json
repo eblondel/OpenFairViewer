@@ -1,5 +1,5 @@
 {
-  "name": "OpenFairViewer",
+  "name": "openfairviewer",
   "version": "1.0.0",
   "description": "OpenFairViewer: a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics",
   "main": "src/OpenFairViewer.js",
@@ -19,7 +19,11 @@
       }
     ]
   },
-  "author": "Emmanuel Blondel",
+  "author": {
+    "name": "Emmanuel Blondel",
+    "email": "emmanuel.blondel1@gmail.com",
+    "url": "https://eblondel.github.io"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eblondel/OpenFairViewer/issues"
