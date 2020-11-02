@@ -1,5 +1,5 @@
 {
-  "name": "@eblondel/openfairviewer",
+  "name": "openfairviewer",
   "version": "2.0.0",
   "description": "OpenFairViewer: a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics",
   "main": "src/OpenFairViewer.js",
