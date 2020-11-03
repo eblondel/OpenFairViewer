@@ -214,6 +214,7 @@ class OpenFairViewer {
 			dataset_access_metadata: 'Access dataset metadata',
 			dataset_zoom_extent: 'Zoom to dataset spatial extent',
 			dataset_query_map: 'Query & Map',
+			dataset_remove: 'Remove from map',
 			dataset_query_map_title: 'Query & Map dataset',
 			dsd_loader: 'Fetching data structure definition...',
 			listedvalue_href_placeholder: 'More info...',
@@ -1324,7 +1325,7 @@ class OpenFairViewer {
 	 */
 	getDatasetViewTitle(dataset, strategyparams){
 		var this_ = this;
-		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="Remove from map" '
+		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="'+this_.options.labels.dataset_remove+'" '
 		layerTitle += 'onclick="'+this_.config.OFV_ID+'.unselectDataset(this)"> X </button>';
 		layerTitle += '<span>'+dataset.entry.title+'</span>';
 
