@@ -275,9 +275,9 @@ class OpenFairViewer {
 			if(options.labels.thematicmapping) this.options.labels.thematicmapping = options.labels.thematicmapping;
 			if(options.labels.thematicmapping_variable) this.options.labels.thematicmapping_variable = options.labels.thematicmapping_variable;
 			if(options.labels.thematicmapping_options) this.options.labels.thematicmapping_options = options.labels.thematicmapping_options;
-			if(options.labels.ogc_filters) this.options.access.ogc_filters = options.labels.ogc_filters;
-			if(options.labels.ogc_dimensions) this.options.access.ogc_dimensions = options.labels.ogc_dimensions;
-			if(options.labels.ogc_viewparams) this.options.access.ogc_viewparams = options.labels.ogc_viewparams;
+			if(options.labels.ogc_filters) this.options.labels.ogc_filters = options.labels.ogc_filters;
+			if(options.labels.ogc_dimensions) this.options.labels.ogc_dimensions = options.labels.ogc_dimensions;
+			if(options.labels.ogc_viewparams) this.options.labels.ogc_viewparams = options.labels.ogc_viewparams;
 			if(options.labels.export_options) this.options.labels.export_options = options.labels.export_options;
 			if(options.labels.export_options_prettify) this.options.labels.export_options_prettify = options.labels.export_options_prettify;
 			if(options.labels.export_options_labels) this.options.labels.export_options_labels = options.labels.export_options_labels;
