@@ -189,12 +189,13 @@ class OpenFairViewer {
 		
 		//QUERY options
 		//--------------------------------------------------------------------------------------------------
-		this.options.access = {};
+		//labels
 		this.options.labels = {
 			about : 'About',
 			about_title : 'Welcome',
 			find: 'Find',
 			find_title: 'Find data by browsing the data catalogue',
+			info: 'Dataset information',
 			access: 'Access',
 			access_title: 'Access and query data',
 			link: 'Link',
@@ -206,7 +207,13 @@ class OpenFairViewer {
 			settings_geom: 'Display dataset extent geometries (if any)',
 			show: 'Show',
 			datasets: 'datasets',
+			datasets_loader: 'Fetching datasets...',
 			datasets_search_placeholder: 'Search a dataset',
+			dataset_access_doi: 'Access resource with DOI',
+			dataset_access_metadata: 'Access dataset metadata',
+			dataset_zoom_extent: 'Zoom to dataset spatial extent',
+			dataset_query_map: 'Query & Map',
+			dataset_query_map_title: 'Query & Map dataset',
 			dsd_loader: 'Fetching data structure definition...',
 			listedvalue_href_placeholder: 'More info...',
 			filtering: 'Filtering',
@@ -221,15 +228,26 @@ class OpenFairViewer {
 			ogc_viewparams: "View parameters",
 			export_options: 'Export options',
 			export_options_prettify: 'Prettify column names',
-			export_options_labels: 'Enrich with data labels'
+			export_options_labels: 'Enrich with data labels',
+			tabulardata: "Tabular data",
+			tabulardata_title: 'Open tabular data',
+			dashboard: "Dashboard",
+			dashboard_title: 'Open dashboard',
+			legend_title_show: 'Show legend',
+			legend_title_hide: 'Hide legend',
+			fit_to_extent: 'Fit to extent',
+			nodata: 'Ups! There is no data for this query...',
+			download_data: 'Download data (CSV)',
+			download_map: 'Download map (PNG)',
+			download_rscript: 'Download R Script',
+			download_wfs: 'Get OGC WFS features'
 		};
 		
-		this.options.access.columns = 2;
-		this.options.access.time = 'datePicker';
 		if(options.labels){
 			if(options.labels.about) this.options.labels.about = options.labels.about;
 			if(options.labels.find) this.options.labels.find = options.labels.find;
 			if(options.labels.find_title) this.options.labels.find_title = options.labels.find_title = options.labels.find_title;
+			if(options.labels.info) this.options.labels.info = options.labels.info;
 			if(options.labels.access) this.options.labels.access = options.labels.access;
 			if(options.labels.access_title) this.options.labels.access_title = options.labels.access_title;
 			if(options.labels.link) this.options.labels.link = options.labels.link;
@@ -241,7 +259,13 @@ class OpenFairViewer {
 			if(options.labels.settings_geom) this.options.labels.settings_geom = options.labels.settings_geom;
 			if(options.labels.show) this.options.labels.show = options.labels.show;
 			if(options.labels.datasets) this.options.labels.datasets = options.labels.datasets;
+			if(options.labels.datasets_loader) this.options.labels.datasets_loader = options.labels.datasets_loader;
 			if(options.labels.datasets_search_placeholder) this.options.labels.datasets_search_placeholder = options.labels.datasets_search_placeholder;
+			if(options.labels.dataset_access_doi) this.options.labels.dataset_access_doi = options.labels.dataset_access_doi;
+			if(options.labels.dataset_access_metadata) this.options.labels.dataset_access_metadata = options.labels.dataset_access_metadata;
+			if(options.labels.dataset_zoom_extent) this.options.labels.dataset_zoom_extent = options.labels.dataset_zoom_extent;
+			if(options.labels.dataset_query_map) this.options.labels.dataset_query_map = options.labels.dataset_query_map;
+			if(options.labels.dataset_query_map_title) this.options.labels.dataset_query_map_title = options.labels.dataset_query_map_title;
 			if(options.labels.dsd_loader) this.options.labels.dsd_loader = options.labels.dsd_loader;
 			if(options.labels.listedvalue_href_placeholder) this.options.labels.listedvalue_href_placeholder = options.labels.listedvalue_href_placeholder;
 			if(options.labels.filtering) this.options.labels.filtering = options.labels.filtering;
@@ -257,7 +281,23 @@ class OpenFairViewer {
 			if(options.labels.export_options) this.options.labels.export_options = options.labels.export_options;
 			if(options.labels.export_options_prettify) this.options.labels.export_options_prettify = options.labels.export_options_prettify;
 			if(options.labels.export_options_labels) this.options.labels.export_options_labels = options.labels.export_options_labels;
+			if(options.labels.tabulardata) this.options.labels.tabulardata = options.labels.tabulardata;
+			if(options.labels.tabulardata_title) this.options.labels.tabulardata_title = options.labels.tabulardata_title;
+			if(options.labels.dashboard) this.options.labels.dashboard = options.labels.dashboard;
+			if(options.labels.dashboard_title) this.options.labels.dashboard_title = options.labels.dashboard_title;
+			if(options.labels.legend_title_show) this.options.labels.legend_title_show = options.labels.legend_title_show;
+			if(options.labels.legend_title_hide) this.options.labels.legend_title_hide = options.labels.legend_title_hide;
+			if(options.labels.fit_to_extent) this.options.labels.fit_to_extent = options.labels.fit_to_extent;
+			if(options.labels.nodata) this.options.labels.nodata = options.labels.nodata;
+			if(options.labels.download_data) this.options.labels.download_data = options.labels.download_data;
+			if(options.labels.download_map) this.options.labels.download_map = options.labels.download_map;
+			if(options.labels.download_rscript) this.options.labels.download_rscript = options.labels.download_rscript;
+			if(options.labels.download_wfs) this.options.labels.download_wfs = options.labels.download_wfs;
 		}	
+		//Access
+		this.options.access = {};
+		this.options.access.columns = 2;
+		this.options.access.time = 'datePicker';
 		if(options.access){
 			if(options.access.columns){
 				if([1,2].indexOf(options.access.columns) != -1) this.options.access.columns = options.access.columns;
@@ -569,12 +609,12 @@ class OpenFairViewer {
 			});
 					
 			//init widgets
-			this_.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0);
-			this_.initDialog("findDialog", "Find", {"ui-dialog": "find-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
-			this_.initDialog("accessDialog", "Access", {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
-			this_.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
-			this_.initDialog("dataDialog", "Tabular data", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
-			this_.initDialog("dashboardDialog", "Dashboard", {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
+			this_.initDialog("aboutDialog", this_.options.labels.about,{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0);
+			this_.initDialog("findDialog", this_.options.labels.find, {"ui-dialog": "find-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
+			this_.initDialog("accessDialog", this_.options.labels.access, {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
+			this_.initDialog("infoDialog", this_.options.labels.info, {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
+			this_.initDialog("dataDialog", this_.options.labels.tabulardata, {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
+			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
 
 			this_.closeAccessDialog();
 			this_.closeDataDialog();
@@ -1609,7 +1649,7 @@ class OpenFairViewer {
 	getDatasetsFromCSWPage(maxrecords, page){
 		var this_ = this;
 		$("#dataset-articles").empty();
-		$("#dataset-articles").html('<p id="dataset-loader" class="loader-generic loader-generic-wide"><br /><br /><br />Fetching datasets...</p>');
+		$("#dataset-articles").html('<p id="dataset-loader" class="loader-generic loader-generic-wide"><br /><br /><br />'+this_.options.labels.datasets_loader+'</p>');
 		$("#dataset-loader").show();
 		
 		var thebbox = null;
@@ -1635,6 +1675,7 @@ class OpenFairViewer {
 			for(var i=0;i<records.length;i++){
 			  var record = records[i];
 			  record.OFV_ID = this_.config.OFV_ID;
+			  record.labels = this_.options.labels;
 			  this_.cacheDataset(record);
 			  var item_html = mustache.render(template, record);
 			  dataHtml += item_html;
@@ -1708,7 +1749,7 @@ class OpenFairViewer {
 				}
 
 				//add datasets counting
-				$("#dataset-count").html(maxNb + " datasets");
+				$("#dataset-count").html(maxNb + " ", this_.options.labels.datasets);
 				//Set paginated browsing operated by OGC CSW protocol
 				$("#dataset-pages").bootpag({
 					total: Math.ceil(maxNb / maxrecords)
@@ -2083,27 +2124,27 @@ class OpenFairViewer {
 		//Query and mapbutton
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
-		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">Query & Map</button>');
-		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">Ups! There is no data for this query...</span>');
+		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="'+this_.options.labels.dataset_query_map_title+'" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">'+this_.options.labels.dataset_query_map+'</button>');
+		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">'+this_.options.labels.nodata+'</span>');
 				
 		//download buttons
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
 		if(this.dataset_on_query.entry.wfs){
 			//tabular viewer
-			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="Open tabular data" onclick="'+this_.config.OFV_ID+'.displayTabularDataset()"></button>';
+			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="'+this_.options.labels.tabulardata_title+'" onclick="'+this_.config.OFV_ID+'.displayTabularDataset()"></button>';
 			$("#dsd-ui-buttons").append(button_tabulardata);
 			//dashboard
 			if(this.options.access.dashboard.enabled) if(this.options.access.dashboard.handler){ 
 				console.log("dashboard");
-				var button_dashboard = '<button type="button" id="dsd-ui-button-dashboard" class="btn data-action-button data-dashboard" title="Access dashboard" onclick="'+this_.config.OFV_ID+'.accessDatasetDashboard()"></button>';
+				var button_dashboard = '<button type="button" id="dsd-ui-button-dashboard" class="btn data-action-button data-dashboard" title="'+this_.options.labels.dashboard_title+'" onclick="'+this_.config.OFV_ID+'.accessDatasetDashboard()"></button>';
 				$("#dsd-ui-buttons").append(button_dashboard);
 			}
 			//data download
-			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV(false)"></button>';
+			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="'+this_.options.labels.download_data+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV(false)"></button>';
 			$("#dsd-ui-buttons").append(button_csv_raw);
 		}
-		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="'+this_.config.OFV_ID+'.downloadMapPNG()"></button>';
+		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="'+this_.options.labels.download_map+'" onclick="'+this_.config.OFV_ID+'.downloadMapPNG()"></button>';
 		$("#dsd-ui-buttons").append(button_png_map);
 		
 		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;display:none;"></div>');
@@ -2117,8 +2158,8 @@ class OpenFairViewer {
 		
 		export_options += '<span style="margin-top:10px;">More export methods?</span>';
 		export_options += '<div class="data-export-buttons">';
-		export_options += '<button type="button" id="dataset-export-option-wfs" class="btn data-action-button data-wfs" title="Get OGC WFS features" onclick="'+this_.config.OFV_ID+'.downloadDatasetWFS()"></button>';
-		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="Download R Script" onclick="'+this_.config.OFV_ID+'.downloadDatasetRScript()"></button>';
+		export_options += '<button type="button" id="dataset-export-option-wfs" class="btn data-action-button data-wfs" title="'+this_.options.labels.download_wfs+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetWFS()"></button>';
+		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="'+this_.options.labels.download_rscript+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetRScript()"></button>';
 		export_options += '</div>';
 		export_options += '</fieldset>';
 		export_options += '</div>';
@@ -4268,7 +4309,7 @@ class OpenFairViewer {
 			extent	: extent? extent : defaultMapExtent,
 			zoom	: defaultMapZoom,
 			label : '',
-			tipLabel: 'Fit to extent'
+			tipLabel: this_.options.labels.fit_to_extent
 		}));
 		
 		//TODO
@@ -4277,8 +4318,8 @@ class OpenFairViewer {
 		if(main){
 			map.addControl( new OpenFairLayerSwitcher({
 				activationMode: 'click',
-				tipLabel: 'Show legend', // Optional label for button
-				collapseTipLabel: 'Hide legend', // Optional label for button
+				tipLabel: this_.options.labels.legend_title_show, // Optional label for button
+				collapseTipLabel: this_.options.labels.legend_title_hide, // Optional label for button
 				collapseLabel: ''
 			}));
 		}      
