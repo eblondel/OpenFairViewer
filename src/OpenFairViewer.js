@@ -195,6 +195,7 @@ class OpenFairViewer {
 			about_title : 'Welcome',
 			find: 'Find',
 			find_title: 'Find data by browsing the data catalogue',
+			search: 'Search',
 			info: 'Dataset information',
 			access: 'Access',
 			access_title: 'Access and query data',
@@ -247,6 +248,7 @@ class OpenFairViewer {
 			if(options.labels.about) this.options.labels.about = options.labels.about;
 			if(options.labels.find) this.options.labels.find = options.labels.find;
 			if(options.labels.find_title) this.options.labels.find_title = options.labels.find_title = options.labels.find_title;
+			if(options.labels.search) this.options.labels.search = options.labels.search;
 			if(options.labels.info) this.options.labels.info = options.labels.info;
 			if(options.labels.access) this.options.labels.access = options.labels.access;
 			if(options.labels.access_title) this.options.labels.access_title = options.labels.access_title;
