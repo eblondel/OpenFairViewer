@@ -1751,7 +1751,7 @@ class OpenFairViewer {
 				}
 
 				//add datasets counting
-				$("#dataset-count").html(maxNb + " ", this_.options.labels.datasets);
+				$("#dataset-count").html(maxNb + " " + this_.options.labels.datasets);
 				//Set paginated browsing operated by OGC CSW protocol
 				$("#dataset-pages").bootpag({
 					total: Math.ceil(maxNb / maxrecords)
