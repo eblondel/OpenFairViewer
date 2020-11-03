@@ -214,8 +214,8 @@ class OpenFairViewer {
 			dataset_access_metadata: 'Access dataset metadata',
 			dataset_zoom_extent: 'Zoom to dataset spatial extent',
 			dataset_query_map: 'Query & Map',
-			dataset_remove: 'Remove from map',
 			dataset_query_map_title: 'Query & Map dataset',
+			dataset_remove: 'Remove from map',
 			dsd_loader: 'Fetching data structure definition...',
 			listedvalue_href_placeholder: 'More info...',
 			filtering: 'Filtering',
@@ -282,6 +282,7 @@ class OpenFairViewer {
 			if(options.labels.dataset_zoom_extent) this.options.labels.dataset_zoom_extent = options.labels.dataset_zoom_extent;
 			if(options.labels.dataset_query_map) this.options.labels.dataset_query_map = options.labels.dataset_query_map;
 			if(options.labels.dataset_query_map_title) this.options.labels.dataset_query_map_title = options.labels.dataset_query_map_title;
+			if(options.labels.dataset_remove) this.options.labels.dataset_remove = options.labels.dataset_remove;
 			if(options.labels.dsd_loader) this.options.labels.dsd_loader = options.labels.dsd_loader;
 			if(options.labels.listedvalue_href_placeholder) this.options.labels.listedvalue_href_placeholder = options.labels.listedvalue_href_placeholder;
 			if(options.labels.filtering) this.options.labels.filtering = options.labels.filtering;
