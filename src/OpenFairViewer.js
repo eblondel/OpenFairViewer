@@ -2707,7 +2707,7 @@ class OpenFairViewer {
 					//id
 					var dsd_variables_id = "dsd-ui-dimension-variable";
 					//html
-					$("#dsd-ui-col-2").append('<select id = "'+dsd_variables_id+'" class="dsd-ui-dimension dsd-ui-dimension-variable" title="Select a variable"><option></option></select>');
+					$("#dsd-ui-col-2").append('<select id = "'+dsd_variables_id+'" class="dsd-ui-dimension dsd-ui-dimension-variable" title="'+this_.options.labels.thematicmapping_variable+'"><option></option></select>');
 					$("#" + dsd_variables_id).select2({
 						theme: 'classic',
 						allowClear: true,
