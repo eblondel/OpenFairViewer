@@ -231,6 +231,7 @@ class OpenFairViewer {
 			export_options: 'Export options',
 			export_options_prettify: 'Prettify column names',
 			export_options_labels: 'Enrich with data labels',
+			export_more: 'More export methods?',
 			tabulardata: "Tabular data",
 			tabulardata_title: 'Open tabular data',
 			dashboard: "Dashboard",
@@ -2183,7 +2184,7 @@ class OpenFairViewer {
 		//option to enrich with data labels
 		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_labels+'</label></div>';
 		
-		export_options += '<span style="margin-top:10px;">More export methods?</span>';
+		export_options += '<span style="margin-top:10px;">'+this_.options.labels.export_more+'</span>';
 		export_options += '<div class="data-export-buttons">';
 		export_options += '<button type="button" id="dataset-export-option-wfs" class="btn data-action-button data-wfs" title="'+this_.options.labels.download_wfs+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetWFS()"></button>';
 		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="'+this_.options.labels.download_rscript+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetRScript()"></button>';
