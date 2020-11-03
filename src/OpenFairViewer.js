@@ -241,7 +241,19 @@ class OpenFairViewer {
 			download_data: 'Download data (CSV)',
 			download_map: 'Download map (PNG)',
 			download_rscript: 'Download R Script',
-			download_wfs: 'Get OGC WFS features'
+			download_wfs: 'Get OGC WFS features',
+			basemaps: 'Basemaps',
+			maptype_selector: 'Select a map type',
+			maptype_selector_title: 'Select the type of statistical map',
+			maptype_choropleth: 'Choropleth map',
+			maptype_graduated: 'Graduated symbol map',
+			class_selector: 'Select a classification',
+			class_selector_title: 'Select the type of data interval classification',
+			class_ckmeans: 'Ckmeans clustering',
+			class_equal: 'Equal intervals',
+			class_quantile: 'Quantiles',
+			classnb_selector: 'Select the number of intervals',
+			classnb_selector_title: 'Select the number of data intervals'
 		};
 		
 		if(options.labels){
@@ -295,6 +307,18 @@ class OpenFairViewer {
 			if(options.labels.download_map) this.options.labels.download_map = options.labels.download_map;
 			if(options.labels.download_rscript) this.options.labels.download_rscript = options.labels.download_rscript;
 			if(options.labels.download_wfs) this.options.labels.download_wfs = options.labels.download_wfs;
+			if(options.labels.basemaps) this.options.labels.basemaps = options.labels.basemaps;
+			if(options.labels.maptype_selector) this.options.labels.maptype_selector = options.labels.maptype_selector;
+			if(options.labels.maptype_selector_title) this.options.labels.maptype_selector_title = options.labels.maptype_selector_title;
+			if(options.labels.maptype_choropleth) this.options.labels.maptype_choropleth = options.labels.maptype_choropleth;
+			if(options.labels.maptype_graduated) this.options.labels.maptype_graduated = options.labels.maptype_graduated;
+			if(options.labels.class_selector) this.options.labels.class_selector = options.labels.class_selector;
+			if(options.labels.class_selector_title) this.options.labels.class_selector_title = options.labels.class_selector_title;
+			if(options.labels.class_ckmeans) this.options.labels.class_ckmeans = options.labels.class_ckmeans;
+			if(options.labels.class_equal) this.options.labels.class_equal = options.labels.class_equal;
+			if(options.labels.class_quantile) this.options.labels.class_quantile = options.labels.class_quantile;
+			if(options.labels.classnb_selector) this.options.labels.classnb_selector = options.labels.classnb_selector;
+			if(options.labels.classnb_selector_title) this.options.labels.classnb_selector_title = options.labels.classnb_selector_title;
 		}	
 		//Access
 		this.options.access = {};
@@ -359,7 +383,7 @@ class OpenFairViewer {
 			}	
 		}
 		//layergroups
-		this.options.map.baselayergroup = {name: "Basemaps", fold: 'open'};
+		this.options.map.baselayergroup = {name: this_.options.labels.basemaps, fold: 'open'};
 		if(options.map) if(options.map.baselayergroup) {
 			this.options.map.baselayergroup = options.map.baselayergroup;
 		}
@@ -2198,19 +2222,19 @@ class OpenFairViewer {
 		//id
 		var map_type_id = "map-type-selector";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_type_id+'" class="dsd-ui-dimension" title="Select the type of statistical map"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_type_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.maptype_selector_title+'"></select>');
 		//jquery widget
 		var formatMaptype = function(item) {
 			if (!item.id) { return item.text; }
 			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
 			return $item;
 		};
-		var map_type_placeholder = 'Select a map type';
+		var map_type_placeholder = this_.options.labels.maptype_selector;
 		$("#" + map_type_id).select2({
 			theme: 'classic',
 			allowClear: false,
 			placeholder: map_type_placeholder,
-			data: [{id:'choropleth', text: 'Choropleth map'},{id:'graduated', text: 'Graduated symbols map'}],
+			data: [{id:'choropleth', text: this_.options.labels.maptype_choropleth},{id:'graduated', text: this_.options.labels.maptype_graduated}],
 			templateResult: formatMaptype,
 			templateSelection: formatMaptype
 		});
@@ -2222,19 +2246,19 @@ class OpenFairViewer {
 		//id
 		var map_classtype_id = "map-classtype-selector";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.class_selector_title+'"></select>');
 		//jquery widget
 		var formatClasstype = function(item) {
 			if (!item.id) { return item.text; }
 			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
 			return $item;
 		};
-		var map_classtype_placeholder = 'Select a classification';
+		var map_classtype_placeholder = this_.options.labels.class_selector;
 		$("#" + map_classtype_id).select2({
 			theme: 'classic',
 			allowClear: false,
 			placeholder: map_classtype_placeholder,
-			data: [{id:'ckmeans', text: 'Ckmeans clustering'},{id:'equal', text: 'Equal intervals'},{id:'quantile', text: 'Quantiles'}],
+			data: [{id:'ckmeans', text: this_.options.labels.class_ckmeans},{id:'equal', text: this_.options.labels.class_equal},{id:'quantile', text: this_.options.labels.class_quantile}],
 			templateResult: formatClasstype,
 			templateSelection: formatClasstype
 		});
@@ -2245,14 +2269,14 @@ class OpenFairViewer {
 		//id
 		var map_classnb_id = "map-classnb-selector";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="Select the number of data intervals"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.classnb_selector_title+'"></select>');
 		//jquery widget
 		var formatClassnb = function(item) {
 			if (!item.id) { return item.text; }
 			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
 			return $item;
 		};
-		var map_classnb_placeholder = 'Select the number of intervals';
+		var map_classnb_placeholder = this_.options.labels.classnb_selector;
 		$("#" + map_classnb_id).select2({
 			theme: 'classic',
 			allowClear: false,
