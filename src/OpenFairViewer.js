@@ -231,7 +231,7 @@ class OpenFairViewer {
 			export_options: 'Export options',
 			export_options_prettify: 'Prettify column names',
 			export_options_labels: 'Enrich with data labels',
-			export_more: 'More export methods?',
+			export_options_more: 'More export methods?',
 			tabulardata: "Tabular data",
 			tabulardata_title: 'Open tabular data',
 			dashboard: "Dashboard",
@@ -297,6 +297,7 @@ class OpenFairViewer {
 			if(options.labels.export_options) this.options.labels.export_options = options.labels.export_options;
 			if(options.labels.export_options_prettify) this.options.labels.export_options_prettify = options.labels.export_options_prettify;
 			if(options.labels.export_options_labels) this.options.labels.export_options_labels = options.labels.export_options_labels;
+			if(options.labels.export_options_more) this.options.labels.export_options_more = options.labels.export_options_more;
 			if(options.labels.tabulardata) this.options.labels.tabulardata = options.labels.tabulardata;
 			if(options.labels.tabulardata_title) this.options.labels.tabulardata_title = options.labels.tabulardata_title;
 			if(options.labels.dashboard) this.options.labels.dashboard = options.labels.dashboard;
@@ -2184,7 +2185,7 @@ class OpenFairViewer {
 		//option to enrich with data labels
 		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_labels+'</label></div>';
 		
-		export_options += '<span style="margin-top:10px;">'+this_.options.labels.export_more+'</span>';
+		export_options += '<span style="margin-top:10px;">'+this_.options.labels.export_options_more+'</span>';
 		export_options += '<div class="data-export-buttons">';
 		export_options += '<button type="button" id="dataset-export-option-wfs" class="btn data-action-button data-wfs" title="'+this_.options.labels.download_wfs+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetWFS()"></button>';
 		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="'+this_.options.labels.download_rscript+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetRScript()"></button>';
