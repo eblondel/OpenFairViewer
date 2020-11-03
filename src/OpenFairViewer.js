@@ -2501,7 +2501,8 @@ class OpenFairViewer {
 														maxDate:endRange.val()?endRange.val():false
 													})
 												}
-											}); startRange.val(time_start.toISOString().split('T')[0]);
+											});
+											//startRange.val(time_start.toISOString().split('T')[0]);
 											endRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												formatDate:'Y-d-m',
@@ -2512,14 +2513,16 @@ class OpenFairViewer {
 														minDate:startRange.val()?startRange.val():false
 													})
 												}
-											}); endRange.val(time_end.toISOString().split('T')[0]);
+											});
+											//endRange.val(time_end.toISOString().split('T')[0]);
 											break;
 										case "ogc_viewparams":
 											startRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												yearStart: time_start.getFullYear(), yearEnd: time_end.getFullYear(),
 												format:'Y-d-m', timepicker:false
-											}); startRange.val(time_start.toISOString().split('T')[0]); break;
+											});
+											//startRange.val(time_start.toISOString().split('T')[0]); break;
 									}
 								}else if(dsd_component.primitiveType == "xsd:datetime"){
 									switch(dsd.strategy){
@@ -2533,7 +2536,8 @@ class OpenFairViewer {
 														maxDate:endRange.val()?endRange.val():false
 													})
 												}
-											}); startRange.val(time_start.toISOString().replace('T', ' '));
+											});
+											//startRange.val(time_start.toISOString().replace('T', ' '));
 											endRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												formatDate:'Y-d-m',
@@ -2543,14 +2547,16 @@ class OpenFairViewer {
 														minDate:startRange.val()?startRange.val():false
 													})
 												}
-											}); endRange.val(time_end.toISOString().replace('T', ' '));
+											});
+											//endRange.val(time_end.toISOString().replace('T', ' '));
 											break;
 										case "ogc_viewparams":
 											startRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												formatDate:'Y-d-m',
 												formatTime: 'HH:mm:ss'
-											}); startRange.val(time_start.toISOString().replace('T', ' ')); break;
+											});
+											//startRange.val(time_start.toISOString().replace('T', ' ')); break;
 									}
 								}
 								
