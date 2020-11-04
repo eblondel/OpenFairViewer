@@ -1,6 +1,6 @@
 {
   "name": "openfairviewer",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "OpenFairViewer: a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics",
   "main": "src/OpenFairViewer.js",
   "homepage": "https://github.com/eblondel/OpenFairViewer",
@@ -36,6 +36,7 @@
     "parcel-plugin-static-files-copy": "^2.5.0"
   },
   "dependencies": {
+    "academicons": "^1.8.6",
     "bootpag": "^1.0.7",
     "bootstrap": "^3.4.1",
     "cesium": "^1.74.0",

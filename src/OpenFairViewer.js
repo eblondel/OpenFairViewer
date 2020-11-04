@@ -118,7 +118,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.0.1", DATE: new Date(2020,11,3)}
+		this.versioning = {VERSION: "2.0.2", DATE: new Date(2020,11,4)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1620,17 +1620,20 @@ class OpenFairViewer {
 	 * @param bbox
 	 */
 	createFilter(bbox){
-		
+		var this_ = this;
 		//base filter
-		//var filter = new Ows4js.Filter().PropertyName(['dc:type']).isLike('dataset');
-		var filter = undefined;
+		//on all dc types
+		var dctypes = ['dataset', 'nonGeographicDataset', 'sensor', 'sensorSeries', 'platformSeries', 'productionSeries', 'series', 'transferAggregate', 'otherAggregate'];
+		var filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, dctypes.map(function(dctype){
+			return new IsLike(this_.config.OGC_FILTER_VERSION, this_.config.OGC_FILTER_SCHEMAS, 'dc:type', dctype);
+		}));
 		for(var i=0;i<this.options.find.filters.length;i++){
 			var inputFilter = this.options.find.filters[i];
 			var cswFilter = new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, inputFilter.name, inputFilter.value);
 			if(typeof filter == 'undefined'){
 				filter = cswFilter;
 			}else{
-				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, filter, cswFilter);
+				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, cswFilter]);
 			}
 		}
 		
@@ -1639,20 +1642,23 @@ class OpenFairViewer {
 		if(txt != ""){
 			txt = '%'+txt+'%';
 			var txtFilter = new Or(
-				this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS,
-				new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:title', txt),
-				new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:subject', txt)
+				this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [
+					new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:title', txt),
+					new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:subject', txt)
+				]
 			)
 			if(typeof filter == 'undefined'){
 				filter = txtFilter;
 			}else{
-				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, filter, txtFilter);
+				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, txtFilter]);
 			}
 		}
 		
 		//spatial filter
 		if(bbox){
-			filter = filter.and(new BBOX(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326'));
+			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [
+				filter, new BBOX(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326')
+			]);
 		}
 		return filter;
 	}
