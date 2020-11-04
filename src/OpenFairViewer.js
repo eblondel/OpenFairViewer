@@ -37,6 +37,8 @@ import 'datatables.net-dt/css/jquery.dataTables.css';
 //bootstrap
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
+//academicons
+import 'academicons/css/academicons.css';
 //jsonix
 import './import-jsonix';
 import './import-jsonix-geojson';
