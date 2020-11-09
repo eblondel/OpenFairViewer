@@ -4258,6 +4258,7 @@ class OpenFairViewer {
 			const scene = this_.ol3d.getCesiumScene();
 			scene.terrainProvider = Cesium.createWorldTerrain();
 			this_.ol3d.setEnabled(this_.options.map.mode == '3D'? true : false);
+			this_.ol3d.enableAutoRenderLoop();
 		}else{
 			$("#map-olcesium-switcher").hide();
 		}
