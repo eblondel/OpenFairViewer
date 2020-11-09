@@ -345,6 +345,7 @@ li.group > label {
 li.layer-switcher-base-group > label {
 	padding-left:16px;
 }
+.layer-switcher li label {width: 100% !important;}
 
 /** custom tooltip css **/
 .ol-popup { background-color: transparent; bottom: 12px; display: none; left: -50px; padding: 0; position: absolute; border:0px; }

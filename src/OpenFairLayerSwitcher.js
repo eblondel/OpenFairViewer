@@ -28,9 +28,10 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 				var img = new Image();
 				img.src = imgSrc;
 				var smallLegend = img.width <= 32 && img.height <= 20;
-				var smallLegendCss = smallLegend? 'margin-right:10px;float:right;' : 'margin-left:40px;';
+				var legendCss = 'margin-left:40px;';
+				//var smallLegendCss = smallLegend? 'margin-right:10px;float:right;' : 'margin-left:40px;';
 				legend.style.display = (lyr.getVisible()? (smallLegend? "block": "table") : "none");
-				var img = '<img src="'+imgSrc+'" style="'+smallLegendCss+'"/>';
+				var img = '<img src="'+imgSrc+'" style="'+legendCss+'"/>';
 				legend.innerHTML = img;
 				li.appendChild(legend);
 			}
