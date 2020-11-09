@@ -13,7 +13,7 @@
 html, body { overflow: hidden; min-height: 100% !important; height: 100% !important; font-family: "Montserrat", sans-serif !important;}
 #map {position: absolute;top: 0;left: 0;right: 0;bottom: 0;}
 /** Manage footer */
-footer {position: absolute;bottom: 0;left:5px;height: 20px; font-size:90%; text-shadow: 1px 1px 2px black, 0 0 1em blue, 0 0 0.2em blue;z-index:9999;}
+footer {position: absolute;bottom: 0; right:5px;height: 20px; font-size:90%; text-shadow: 1px 1px 2px black, 0 0 1em blue, 0 0 0.2em blue;z-index:9999;}
 footer a {color:white !important;}
 .hwa { -webkit-transform: translate3d(0, 0, 0); -ms-transform: translate3d(0, 0, 0);	-o-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0);}
 .wrapper { min-height: 100% !important; height: 100% !important; margin: 0px !important; position: relative !important;}
@@ -74,7 +74,7 @@ ul.pagination {margin: 0px !important;}
 .search-result .thumbnail { border-radius: 0 !important; padding: 0px; height: 100%; margin-bottom: 0px;}
 .search-result .thumbnail img { height: 100%;}
 .search-result:first-child { margin-top: 0 !important; }
-.search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 100px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px; background-color: ghostwhite;}
+.search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 110px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px; background-color: ghostwhite;}
 .search-result:hover, .search-result.hovered {background-color: lightsteelblue;}
 .search-result ul { padding-left: 0 !important; list-style: none;  }
 .search-result ul li { line-height: 30px; }
@@ -103,7 +103,7 @@ ul.pagination {margin: 0px !important;}
 .dataset-button-add {
 	margin: 0px 1px;
 	width:20px !important;
-	top: 70px;
+	top: 80px;
 	height: 20px !important;
 	color:#8e8e8e !important;
 	background-color: transparent !important;
@@ -133,7 +133,7 @@ ul.pagination {margin: 0px !important;}
 .dataset-button-zoom {
 	margin: 0px 1px;
 	width:20px !important;
-	top: 70px;
+	top: 80px;
 	right: 24px;
 	height: 20px !important;
 	color:#8e8e8e !important;
@@ -148,7 +148,7 @@ ul.pagination {margin: 0px !important;}
 .dataset-button-info {
 	margin: 0px 1px;
 	width:20px !important;
-	top: 70px;
+	top: 80px;
 	right: 48px;
 	height: 20px !important;
 	color:#8e8e8e !important;
@@ -163,7 +163,7 @@ ul.pagination {margin: 0px !important;}
 .dataset-button-doi {
 	margin: 0px 1px;
 	width:20px !important;
-	top: 70px;
+	top: 80px;
 	right: 74px;
 	height: 20px !important;
 	color:#8e8e8e !important;
@@ -313,7 +313,14 @@ ul.pagination {margin: 0px !important;}
 #linkPanel input { width: 195px; }
 #linkPanel blockquote label { opacity: .7; }
 
+@media print { .bottomPanel {display:none;}}
+.bottomPanel {position: absolute; bottom: 0; cursor: default;}
+.bottomPanel h4 { background-color: rgba(55,96,146,.6); border-radius: 10px 10px 0 0; color: rgba(255,255,255,.9); font-size: 100%; margin: 0; padding: 5px 10px; text-align: center; }
+.bottomPanel:hover h4 { background-color: #1674B8; border-radius: 0 0 0 0; }
+#map-olcesium-switcher { right:200px; }
+
 /** custom layer-switcher css **/
+.ol-overlaycontainer-stopevent {position: initial !important;}
 .sidePanel, .ol-unselectable.ol-control.layer-switcher { border-radius: 0 0 10px 10px; font-size: 12px; z-index: 100; }
 .sidePanel, .sidePanel *, .ol-unselectable.ol-control.layer-switcher, .ol-unselectable.ol-control.layer-switcher * { transition: all .2s; }
 .ol-unselectable.ol-control.layer-switcher * { -moz-transition: none; }

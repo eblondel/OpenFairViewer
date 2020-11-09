@@ -66,6 +66,9 @@ import CSW from './vendor/ows/CSW';
 import bootpag from 'bootpag/lib/jquery.bootpag';
 //mustache
 import mustache from 'mustache/mustache.mjs';
+//ol-cesium
+//import Cesium from 'cesium';
+import OLCesium from 'olcs/OLCesium.js';
 //openlayers
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -82,6 +85,7 @@ import * as olProj from 'ol/proj';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import * as olCoordinate from 'ol/coordinate';
 import * as olGeom from 'ol/geom';
+import {fromExtent} from 'ol/geom/Polygon'
 import * as olFormat from 'ol/format';
 import GML32 from 'ol/format/GML32';
 import Feature from 'ol/Feature';
@@ -100,6 +104,7 @@ import * as stats from 'simple-statistics';
 import OpenFairLayerSwitcher from './OpenFairLayerSwitcher.js';
 import OpenFairShiny from './OpenFairShiny.js';
 import './OpenFairViewer.css';
+
 
 var bootstrapButton = $.fn.button.noConflict(); // return $.fn.button to previously assigned value
 $.fn.bootstrapBtn = bootstrapButton ;
@@ -120,11 +125,14 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.0.2", DATE: new Date(2020,11,4)}
+		this.versioning = {VERSION: "2.0.3", DATE: new Date(2020,11,10)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
 		this.secure = this.protocol == "https";
+		
+		//Cesium 3D support?
+		this.enable_3d = window.Cesium != undefined;
 
 		//CSW
 		if(!config.OGC_CSW_BASEURL){
@@ -257,7 +265,8 @@ class OpenFairViewer {
 			class_equal: 'Equal intervals',
 			class_quantile: 'Quantiles',
 			classnb_selector: 'Select the number of intervals',
-			classnb_selector_title: 'Select the number of data intervals'
+			classnb_selector_title: 'Select the number of data intervals',
+			switchto: 'Switch to'
 		};
 		
 		if(options.labels){
@@ -325,7 +334,8 @@ class OpenFairViewer {
 			if(options.labels.class_quantile) this.options.labels.class_quantile = options.labels.class_quantile;
 			if(options.labels.classnb_selector) this.options.labels.classnb_selector = options.labels.classnb_selector;
 			if(options.labels.classnb_selector_title) this.options.labels.classnb_selector_title = options.labels.classnb_selector_title;
-		}	
+			if(options.labels.switchto) this.options.labels.switchto = options.labels.switchto;
+		}
 		//Access
 		this.options.access = {};
 		this.options.access.columns = 2;
@@ -352,6 +362,8 @@ class OpenFairViewer {
 		//MAP options
 		//--------------------------------------------------------------------------------------------------
 		this.options.map = {};
+		//mode
+		this.options.map.mode = '2D',
 		//watermark
 		this.options.map.attribution = null;
 		if(options.map) this.options.map.attribution = options.map.attribution? options.map.attribution : null;
@@ -363,6 +375,7 @@ class OpenFairViewer {
 			{epsgcode: "EPSG:2154", proj4string: "+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"}
 		];
 		if(options.map) {
+			if(options.map.mode) if(['2D', '3D'].indexOf(options.map.mode) != -1) this.options.map.mode = options.map.mode;
 			if(options.map.projection) this.options.map.projection = options.map.projection;
 			if(options.map.proj4defs) for(var p = 0; p < options.map.proj4defs.length; p++) this.options.map.proj4defs.push(options.map.proj4defs[p]);
 			for(var i=0;i<this.options.map.proj4defs.length;i++){
@@ -406,7 +419,7 @@ class OpenFairViewer {
 		this.options.map.baselayers = [
 			new TileLayer({
 				title: "EMODnet Bathymetry World baselayer",
-				extent: [-180,-90,180,90],
+				//extent: [-180,-90,180,90],
 				type: 'base',
 				source : new WMTS({
 					url : 'https://tiles.emodnet-bathymetry.eu/2020/{Layer}/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.png',
@@ -578,6 +591,11 @@ class OpenFairViewer {
 			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
 		}
 		
+		//cesium
+		this.options.cesium = {};
+		this.options.cesium.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZWY1NmQzZS1hNzMyLTRlNDMtOTI3Yi1kZWY5ZWZlM2Q0NDUiLCJpZCI6MzcyMTgsImlhdCI6MTYwNDY3NDAyN30.9tFv8RqF2p-oYLTrp-b5AIg5u721Ohh9psMgSJFMY3s';
+		if(options.cesium) if(options.cesium.accessToken) this.options.cesium.defaultAccessToken = options.cesium.accessToken;
+		
 		//events
 		this.mapEvents = new Array();
 
@@ -603,7 +621,7 @@ class OpenFairViewer {
 		var this_ = this;
 		var deferred = $.Deferred();
 		this.loadTemplate('templates/main.tpl.html', 'mainTpl').then(function(template){
-			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels});
+			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels, mode: (this_.options.map.mode == '2D'? '3D':'2D')});
 			if(intro) $("body").append(main);
 			deferred.resolve();
 		});
@@ -738,6 +756,9 @@ class OpenFairViewer {
 		//dataset on query
 		url += '?';
 		if(this.dataset_on_query) url += 'dataset=' + this.dataset_on_query.pid;
+		
+		//mode
+		url += '&mode=' + (this.enable_3d? (this.ol3d.getEnabled()? '3D' : '2D') : '2D');
 		
 		//baseview
 		var baseview = this.map.getLayers().getArray()[0].getLayersArray().filter(function(item){return item.getVisible()})[0];
@@ -1530,6 +1551,8 @@ class OpenFairViewer {
 			style : this_.options.find.defaultStyle
 		});
 		feature.setId(dataset.pid);
+		console.log(feature);
+		feature.ol_uid = dataset.pid;
 		
 		return feature;
 	}
@@ -1541,6 +1564,7 @@ class OpenFairViewer {
 	buildSpatialCoverageDataset(datasets, extended){
 		var this_ = this;
 		var features = datasets.map(function(dataset,i){return this_.buildSpatialCoverageFeature(dataset, extended)});
+		features = features.filter(function(feature){if(typeof feature != "undefined") return feature;});
 		return features;
 	}
 	
@@ -1555,7 +1579,7 @@ class OpenFairViewer {
 		
 		var layerId = 'ofv-csw-spatial-coverages';
 		var layer = this.getLayerByProperty(layerId, 'id');
-		var source = new Vector({ features: features });
+		var source = new Vector({features: features});
 		if(!layer){
 			var layer = new VectorLayer({
 				id: undefined, title: undefined,
@@ -1728,7 +1752,7 @@ class OpenFairViewer {
 			this_.setSpatialCoverageLayer(records, extended, visible);
 			$("article").each(function(i,item){$(item).on('mouseenter', function(evt){
 				var vectorLayer = this_.getLayerByProperty("ofv-csw-spatial-coverages", "id");
-				var vectorFeature = vectorLayer.getSource().getFeatureById($(item).context.id);
+				var vectorFeature = vectorLayer.getSource().getFeatureById($(item)[0].id);
 				if(vectorFeature && $("#dataset-spatial-coverage-visible").is(":checked")){
 					var select = this_.map.getInteractions().getArray().filter(function(item){return item instanceof olInteraction.Select});
 					if(select.length>0) select = select[0];
@@ -1739,7 +1763,7 @@ class OpenFairViewer {
 			})});
 			$("article").each(function(i,item){$(item).on('mouseleave', function(evt){
 				var vectorLayer = this_.getLayerByProperty("ofv-csw-spatial-coverages", "id");
-				var vectorFeature = vectorLayer.getSource().getFeatureById($(item).context.id);
+				var vectorFeature = vectorLayer.getSource().getFeatureById($(item)[0].id);
 				if(vectorFeature && $("#dataset-spatial-coverage-visible").is(":checked")){
 					var select = this_.map.getInteractions().getArray().filter(function(item){return item instanceof olInteraction.Select});
 					if(select.length>0) select = select[0];
@@ -1904,9 +1928,13 @@ class OpenFairViewer {
 		var srs_data = dataset.projection;
 		var srs_map = this.map.getView().getProjection();
 		if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
+			console.log("Dataset projection:");
+			console.log(srs_data);
+			console.log("Map projection:");
+			console.log(srs_map);
 			console.log("Dataset projection ('"+srs_data+"') differs from map projection ('"+srs_map+"'). Reprojecting bounding box!");
 			console.log("Coordinates (source) = ["+ coords + "]")
-			var extentGeom = olGeom.Polygon.fromExtent(coords);
+			var extentGeom = fromExtent(coords);
 			extentGeom.transform(srs_data, srs_map);
 			coords = extentGeom.getExtent();
 			console.log("Coordinates (reprojected) = ["+ coords + "]")
@@ -1959,7 +1987,8 @@ class OpenFairViewer {
 		var this_ = this;
 		var pid = elm.getAttribute('data-pid');
 		console.log("Unselect dataset with pid = " + pid);
-		var thepid = this.dataset_on_query.pid;
+		var thepid = null;
+		if(this.dataset_on_query) thepid = this.dataset_on_query.pid;
 		var out = false;
 		var len1 = this.selection.length;
 		this.selection = this.selection.filter(function(i,data){if(data.pid != pid){return data}});
@@ -2143,6 +2172,7 @@ class OpenFairViewer {
 	 * @param {Object} dataset
 	 */
 	handleQueryForm(dataset){
+		console.log(dataset);
 		$("#dsd-ui").empty();
 		if(dataset.dsd){
 			console.log("Handle DSD Query Form for dataset with pid = " + dataset.pid );
@@ -2311,8 +2341,7 @@ class OpenFairViewer {
 		var this_ = this;
 		var pid = dataset.pid;
 		var entry = dataset.entry? dataset.entry : dataset;
-		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null, thematicmapping: false};
-				
+		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null, thematicmapping: false};	
 		
 		//build UI
 		var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
@@ -4021,8 +4050,6 @@ class OpenFairViewer {
 						//case of geometry
 						if(meta.col == data_columns.indexOf('geometry')){
 							var wkt = data;
-							console.log(meta.col);
-							console.log(wkt);
 							if(wkt != "–"){
 								var button_id_zoom = 'zoom_feature-'+row[0];
 								var button_id_disp = 'display_feature'+row[0];
@@ -4220,6 +4247,21 @@ class OpenFairViewer {
 		var this_ = this;
 		this_.map = this_.initMap('map', true, false);
 		
+		if(this_.enable_3d){
+			Cesium.Ion.defaultAccessToken = this.options.cesium.defaultAccessToken;
+			this_.ol3d = new OLCesium({
+			  map: this_.map,
+			  time() {
+				return Cesium.JulianDate.now();
+			  }
+			});
+			const scene = this_.ol3d.getCesiumScene();
+			scene.terrainProvider = Cesium.createWorldTerrain();
+			this_.ol3d.setEnabled(this_.options.map.mode == '3D'? true : false);
+		}else{
+			$("#map-olcesium-switcher").hide();
+		}
+		
 		$($("li[data-where='#pageMap']")).on("click", function(e){
 			$($("#map").find("canvas")).show();
 		});
@@ -4256,6 +4298,21 @@ class OpenFairViewer {
 			resolutions: resolutions,
 			matrixIds: matrixIds
 		});				
+	}
+	
+	/**
+	 * switchMapView
+	 * Switches from 2D to 3D and vice-versa
+	 */
+	switchMapView(){
+		var this_ = this;
+		if(this.ol3d.getEnabled()){
+			this.ol3d.setEnabled(false);
+			$("#map-olcesium-switcher-to").html('3D');
+		}else{
+			this.ol3d.setEnabled(true);
+			$("#map-olcesium-switcher-to").html('2D');
+		}
 	}
 	
 	/**
@@ -4308,9 +4365,9 @@ class OpenFairViewer {
 			target : mapId,
 			layers : this_.layers.baseLayers.concat(this_.layers.overlays),
 			view : new View({
-				projection: this_.options.map.projection,
+				projection: (this_.enable_3d? undefined : this_.options.map.projection),
 				center : defaultMapExtent? olExtent.getCenter(defaultMapExtent) : [0,0],
-				extent: defaultMapExtent,
+				extent: (this_.enable_3d? undefined : defaultMapExtent),
 				zoom : defaultMapZoom
 			}),
 			controls: [],
@@ -4406,8 +4463,7 @@ class OpenFairViewer {
 				this_.displayDatasets(maxrecords, bbox); 
 			}
 		});
-
-		
+	
 		return map;
 	}
 	
@@ -4761,6 +4817,13 @@ class OpenFairViewer {
 		//url params
 		var params = this_.getAllUrlParams();
 		console.log(params);
+		
+		//mode
+		if(params.mode){
+			if(params.mode != this.options.map.mode){
+				this.switchMapView();
+			}
+		}
 		
 		//baseview
 		if(params.baseview){

@@ -18,6 +18,9 @@
             <div class="content">
 				<!-- Map -->
                 <div id="map"></div>
+				<div id="map-olcesium-switcher" class="bottomPanel" onclick="{{OFV_ID}}.switchMapView()">
+					<h4>{{labels.switchto}} <span id="map-olcesium-switcher-to">{{mode}}</span></h4>
+				</div>
 				
 				<!-- Link panel -->
 				<div id="linkPanel" class="sidePanel" onmouseover="{{OFV_ID}}.setEmbedLink()">
