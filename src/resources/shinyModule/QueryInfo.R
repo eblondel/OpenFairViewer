@@ -129,19 +129,20 @@ QueryInfo <- function(input, output, session) {
       NULL
     }
     
-    srs <-if (!is.null(query$srs)){
-      paste0("'",query$srs,"'")
+    SRS <-if (!is.null(query$srs)){
+     # paste0("'",query$srs,"'")
+      query$srs
     }else{
       "'EPSG:4326'"
     }
+    print(SRS)
     
-    print(query$dsd)
     dsd<-if (!is.null(query$dsd)){
-      jsonlite::fromJSON(URLdecode(query$dsd))
+      jsonlite::fromJSON(query$dsd)
     }else{
       NULL
     }
-    print(dsd)
+    
     #Type of shiny apps 
     shiny_type <- ifelse(!is.null(wms_server),"popup","dashboard")
     
@@ -151,7 +152,7 @@ QueryInfo <- function(input, output, session) {
    
        if(!is.null(dsd)){
         names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
-        #dsd[is.na(dsd)]<-""
+        dsd[is.na(dsd)]<-""
         }
     
       if(is.null(dsd)){ 
@@ -194,7 +195,7 @@ QueryInfo <- function(input, output, session) {
       ###Get data feature for popup apps with WMS service
       
       if(shiny_type=="popup"){
-        print("MODE POPUP")  
+        
         WMS <- WMSClient$new(
           url = wms_server, 
           serviceVersion = wms_version, 
@@ -207,9 +208,9 @@ QueryInfo <- function(input, output, session) {
         crs <- NULL
         
         if(startsWith(wms_version, "1.1")){
-          srs <- srs
+          srs <- SRS
         }else if(wms_version == "1.3.0"){
-          crs <- srs
+          crs <- SRS
         }
         
         bbox <- paste0(x-0.1,",",y-0.1,",",x+0.1,",",y+0.1)
@@ -229,7 +230,7 @@ QueryInfo <- function(input, output, session) {
       ###Get data feature for dashboard apps with WFS service
       
       if(shiny_type=="dashboard"){
-        print("MODE DASHBOARD")
+      
         if(is.null(par)){
           Data <- ft$getFeatures(propertyName=propertyName)
         }
