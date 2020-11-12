@@ -2298,9 +2298,7 @@ class OpenFairViewer {
 		var map_colorscheme_placeholder = this_.options.labels.colorscheme_selector;
 		var getPaletteAsSVG = function(id){
 			var classnb = parseInt($("#map-classnb-selector").val());
-			var colors = colorbrewer[id][classnb];
-			console.log(colors);
-			
+			var colors = colorbrewer[id][classnb];		
 			var sq_width = 15;
 			var sq_height = 15;
 			var svg = '<svg width="'+sq_width*classnb+'" height="'+sq_height+'" style="vertical-align:middle;">';
@@ -2336,7 +2334,6 @@ class OpenFairViewer {
 			initColorschemeSelector();
 		});
 		$("#" + map_type_id).on('select2:select', function(e) {
-			console.log(e.target.value);
 			if(e.target.value == 'choropleth'){
 				$("#" + map_colorscheme_id).next(".select2-container").show();
 			}else{
@@ -2819,7 +2816,6 @@ class OpenFairViewer {
 								filter = '(' + fieldname +' AFTER '+ item_values[0] + ' AND ' + fieldname + ' BEFORE ' + item_values[1] +')';
 								break;
 						}
-						console.log(filter);
 						return filter;
 					}).join(' AND ');
 				}else{
@@ -2848,7 +2844,6 @@ class OpenFairViewer {
 							viewparam = fieldname + ':' + item_values[0];
 							break;
 					}
-					console.log(viewparam);
 					return viewparam;
 				}).join(';');
 				break;	
@@ -3055,7 +3050,6 @@ class OpenFairViewer {
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
 		var colorScheme = from_query_form? $("#map-colorscheme-selector").select2('val') : dataset.envcolscheme;
-		console.log(colorScheme);
 		
 		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="" && item.startsWith("v")) return item}).length-2 : null);
 		var layerStyle =  from_query_form? this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb) : dataset.style;
@@ -3217,9 +3211,6 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							console.log(colorScheme);
-							console.log(classNb);
-							console.log(colorbrewer[colorScheme][classNb]);
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
 						}
 						this_.selectDataset(pid);
@@ -3229,7 +3220,7 @@ class OpenFairViewer {
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						layer.variable = strategyvariable;
 						layer.envfun = classType;
-						layer.envmapsetLegendGraphictype = mapType;
+						layer.envmaptype = mapType;
 						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length: null;
 						this_.addLayerPopup(layer);
@@ -3848,7 +3839,6 @@ class OpenFairViewer {
 		$.get(layerUrl, function(response){
 			var features = new olFormat.WFS().readFeatures(response);
 			console.log(features);
-			console.log( new olFormat.WFS());
 			var featuresToExport = new Array();
 			for(var i=0;i<features.length;i++){
 				var feature = features[i];
