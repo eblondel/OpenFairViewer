@@ -271,7 +271,11 @@ class OpenFairViewer {
 			classnb_selector_title: 'Select the number of data intervals',
 			switchto: 'Switch to',
 			colorscheme_selector: 'Select a color palette',
-			colorscheme_selector_title: 'Select a color palette to apply to data intervals'
+			colorscheme_selector_title: 'Select a color palette to apply to data intervals',
+			colorscheme_sequential: 'Sequential',
+			colorscheme_diverging: 'Diverging',
+			colorscheme_singlehue: 'Singlehue'
+			
 		};
 		console.log(Object.keys(this.options.labels));
 		//apply option labels if defined
@@ -2315,7 +2319,7 @@ class OpenFairViewer {
 				placeholder: map_colorscheme_placeholder,
 				data: Object.keys(colorbrewer.schemeGroups).splice(0,3).map(function(schemeGroup){
 					return { 
-						text: schemeGroup, 
+						text: this_.options.labels['colorscheme_' + schemeGroup], 
 						children: colorbrewer.schemeGroups[schemeGroup].map(function(item){
 							return {id: item, text: item, svg: getPaletteAsSVG(item)}
 						}) 
