@@ -281,7 +281,7 @@ ul.pagination {margin: 0px !important;}
 
 /** MAP **/
 #pageMap { display: block; background-color: rgba(2, 113, 190, 1);}
-.ol-control { z-index: 1 !important; }
+.ol-control, .ol-mouse-position { z-index: 1 !important; }
 /** MAP - ZoomToExtent **/
 .ol-zoom-extent button {
 	top:4.643em;
