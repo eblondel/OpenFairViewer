@@ -128,7 +128,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.1.0", DATE: new Date(2020,11,11)}
+		this.versioning = {VERSION: "2.1.1", DATE: new Date(2020,11,17)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -147,6 +147,7 @@ class OpenFairViewer {
 			about: 'About OpenFairViewer'
 		};
 		this.config.OFV_PROFILE = config.profile? config.profile : defaultProfile;
+		this.config.OFV_CONTAINERID = config.containerId? config.containerId : "body";
 		this.config.OGC_CSW_VERSION = "2.0.2";
 		this.config.OGC_CSW_SCHEMA = "http://www.isotc211.org/2005/gmd";
 		this.config.OGC_CSW_MAXRECORDS = 5;
@@ -571,7 +572,8 @@ class OpenFairViewer {
 		var deferred = $.Deferred();
 		this.loadTemplate('templates/main.tpl.html', 'mainTpl').then(function(template){
 			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels, mode: (this_.options.map.mode == '2D'? '3D':'2D')});
-			if(intro) $("body").append(main);
+			if(this_.config.OFV_CONTAINERID == 'body') main = '<div class="wrapper">' + main + '</div>';
+			if(intro) $(this_.config.OFV_CONTAINERID == 'body'? 'body' : "#"+this_.config.OFV_CONTAINERID).append(main);
 			deferred.resolve();
 		});
 		return deferred.promise();
@@ -4466,7 +4468,7 @@ class OpenFairViewer {
 			
 			//manage the display of watermark (logo)
 			var attMaps = map.getTargetElement().getElementsByClassName("ol-attribution-map");
-			if( attMaps.length > 0) attMaps[0].getElementsByTagName("li")[0].innerHTML = this.options.map.attribution;
+			if( attMaps.length > 0) $(attMaps[0].getElementsByTagName("ul")[0]).append('<li>'+this_.options.map.attribution+'</li>');
 			
 			//hack to remove the baselayer attribution that for some reason is also added to the ol-attribution-map
 			//while explicitely referenced on ol-attribution-baselayer (to investigate if there is a cleaner solution)
