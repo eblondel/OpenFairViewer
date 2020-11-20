@@ -52,7 +52,7 @@
     "ogc-schemas": "^2.6.1",
     "ol": "^6.4.3",
     "ol-layerswitcher": "^3.7.0",
-    "ol-loadingpanel": "github:eblondel/ol-loadingpanel",
+    "ol-loadingpanel": "github:eblondel/ol-loadingpanel#2.0.0",
     "ol-popup": "^4.0.0",
     "olcs": "^2.11.3",
     "proj4": "^2.6.2",
