@@ -423,6 +423,14 @@ class OpenFairViewer {
 		//overlays
 		this.options.map.overlays = [];
 		if(options.map) if(options.map.overlays) this.options.map.overlays = options.map.overlays;
+		//layer_options
+		this.options.map.layer_options = {};
+		this.options.map.layer_options.tiled = true;
+		this.options.map.layer_options.opacity = 0.9;
+		if(options.map) if(options.map.layer_options){
+			if(options.map.layer_options.tiled) this.options.map.layer_options.tiled = options.map.layer_options.tiled;
+			if(options.map.layer_options.opacity) this.options.map.layer_options.opacity = options.map.layer_options.opacity;
+		}	
 		
 		//aggregate
 		this.options.map.aggregated_layer_suffix = "_aggregated";
@@ -3014,6 +3022,9 @@ class OpenFairViewer {
 	mapDataset(dataset, from_query_form){
 		var this_ = this;
 
+		var opacity = this_.options.map.layer_options.opacity;
+		var tiled = this_.options.map.layer_options.tiled;
+		
 		var pid = dataset.pid;
 		
 		$("#datasetMapper").prop('disabled', true);
@@ -3087,7 +3098,7 @@ class OpenFairViewer {
 							}
 							
 							this_.selectDataset(pid);
-							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
+							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -3133,7 +3144,7 @@ class OpenFairViewer {
 						//static styling
 						console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
 						this_.selectDataset(pid);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -3163,7 +3174,7 @@ class OpenFairViewer {
 					var cql_filter = null;
 					if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 					this_.selectDataset(pid);
-					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, cql_filter, null, null, null, null, null);
+					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, null, null, null, null, null);
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -3218,7 +3229,7 @@ class OpenFairViewer {
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
 						}
 						this_.selectDataset(pid);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -3263,7 +3274,7 @@ class OpenFairViewer {
 					console.log("Add layer with strategy 'ogc_viewparams' (static styling)");
 					//static styling
 					this_.selectDataset(pid);
-					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, null,strategyparams_str);
+					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -4413,7 +4424,7 @@ class OpenFairViewer {
  		}));
 		
 		//TODO
-		map.addControl( new LoadingPanel({widget: 'progressbar'}) );
+		map.addControl( new LoadingPanel({widget : 'progressbar'}) );
 		
 		/*map.addControl( new OverviewMap({
 			className: 'ol-overviewmap ol-custom-overviewmap',
