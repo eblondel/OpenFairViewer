@@ -315,7 +315,13 @@ class OpenFairViewer {
 		//--------------------------------------------------------------------------------------------------
 		this.options.map = {};
 		//mode
-		this.options.map.mode = '2D',
+		this.options.map.mode = '2D';
+		//controls
+		this.options.map.control_options = {};
+		this.options.map.control_options.loadingpanel = {widget: 'progressbar'};
+		if(options.map) if(options.map.control_options){
+			if(options.map.control_options.loadingpanel) this.options.map.control_options.loadingpanel = options.map.control_options.loadingpanel;
+		}
 		//watermark
 		this.options.map.attribution = null;
 		if(options.map) this.options.map.attribution = options.map.attribution? options.map.attribution : null;
@@ -4423,8 +4429,8 @@ class OpenFairViewer {
 			undefinedHTML: 'Lat: - Lon: -'
  		}));
 		
-		//TODO
-		map.addControl( new LoadingPanel({widget : 'progressbar'}) );
+		//Loading panel
+		map.addControl( new LoadingPanel(this_.options.map.control_options.loadingpanel) );
 		
 		/*map.addControl( new OverviewMap({
 			className: 'ol-overviewmap ol-custom-overviewmap',
