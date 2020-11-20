@@ -92,6 +92,8 @@ import Feature from 'ol/Feature';
 import * as olInteraction from 'ol/interaction';
 import {altKeyOnly, click, pointerMove} from 'ol/events/condition';
 //openlayers plugins
+import LoadingPanel from 'ol-loadingpanel';
+import 'ol-loadingpanel/src/ol-loadingpanel.css';
 import LayerSwitcher from 'ol-layerswitcher';
 import 'ol-layerswitcher/src/ol-layerswitcher.css';
 import Popup from 'ol-popup';
@@ -4411,7 +4413,7 @@ class OpenFairViewer {
  		}));
 		
 		//TODO
-		//map.addControl( new ol.control.LoadingPanel() );
+		map.addControl( new LoadingPanel({widget: 'progressbar'}) );
 		
 		/*map.addControl( new OverviewMap({
 			className: 'ol-overviewmap ol-custom-overviewmap',
