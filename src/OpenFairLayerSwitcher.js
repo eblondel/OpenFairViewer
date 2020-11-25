@@ -84,7 +84,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		  options.groupSelectStyle
 		);
 
-		LayerSwitcher.ensureTopVisibleBaseLayerShown_(map);
+		LayerSwitcher.ensureTopVisibleBaseLayerShown(map);
 
 		while (panel.firstChild) {
 		  panel.removeChild(panel.firstChild);
