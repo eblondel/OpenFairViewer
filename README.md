@@ -2,6 +2,15 @@
 OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2249305.svg)](https://doi.org/10.5281/zenodo.2249305)
 
+## Sponsors
+
+Many thanks to the following organizations that have provided fundings for strenghtening ``OpenFairViewer``:
+
+<div style="float:left;">
+  <a href="https://en.ird.fr/"><img src="http://www.umr-marbec.fr/images/logo-ird-en.png" height=200 width=200/>
+  <a href="https://www.inrae.fr"><img height=200 width=200 src="https://www.inrae.fr/themes/custom/inrae_socle/logo.svg"></a>
+</div>
+
 ## Install OpenFairViewer
 
 The OpenFairViewer is a HTML5/JS map viewer application that operates standard browsing, access, query and sharing of geospatial data. 
