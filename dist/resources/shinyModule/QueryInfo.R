@@ -129,11 +129,13 @@ QueryInfo <- function(input, output, session) {
       NULL
     }
     
-    srs <-if (!is.null(query$srs)){
-      paste0("'",query$srs,"'")
+    SRS <-if (!is.null(query$srs)){
+     # paste0("'",query$srs,"'")
+      query$srs
     }else{
       "'EPSG:4326'"
     }
+    print(SRS)
     
     dsd<-if (!is.null(query$dsd)){
       jsonlite::fromJSON(query$dsd)
@@ -206,9 +208,9 @@ QueryInfo <- function(input, output, session) {
         crs <- NULL
         
         if(startsWith(wms_version, "1.1")){
-          srs <- srs
+          srs <- SRS
         }else if(wms_version == "1.3.0"){
-          crs <- srs
+          crs <- SRS
         }
         
         bbox <- paste0(x-0.1,",",y-0.1,",",x+0.1,",",y+0.1)
@@ -249,12 +251,16 @@ QueryInfo <- function(input, output, session) {
     
      data$data<-Data
      data$dsd<-dsd
-     #cat("DATA:")
-     #print(data)
+     cat("DATA:")
+     print(data)
      data$query<-query
+     
     }
     end_time <- Sys.time()
     data$time <-end_time - start_time
+    print(data$time)
+    print(data$data)
+    print(data)
   })
   
     # Parameters selection viewer

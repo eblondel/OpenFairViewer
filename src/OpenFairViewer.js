@@ -95,7 +95,7 @@ import {altKeyOnly, click, pointerMove} from 'ol/events/condition';
 import LoadingPanel from 'ol-loadingpanel';
 import 'ol-loadingpanel/src/ol-loadingpanel.css';
 import LayerSwitcher from 'ol-layerswitcher';
-import 'ol-layerswitcher/src/ol-layerswitcher.css';
+import 'ol-layerswitcher/dist/ol-layerswitcher.css';
 import Popup from 'ol-popup';
 import 'ol-popup/src/ol-popup.css';
 //filesaver
@@ -130,7 +130,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.2.0", DATE: new Date(2020,11,20)}
+		this.versioning = {VERSION: "2.2.1", DATE: new Date(2020,11,25)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];

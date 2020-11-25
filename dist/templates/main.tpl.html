@@ -1,5 +1,4 @@
 <script id="mainTpl" type="text/html">
-  <div class="wrapper">
       <div class="col-sm-12 pages">
       
 	<!-- Disclaimer -->
@@ -18,6 +17,9 @@
             <div class="content">
 				<!-- Map -->
                 <div id="map"></div>
+				<div id="map-olcesium-switcher" class="bottomPanel" onclick="{{OFV_ID}}.switchMapView()">
+					<h4>{{labels.switchto}} <span id="map-olcesium-switcher-to">{{mode}}</span></h4>
+				</div>
 				
 				<!-- Link panel -->
 				<div id="linkPanel" class="sidePanel" onmouseover="{{OFV_ID}}.setEmbedLink()">
@@ -30,7 +32,6 @@
 					<blockquote>
 				</div>
             </div>
-        </div>
         
         <!-- other pages -->
       </div>
@@ -80,7 +81,7 @@
 		 </div>
 		</fieldset>
 	      </div>
-              <input type="submit" class="btn btn-primary btn-sm" style="float:right;" value="Search"></input>
+              <input type="submit" class="btn btn-primary btn-sm" style="float:right;" value="{{labels.search}}"></input>
             </form>
           </section>
         </div>
@@ -99,7 +100,7 @@
 		  <option value="10">10</option>
 		  <option value="25">25</option>
 		  <option value="50">50</option>
-		</select> {labels.datasets}}</label>
+		</select> {{labels.datasets}}</label>
 	   </div>
         </div>
     </div>
@@ -115,7 +116,7 @@
     <div id="infoDialog">
 	<div class="row" style="height:100% !important;">
 		<div class="col-md-12" style="height:100% !important;">
-			<div id="datasetInfo" style="height:100% !important; background:url(src/img/loading.gif) center center no-repeat;background-size:30px 30px;">
+			<div id="datasetInfo" style="height:100% !important; background:url(img/loading.gif) center center no-repeat;background-size:30px 30px;">
 			</div>
 		</div>
 	</div>

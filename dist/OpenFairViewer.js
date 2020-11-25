@@ -37,6 +37,8 @@ import 'datatables.net-dt/css/jquery.dataTables.css';
 //bootstrap
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
+//academicons
+import 'academicons/css/academicons.css';
 //jsonix
 import './import-jsonix';
 import './import-jsonix-geojson';
@@ -64,6 +66,9 @@ import CSW from './vendor/ows/CSW';
 import bootpag from 'bootpag/lib/jquery.bootpag';
 //mustache
 import mustache from 'mustache/mustache.mjs';
+//ol-cesium
+//import Cesium from 'cesium';
+import OLCesium from 'olcs/OLCesium.js';
 //openlayers
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -80,24 +85,31 @@ import * as olProj from 'ol/proj';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import * as olCoordinate from 'ol/coordinate';
 import * as olGeom from 'ol/geom';
+import {fromExtent} from 'ol/geom/Polygon'
 import * as olFormat from 'ol/format';
 import GML32 from 'ol/format/GML32';
 import Feature from 'ol/Feature';
 import * as olInteraction from 'ol/interaction';
 import {altKeyOnly, click, pointerMove} from 'ol/events/condition';
 //openlayers plugins
+import LoadingPanel from 'ol-loadingpanel';
+import 'ol-loadingpanel/src/ol-loadingpanel.css';
 import LayerSwitcher from 'ol-layerswitcher';
-import 'ol-layerswitcher/src/ol-layerswitcher.css';
+import 'ol-layerswitcher/dist/ol-layerswitcher.css';
 import Popup from 'ol-popup';
 import 'ol-popup/src/ol-popup.css';
 //filesaver
 import saveAs from 'file-saver';
 //statistics
 import * as stats from 'simple-statistics';
+//colorbrewer
+import colorbrewer from 'colorbrewer/index.js';
+window.colorbrewer = colorbrewer;
 //ofv
 import OpenFairLayerSwitcher from './OpenFairLayerSwitcher.js';
 import OpenFairShiny from './OpenFairShiny.js';
 import './OpenFairViewer.css';
+
 
 var bootstrapButton = $.fn.button.noConflict(); // return $.fn.button to previously assigned value
 $.fn.bootstrapBtn = bootstrapButton ;
@@ -118,11 +130,14 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.0", DATE: new Date(2020,11,2)}
+		this.versioning = {VERSION: "2.2.1", DATE: new Date(2020,11,25)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
 		this.secure = this.protocol == "https";
+		
+		//Cesium 3D support?
+		this.enable_3d = window.Cesium != undefined;
 
 		//CSW
 		if(!config.OGC_CSW_BASEURL){
@@ -134,6 +149,7 @@ class OpenFairViewer {
 			about: 'About OpenFairViewer'
 		};
 		this.config.OFV_PROFILE = config.profile? config.profile : defaultProfile;
+		this.config.OFV_CONTAINERID = config.containerId? config.containerId : "body";
 		this.config.OGC_CSW_VERSION = "2.0.2";
 		this.config.OGC_CSW_SCHEMA = "http://www.isotc211.org/2005/gmd";
 		this.config.OGC_CSW_MAXRECORDS = 5;
@@ -189,12 +205,14 @@ class OpenFairViewer {
 		
 		//QUERY options
 		//--------------------------------------------------------------------------------------------------
-		this.options.access = {};
+		//labels
 		this.options.labels = {
 			about : 'About',
 			about_title : 'Welcome',
 			find: 'Find',
 			find_title: 'Find data by browsing the data catalogue',
+			search: 'Search',
+			info: 'Dataset information',
 			access: 'Access',
 			access_title: 'Access and query data',
 			link: 'Link',
@@ -206,7 +224,14 @@ class OpenFairViewer {
 			settings_geom: 'Display dataset extent geometries (if any)',
 			show: 'Show',
 			datasets: 'datasets',
+			datasets_loader: 'Fetching datasets...',
 			datasets_search_placeholder: 'Search a dataset',
+			dataset_access_doi: 'Access resource with DOI',
+			dataset_access_metadata: 'Access dataset metadata',
+			dataset_zoom_extent: 'Zoom to dataset spatial extent',
+			dataset_query_map: 'Query & Map',
+			dataset_query_map_title: 'Query & Map dataset',
+			dataset_remove: 'Remove from map',
 			dsd_loader: 'Fetching data structure definition...',
 			listedvalue_href_placeholder: 'More info...',
 			filtering: 'Filtering',
@@ -221,43 +246,52 @@ class OpenFairViewer {
 			ogc_viewparams: "View parameters",
 			export_options: 'Export options',
 			export_options_prettify: 'Prettify column names',
-			export_options_labels: 'Enrich with data labels'
+			export_options_labels: 'Enrich with data labels',
+			export_options_more: 'More export methods?',
+			tabulardata: "Tabular data",
+			tabulardata_title: 'Open tabular data',
+			dashboard: "Dashboard",
+			dashboard_title: 'Open dashboard',
+			legend_title_show: 'Show legend',
+			legend_title_hide: 'Hide legend',
+			fit_to_extent: 'Fit to extent',
+			nodata: 'Ups! There is no data for this query...',
+			download_data: 'Download data (CSV)',
+			download_map: 'Download map (PNG)',
+			download_rscript: 'Download R Script',
+			download_wfs: 'Get OGC WFS features',
+			basemaps: 'Basemaps',
+			maptype_selector: 'Select a map type',
+			maptype_selector_title: 'Select the type of statistical map',
+			maptype_choropleth: 'Choropleth map',
+			maptype_graduated: 'Graduated symbol map',
+			class_selector: 'Select a classification',
+			class_selector_title: 'Select the type of data interval classification',
+			class_ckmeans: 'Ckmeans clustering',
+			class_equal: 'Equal intervals',
+			class_quantile: 'Quantiles',
+			classnb_selector: 'Select the number of intervals',
+			classnb_selector_title: 'Select the number of data intervals',
+			switchto: 'Switch to',
+			colorscheme_selector: 'Select a color palette',
+			colorscheme_selector_title: 'Select a color palette to apply to data intervals',
+			colorscheme_sequential: 'Sequential',
+			colorscheme_diverging: 'Diverging',
+			colorscheme_singlehue: 'Singlehue'
+			
 		};
+		console.log(Object.keys(this.options.labels));
+		//apply option labels if defined
+		if(options.labels){
+			Object.keys(this.options.labels).forEach(function(label){
+				if(options.labels[label]) this_.options.labels[label] = options.labels[label];
+			});
+		}
 		
+		//Access
+		this.options.access = {};
 		this.options.access.columns = 2;
 		this.options.access.time = 'datePicker';
-		if(options.labels){
-			if(options.labels.about) this.options.labels.about = options.labels.about;
-			if(options.labels.find) this.options.labels.find = options.labels.find;
-			if(options.labels.find_title) this.options.labels.find_title = options.labels.find_title = options.labels.find_title;
-			if(options.labels.access) this.options.labels.access = options.labels.access;
-			if(options.labels.access_title) this.options.labels.access_title = options.labels.access_title;
-			if(options.labels.link) this.options.labels.link = options.labels.link;
-			if(options.labels.link_title) this.options.labels.link_title = options.labels.link_title;
-			if(options.labels.settings) this.options.labels.settings = options.labels.settings;
-			if(options.labels.settings_mapextent) this.options.labels.settings_mapextent = options.labels.settings_mapextent;
-			if(options.labels.settings_mapmove) this.options.labels.settings_mapmove = options.labels.settings_mapmove;
-			if(options.labels.settings_bbox) this.options.labels.settings_bbox = options.labels.settings_bbox;
-			if(options.labels.settings_geom) this.options.labels.settings_geom = options.labels.settings_geom;
-			if(options.labels.show) this.options.labels.show = options.labels.show;
-			if(options.labels.datasets) this.options.labels.datasets = options.labels.datasets;
-			if(options.labels.datasets_search_placeholder) this.options.labels.datasets_search_placeholder = options.labels.datasets_search_placeholder;
-			if(options.labels.dsd_loader) this.options.labels.dsd_loader = options.labels.dsd_loader;
-			if(options.labels.listedvalue_href_placeholder) this.options.labels.listedvalue_href_placeholder = options.labels.listedvalue_href_placeholder;
-			if(options.labels.filtering) this.options.labels.filtering = options.labels.filtering;
-			if(options.labels.attributes) this.options.labels.attributes = options.labels.attributes;
-			if(options.labels.variable) this.options.labels.variable = options.labels.variable;
-			if(options.labels.variables) this.options.labels.variables = options.labels.variables;
-			if(options.labels.thematicmapping) this.options.labels.thematicmapping = options.labels.thematicmapping;
-			if(options.labels.thematicmapping_variable) this.options.labels.thematicmapping_variable = options.labels.thematicmapping_variable;
-			if(options.labels.thematicmapping_options) this.options.labels.thematicmapping_options = options.labels.thematicmapping_options;
-			if(options.labels.ogc_filters) this.options.access.ogc_filters = options.labels.ogc_filters;
-			if(options.labels.ogc_dimensions) this.options.access.ogc_dimensions = options.labels.ogc_dimensions;
-			if(options.labels.ogc_viewparams) this.options.access.ogc_viewparams = options.labels.ogc_viewparams;
-			if(options.labels.export_options) this.options.labels.export_options = options.labels.export_options;
-			if(options.labels.export_options_prettify) this.options.labels.export_options_prettify = options.labels.export_options_prettify;
-			if(options.labels.export_options_labels) this.options.labels.export_options_labels = options.labels.export_options_labels;
-		}	
 		if(options.access){
 			if(options.access.columns){
 				if([1,2].indexOf(options.access.columns) != -1) this.options.access.columns = options.access.columns;
@@ -280,6 +314,14 @@ class OpenFairViewer {
 		//MAP options
 		//--------------------------------------------------------------------------------------------------
 		this.options.map = {};
+		//mode
+		this.options.map.mode = '2D';
+		//controls
+		this.options.map.control_options = {};
+		this.options.map.control_options.loadingpanel = {widget: 'progressbar'};
+		if(options.map) if(options.map.control_options){
+			if(options.map.control_options.loadingpanel) this.options.map.control_options.loadingpanel = options.map.control_options.loadingpanel;
+		}
 		//watermark
 		this.options.map.attribution = null;
 		if(options.map) this.options.map.attribution = options.map.attribution? options.map.attribution : null;
@@ -291,6 +333,7 @@ class OpenFairViewer {
 			{epsgcode: "EPSG:2154", proj4string: "+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"}
 		];
 		if(options.map) {
+			if(options.map.mode) if(['2D', '3D'].indexOf(options.map.mode) != -1) this.options.map.mode = options.map.mode;
 			if(options.map.projection) this.options.map.projection = options.map.projection;
 			if(options.map.proj4defs) for(var p = 0; p < options.map.proj4defs.length; p++) this.options.map.proj4defs.push(options.map.proj4defs[p]);
 			for(var i=0;i<this.options.map.proj4defs.length;i++){
@@ -317,7 +360,7 @@ class OpenFairViewer {
 			}	
 		}
 		//layergroups
-		this.options.map.baselayergroup = {name: "Basemaps", fold: 'open'};
+		this.options.map.baselayergroup = {name: this_.options.labels.basemaps, fold: 'open'};
 		if(options.map) if(options.map.baselayergroup) {
 			this.options.map.baselayergroup = options.map.baselayergroup;
 		}
@@ -334,7 +377,7 @@ class OpenFairViewer {
 		this.options.map.baselayers = [
 			new TileLayer({
 				title: "EMODnet Bathymetry World baselayer",
-				extent: [-180,-90,180,90],
+				//extent: [-180,-90,180,90],
 				type: 'base',
 				source : new WMTS({
 					url : 'https://tiles.emodnet-bathymetry.eu/2020/{Layer}/{TileMatrixSet}/{TileMatrix}/{TileCol}/{TileRow}.png',
@@ -386,6 +429,14 @@ class OpenFairViewer {
 		//overlays
 		this.options.map.overlays = [];
 		if(options.map) if(options.map.overlays) this.options.map.overlays = options.map.overlays;
+		//layer_options
+		this.options.map.layer_options = {};
+		this.options.map.layer_options.tiled = true;
+		this.options.map.layer_options.opacity = 0.9;
+		if(options.map) if(options.map.layer_options){
+			if(options.map.layer_options.tiled) this.options.map.layer_options.tiled = options.map.layer_options.tiled;
+			if(options.map.layer_options.opacity) this.options.map.layer_options.opacity = options.map.layer_options.opacity;
+		}	
 		
 		//aggregate
 		this.options.map.aggregated_layer_suffix = "_aggregated";
@@ -506,6 +557,11 @@ class OpenFairViewer {
 			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
 		}
 		
+		//cesium
+		this.options.cesium = {};
+		this.options.cesium.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZWY1NmQzZS1hNzMyLTRlNDMtOTI3Yi1kZWY5ZWZlM2Q0NDUiLCJpZCI6MzcyMTgsImlhdCI6MTYwNDY3NDAyN30.9tFv8RqF2p-oYLTrp-b5AIg5u721Ohh9psMgSJFMY3s';
+		if(options.cesium) if(options.cesium.accessToken) this.options.cesium.defaultAccessToken = options.cesium.accessToken;
+		
 		//events
 		this.mapEvents = new Array();
 
@@ -531,8 +587,9 @@ class OpenFairViewer {
 		var this_ = this;
 		var deferred = $.Deferred();
 		this.loadTemplate('templates/main.tpl.html', 'mainTpl').then(function(template){
-			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels});
-			if(intro) $("body").append(main);
+			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels, mode: (this_.options.map.mode == '2D'? '3D':'2D')});
+			if(this_.config.OFV_CONTAINERID == 'body') main = '<div class="wrapper">' + main + '</div>';
+			if(intro) $(this_.config.OFV_CONTAINERID == 'body'? 'body' : "#"+this_.config.OFV_CONTAINERID).append(main);
 			deferred.resolve();
 		});
 		return deferred.promise();
@@ -569,12 +626,12 @@ class OpenFairViewer {
 			});
 					
 			//init widgets
-			this_.initDialog("aboutDialog", "Welcome!",{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0);
-			this_.initDialog("findDialog", "Find", {"ui-dialog": "find-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
-			this_.initDialog("accessDialog", "Access", {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
-			this_.initDialog("infoDialog", "Dataset information", {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
-			this_.initDialog("dataDialog", "Tabular data", {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
-			this_.initDialog("dashboardDialog", "Dashboard", {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
+			this_.initDialog("aboutDialog", this_.options.labels.about,{"ui-dialog": "about-dialog", "ui-dialog-title": "dialog-title"}, null, 0);
+			this_.initDialog("findDialog", this_.options.labels.find, {"ui-dialog": "find-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 1);
+			this_.initDialog("accessDialog", this_.options.labels.access, {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
+			this_.initDialog("infoDialog", this_.options.labels.info, {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
+			this_.initDialog("dataDialog", this_.options.labels.tabulardata, {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
+			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
 
 			this_.closeAccessDialog();
 			this_.closeDataDialog();
@@ -667,6 +724,9 @@ class OpenFairViewer {
 		url += '?';
 		if(this.dataset_on_query) url += 'dataset=' + this.dataset_on_query.pid;
 		
+		//mode
+		url += '&mode=' + (this.enable_3d? (this.ol3d.getEnabled()? '3D' : '2D') : '2D');
+		
 		//baseview
 		var baseview = this.map.getLayers().getArray()[0].getLayersArray().filter(function(item){return item.getVisible()})[0];
 		url += '&baseview=' + encodeURIComponent(baseview.getProperties().title);
@@ -694,6 +754,7 @@ class OpenFairViewer {
 						if(viewlayer.envfun) encoded_view += 'fun=' + viewlayer.envfun + ',';
 						if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 						if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
+						if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
 						if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
 						if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					}
@@ -710,6 +771,7 @@ class OpenFairViewer {
 					if(viewlayer.envfun) encoded_view += 'fun=' + viewlayer.envfun + ',';
 					if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 					if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
+					if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
 					if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
 					if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					break;
@@ -1242,12 +1304,16 @@ class OpenFairViewer {
 	 * @param geom
 	 * @param variable
 	 * @param breaks
+	 * @param colors
 	 */
-	buildEnvParams(geom, variable, breaks){
+	buildEnvParams(geom, variable, breaks, colors){
 	    var envparams = "geom:"+ geom +";var:"+variable+";";
 	    for(var i=1;i<=breaks.length;i++){
-		envparams += "v"+ i +":"+ breaks[i-1] + ";";
+			envparams += "v"+ i +":"+ breaks[i-1] + ";";
 	    }
+		for(var i=1;i<=colors.length;i++){
+			envparams += "c"+ i +":"+ colors[i-1] + ";";
+		}
 	    return envparams;
 	}
 
@@ -1258,7 +1324,7 @@ class OpenFairViewer {
 	 */
 	getDatasetViewTitle(dataset, strategyparams){
 		var this_ = this;
-		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="Remove from map" '
+		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="'+this_.options.labels.dataset_remove+'" '
 		layerTitle += 'onclick="'+this_.config.OFV_ID+'.unselectDataset(this)"> X </button>';
 		layerTitle += '<span>'+dataset.entry.title+'</span>';
 
@@ -1458,6 +1524,7 @@ class OpenFairViewer {
 			style : this_.options.find.defaultStyle
 		});
 		feature.setId(dataset.pid);
+		feature.ol_uid = dataset.pid;
 		
 		return feature;
 	}
@@ -1469,6 +1536,7 @@ class OpenFairViewer {
 	buildSpatialCoverageDataset(datasets, extended){
 		var this_ = this;
 		var features = datasets.map(function(dataset,i){return this_.buildSpatialCoverageFeature(dataset, extended)});
+		features = features.filter(function(feature){if(typeof feature != "undefined") return feature;});
 		return features;
 	}
 	
@@ -1483,7 +1551,7 @@ class OpenFairViewer {
 		
 		var layerId = 'ofv-csw-spatial-coverages';
 		var layer = this.getLayerByProperty(layerId, 'id');
-		var source = new Vector({ features: features });
+		var source = new Vector({features: features});
 		if(!layer){
 			var layer = new VectorLayer({
 				id: undefined, title: undefined,
@@ -1550,17 +1618,20 @@ class OpenFairViewer {
 	 * @param bbox
 	 */
 	createFilter(bbox){
-		
+		var this_ = this;
 		//base filter
-		//var filter = new Ows4js.Filter().PropertyName(['dc:type']).isLike('dataset');
-		var filter = undefined;
+		//on all dc types
+		var dctypes = ['dataset', 'nonGeographicDataset', 'sensor', 'sensorSeries', 'platformSeries', 'productionSeries', 'series', 'transferAggregate', 'otherAggregate'];
+		var filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, dctypes.map(function(dctype){
+			return new IsLike(this_.config.OGC_FILTER_VERSION, this_.config.OGC_FILTER_SCHEMAS, 'dc:type', dctype);
+		}));
 		for(var i=0;i<this.options.find.filters.length;i++){
 			var inputFilter = this.options.find.filters[i];
 			var cswFilter = new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, inputFilter.name, inputFilter.value);
 			if(typeof filter == 'undefined'){
 				filter = cswFilter;
 			}else{
-				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, filter, cswFilter);
+				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, cswFilter]);
 			}
 		}
 		
@@ -1569,20 +1640,23 @@ class OpenFairViewer {
 		if(txt != ""){
 			txt = '%'+txt+'%';
 			var txtFilter = new Or(
-				this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS,
-				new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:title', txt),
-				new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:subject', txt)
+				this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [
+					new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:title', txt),
+					new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'dc:subject', txt)
+				]
 			)
 			if(typeof filter == 'undefined'){
 				filter = txtFilter;
 			}else{
-				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, filter, txtFilter);
+				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, txtFilter]);
 			}
 		}
 		
 		//spatial filter
 		if(bbox){
-			filter = filter.and(new BBOX(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326'));
+			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [
+				filter, new BBOX(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326')
+			]);
 		}
 		return filter;
 	}
@@ -1609,7 +1683,7 @@ class OpenFairViewer {
 	getDatasetsFromCSWPage(maxrecords, page){
 		var this_ = this;
 		$("#dataset-articles").empty();
-		$("#dataset-articles").html('<p id="dataset-loader" class="loader-generic loader-generic-wide"><br /><br /><br />Fetching datasets...</p>');
+		$("#dataset-articles").html('<p id="dataset-loader" class="loader-generic loader-generic-wide"><br /><br /><br />'+this_.options.labels.datasets_loader+'</p>');
 		$("#dataset-loader").show();
 		
 		var thebbox = null;
@@ -1635,6 +1709,7 @@ class OpenFairViewer {
 			for(var i=0;i<records.length;i++){
 			  var record = records[i];
 			  record.OFV_ID = this_.config.OFV_ID;
+			  record.labels = this_.options.labels;
 			  this_.cacheDataset(record);
 			  var item_html = mustache.render(template, record);
 			  dataHtml += item_html;
@@ -1649,7 +1724,7 @@ class OpenFairViewer {
 			this_.setSpatialCoverageLayer(records, extended, visible);
 			$("article").each(function(i,item){$(item).on('mouseenter', function(evt){
 				var vectorLayer = this_.getLayerByProperty("ofv-csw-spatial-coverages", "id");
-				var vectorFeature = vectorLayer.getSource().getFeatureById($(item).context.id);
+				var vectorFeature = vectorLayer.getSource().getFeatureById($(item)[0].id);
 				if(vectorFeature && $("#dataset-spatial-coverage-visible").is(":checked")){
 					var select = this_.map.getInteractions().getArray().filter(function(item){return item instanceof olInteraction.Select});
 					if(select.length>0) select = select[0];
@@ -1660,7 +1735,7 @@ class OpenFairViewer {
 			})});
 			$("article").each(function(i,item){$(item).on('mouseleave', function(evt){
 				var vectorLayer = this_.getLayerByProperty("ofv-csw-spatial-coverages", "id");
-				var vectorFeature = vectorLayer.getSource().getFeatureById($(item).context.id);
+				var vectorFeature = vectorLayer.getSource().getFeatureById($(item)[0].id);
 				if(vectorFeature && $("#dataset-spatial-coverage-visible").is(":checked")){
 					var select = this_.map.getInteractions().getArray().filter(function(item){return item instanceof olInteraction.Select});
 					if(select.length>0) select = select[0];
@@ -1708,7 +1783,7 @@ class OpenFairViewer {
 				}
 
 				//add datasets counting
-				$("#dataset-count").html(maxNb + " datasets");
+				$("#dataset-count").html(maxNb + " " + this_.options.labels.datasets);
 				//Set paginated browsing operated by OGC CSW protocol
 				$("#dataset-pages").bootpag({
 					total: Math.ceil(maxNb / maxrecords)
@@ -1825,9 +1900,13 @@ class OpenFairViewer {
 		var srs_data = dataset.projection;
 		var srs_map = this.map.getView().getProjection();
 		if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
+			console.log("Dataset projection:");
+			console.log(srs_data);
+			console.log("Map projection:");
+			console.log(srs_map);
 			console.log("Dataset projection ('"+srs_data+"') differs from map projection ('"+srs_map+"'). Reprojecting bounding box!");
 			console.log("Coordinates (source) = ["+ coords + "]")
-			var extentGeom = olGeom.Polygon.fromExtent(coords);
+			var extentGeom = fromExtent(coords);
 			extentGeom.transform(srs_data, srs_map);
 			coords = extentGeom.getExtent();
 			console.log("Coordinates (reprojected) = ["+ coords + "]")
@@ -1880,7 +1959,8 @@ class OpenFairViewer {
 		var this_ = this;
 		var pid = elm.getAttribute('data-pid');
 		console.log("Unselect dataset with pid = " + pid);
-		var thepid = this.dataset_on_query.pid;
+		var thepid = null;
+		if(this.dataset_on_query) thepid = this.dataset_on_query.pid;
 		var out = false;
 		var len1 = this.selection.length;
 		this.selection = this.selection.filter(function(i,data){if(data.pid != pid){return data}});
@@ -2064,6 +2144,7 @@ class OpenFairViewer {
 	 * @param {Object} dataset
 	 */
 	handleQueryForm(dataset){
+		console.log(dataset);
 		$("#dsd-ui").empty();
 		if(dataset.dsd){
 			console.log("Handle DSD Query Form for dataset with pid = " + dataset.pid );
@@ -2083,27 +2164,27 @@ class OpenFairViewer {
 		//Query and mapbutton
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
-		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="Query & Map!" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">Query & Map</button>');
-		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">Ups! There is no data for this query...</span>');
+		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="'+this_.options.labels.dataset_query_map_title+'" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">'+this_.options.labels.dataset_query_map+'</button>');
+		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">'+this_.options.labels.nodata+'</span>');
 				
 		//download buttons
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
 		if(this.dataset_on_query.entry.wfs){
 			//tabular viewer
-			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="Open tabular data" onclick="'+this_.config.OFV_ID+'.displayTabularDataset()"></button>';
+			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="'+this_.options.labels.tabulardata_title+'" onclick="'+this_.config.OFV_ID+'.displayTabularDataset()"></button>';
 			$("#dsd-ui-buttons").append(button_tabulardata);
 			//dashboard
 			if(this.options.access.dashboard.enabled) if(this.options.access.dashboard.handler){ 
 				console.log("dashboard");
-				var button_dashboard = '<button type="button" id="dsd-ui-button-dashboard" class="btn data-action-button data-dashboard" title="Access dashboard" onclick="'+this_.config.OFV_ID+'.accessDatasetDashboard()"></button>';
+				var button_dashboard = '<button type="button" id="dsd-ui-button-dashboard" class="btn data-action-button data-dashboard" title="'+this_.options.labels.dashboard_title+'" onclick="'+this_.config.OFV_ID+'.accessDatasetDashboard()"></button>';
 				$("#dsd-ui-buttons").append(button_dashboard);
 			}
 			//data download
-			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="Download raw data (CSV)" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV(false)"></button>';
+			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="'+this_.options.labels.download_data+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV(false)"></button>';
 			$("#dsd-ui-buttons").append(button_csv_raw);
 		}
-		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="Download map (PNG)" onclick="'+this_.config.OFV_ID+'.downloadMapPNG()"></button>';
+		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="'+this_.options.labels.download_map+'" onclick="'+this_.config.OFV_ID+'.downloadMapPNG()"></button>';
 		$("#dsd-ui-buttons").append(button_png_map);
 		
 		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;display:none;"></div>');
@@ -2115,10 +2196,10 @@ class OpenFairViewer {
 		//option to enrich with data labels
 		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_labels+'</label></div>';
 		
-		export_options += '<span style="margin-top:10px;">More export methods?</span>';
+		export_options += '<span style="margin-top:10px;">'+this_.options.labels.export_options_more+'</span>';
 		export_options += '<div class="data-export-buttons">';
-		export_options += '<button type="button" id="dataset-export-option-wfs" class="btn data-action-button data-wfs" title="Get OGC WFS features" onclick="'+this_.config.OFV_ID+'.downloadDatasetWFS()"></button>';
-		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="Download R Script" onclick="'+this_.config.OFV_ID+'.downloadDatasetRScript()"></button>';
+		export_options += '<button type="button" id="dataset-export-option-wfs" class="btn data-action-button data-wfs" title="'+this_.options.labels.download_wfs+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetWFS()"></button>';
+		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="'+this_.options.labels.download_rscript+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetRScript()"></button>';
 		export_options += '</div>';
 		export_options += '</fieldset>';
 		export_options += '</div>';
@@ -2155,19 +2236,19 @@ class OpenFairViewer {
 		//id
 		var map_type_id = "map-type-selector";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_type_id+'" class="dsd-ui-dimension" title="Select the type of statistical map"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_type_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.maptype_selector_title+'"></select>');
 		//jquery widget
 		var formatMaptype = function(item) {
 			if (!item.id) { return item.text; }
 			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
 			return $item;
 		};
-		var map_type_placeholder = 'Select a map type';
+		var map_type_placeholder = this_.options.labels.maptype_selector;
 		$("#" + map_type_id).select2({
 			theme: 'classic',
 			allowClear: false,
 			placeholder: map_type_placeholder,
-			data: [{id:'choropleth', text: 'Choropleth map'},{id:'graduated', text: 'Graduated symbols map'}],
+			data: [{id:'choropleth', text: this_.options.labels.maptype_choropleth},{id:'graduated', text: this_.options.labels.maptype_graduated}],
 			templateResult: formatMaptype,
 			templateSelection: formatMaptype
 		});
@@ -2179,37 +2260,37 @@ class OpenFairViewer {
 		//id
 		var map_classtype_id = "map-classtype-selector";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="Select the type of data interval classification"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classtype_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.class_selector_title+'"></select>');
 		//jquery widget
 		var formatClasstype = function(item) {
 			if (!item.id) { return item.text; }
 			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
 			return $item;
 		};
-		var map_classtype_placeholder = 'Select a classification';
+		var map_classtype_placeholder = this_.options.labels.class_selector;
 		$("#" + map_classtype_id).select2({
 			theme: 'classic',
 			allowClear: false,
 			placeholder: map_classtype_placeholder,
-			data: [{id:'ckmeans', text: 'Ckmeans clustering'},{id:'equal', text: 'Equal intervals'},{id:'quantile', text: 'Quantiles'}],
+			data: [{id:'ckmeans', text: this_.options.labels.class_ckmeans},{id:'equal', text: this_.options.labels.class_equal},{id:'quantile', text: this_.options.labels.class_quantile}],
 			templateResult: formatClasstype,
 			templateSelection: formatClasstype
 		});
 		$("#" + map_classtype_id).val("ckmeans").trigger("change");
-
+		
 		//Number of class intervals
 		//-------------------------
 		//id
 		var map_classnb_id = "map-classnb-selector";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="Select the number of data intervals"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_classnb_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.classnb_selector_title+'"></select>');
 		//jquery widget
 		var formatClassnb = function(item) {
 			if (!item.id) { return item.text; }
 			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
 			return $item;
 		};
-		var map_classnb_placeholder = 'Select the number of intervals';
+		var map_classnb_placeholder = this_.options.labels.classnb_selector;
 		$("#" + map_classnb_id).select2({
 			theme: 'classic',
 			allowClear: false,
@@ -2219,6 +2300,64 @@ class OpenFairViewer {
 			templateSelection: formatClassnb
 		});
 		$("#" + map_classnb_id).val("5").trigger("change");
+		
+		//Color palettes
+		//-------------------
+		//id
+		var map_colorscheme_id = "map-colorscheme-selector";
+		//html
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select>');
+		//jquery widget
+		var formatColorscheme = function(item){
+			if(!item.id) { return item.text; };
+			var $item = $('<span title="'+item.text+'">'+item.svg+' <em>('+item.text+')</em></span>');
+			return $item;
+		};
+		var map_colorscheme_placeholder = this_.options.labels.colorscheme_selector;
+		var getPaletteAsSVG = function(id){
+			var classnb = parseInt($("#map-classnb-selector").val());
+			var colors = colorbrewer[id][classnb];		
+			var sq_width = 15;
+			var sq_height = 15;
+			var svg = '<svg width="'+sq_width*classnb+'" height="'+sq_height+'" style="vertical-align:middle;">';
+			var colorHeight = 0;
+			colors.forEach(function(color){ 
+				svg += '<rect fill="'+color+'" width="'+sq_width+'" height="'+sq_height+'" x="'+colorHeight+'"></rect>';
+				colorHeight = colorHeight + sq_width;
+			});
+			svg += '</svg>';
+			return svg;
+		}
+		var initColorschemeSelector = function(){
+			$("#"+ map_colorscheme_id).select2({
+				theme: 'classic',
+				allowClear: false,
+				placeholder: map_colorscheme_placeholder,
+				data: Object.keys(colorbrewer.schemeGroups).splice(0,3).map(function(schemeGroup){
+					return { 
+						text: this_.options.labels['colorscheme_' + schemeGroup], 
+						children: colorbrewer.schemeGroups[schemeGroup].map(function(item){
+							return {id: item, text: item, svg: getPaletteAsSVG(item)}
+						}) 
+					} 
+				}),
+				templateResult: formatColorscheme,
+				templateSelection: formatColorscheme
+			});
+		}
+		initColorschemeSelector();
+		$("#" + map_colorscheme_id).val("Reds").trigger("change");
+		//events related to colorscheme selection
+		$("#" + map_classnb_id).on('select2:select', function (e) { 
+			initColorschemeSelector();
+		});
+		$("#" + map_type_id).on('select2:select', function(e) {
+			if(e.target.value == 'choropleth'){
+				$("#" + map_colorscheme_id).next(".select2-container").show();
+			}else{
+				$("#" + map_colorscheme_id).next(".select2-container").hide();
+			}
+		});
 	}
 
 	/**
@@ -2232,8 +2371,7 @@ class OpenFairViewer {
 		var this_ = this;
 		var pid = dataset.pid;
 		var entry = dataset.entry? dataset.entry : dataset;
-		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null, thematicmapping: false};
-				
+		this.dataset_on_query = {pid: pid, entry: entry, strategy: "ogc_filters", dsd: null, query: null, thematicmapping: false};	
 		
 		//build UI
 		var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
@@ -2501,7 +2639,8 @@ class OpenFairViewer {
 														maxDate:endRange.val()?endRange.val():false
 													})
 												}
-											}); startRange.val(time_start.toISOString().split('T')[0]);
+											});
+											//startRange.val(time_start.toISOString().split('T')[0]);
 											endRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												formatDate:'Y-d-m',
@@ -2512,14 +2651,16 @@ class OpenFairViewer {
 														minDate:startRange.val()?startRange.val():false
 													})
 												}
-											}); endRange.val(time_end.toISOString().split('T')[0]);
+											});
+											//endRange.val(time_end.toISOString().split('T')[0]);
 											break;
 										case "ogc_viewparams":
 											startRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												yearStart: time_start.getFullYear(), yearEnd: time_end.getFullYear(),
 												format:'Y-d-m', timepicker:false
-											}); startRange.val(time_start.toISOString().split('T')[0]); break;
+											});
+											//startRange.val(time_start.toISOString().split('T')[0]); break;
 									}
 								}else if(dsd_component.primitiveType == "xsd:datetime"){
 									switch(dsd.strategy){
@@ -2533,7 +2674,8 @@ class OpenFairViewer {
 														maxDate:endRange.val()?endRange.val():false
 													})
 												}
-											}); startRange.val(time_start.toISOString().replace('T', ' '));
+											});
+											//startRange.val(time_start.toISOString().replace('T', ' '));
 											endRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												formatDate:'Y-d-m',
@@ -2543,14 +2685,16 @@ class OpenFairViewer {
 														minDate:startRange.val()?startRange.val():false
 													})
 												}
-											}); endRange.val(time_end.toISOString().replace('T', ' '));
+											});
+											//endRange.val(time_end.toISOString().replace('T', ' '));
 											break;
 										case "ogc_viewparams":
 											startRange.datetimepicker({
 												minDate: time_start, maxDate: time_end,
 												formatDate:'Y-d-m',
 												formatTime: 'HH:mm:ss'
-											}); startRange.val(time_start.toISOString().replace('T', ' ')); break;
+											});
+											//startRange.val(time_start.toISOString().replace('T', ' ')); break;
 									}
 								}
 								
@@ -2634,7 +2778,7 @@ class OpenFairViewer {
 					//id
 					var dsd_variables_id = "dsd-ui-dimension-variable";
 					//html
-					$("#dsd-ui-col-2").append('<select id = "'+dsd_variables_id+'" class="dsd-ui-dimension dsd-ui-dimension-variable" title="Select a variable"><option></option></select>');
+					$("#dsd-ui-col-2").append('<select id = "'+dsd_variables_id+'" class="dsd-ui-dimension dsd-ui-dimension-variable" title="'+this_.options.labels.thematicmapping_variable+'"><option></option></select>');
 					$("#" + dsd_variables_id).select2({
 						theme: 'classic',
 						allowClear: true,
@@ -2690,7 +2834,6 @@ class OpenFairViewer {
 								filter = '(' + fieldname +' AFTER '+ item_values[0] + ' AND ' + fieldname + ' BEFORE ' + item_values[1] +')';
 								break;
 						}
-						console.log(filter);
 						return filter;
 					}).join(' AND ');
 				}else{
@@ -2719,7 +2862,6 @@ class OpenFairViewer {
 							viewparam = fieldname + ':' + item_values[0];
 							break;
 					}
-					console.log(viewparam);
 					return viewparam;
 				}).join(';');
 				break;	
@@ -2886,6 +3028,9 @@ class OpenFairViewer {
 	mapDataset(dataset, from_query_form){
 		var this_ = this;
 
+		var opacity = this_.options.map.layer_options.opacity;
+		var tiled = this_.options.map.layer_options.tiled;
+		
 		var pid = dataset.pid;
 		
 		$("#datasetMapper").prop('disabled', true);
@@ -2925,8 +3070,9 @@ class OpenFairViewer {
 		//thematic mapping properties
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
+		var colorScheme = from_query_form? $("#map-colorscheme-selector").select2('val') : dataset.envcolscheme;
 		
-		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="") return item}).length-3 : null);
+		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="" && item.startsWith("v")) return item}).length-2 : null);
 		var layerStyle =  from_query_form? this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb) : dataset.style;
 
 		if(!layer){
@@ -2954,20 +3100,21 @@ class OpenFairViewer {
 								breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
 							}
 							
 							this_.selectDataset(pid);
-							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
+							var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 							layer.variable = strategyvariable;
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
+							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							this_.addLayerPopup(layer);
-							this_.setLegendGraphic(layer, breaks);	
+							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
 							this_.map.changed();
 							this_.renderMapLegend();
 							$("#datasetMapper").bootstrapBtn('reset');
@@ -3003,7 +3150,7 @@ class OpenFairViewer {
 						//static styling
 						console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
 						this_.selectDataset(pid);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -3011,6 +3158,7 @@ class OpenFairViewer {
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
+						layer.envcolscheme = null;
 						layer.count = null;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -3032,11 +3180,19 @@ class OpenFairViewer {
 					var cql_filter = null;
 					if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 					this_.selectDataset(pid);
-					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, cql_filter, null, null, null, null, null);
+					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, null, null, null, null, null);
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.variable = null;
+					layer.envfun = null;
+					layer.envmaptype = null;
+					layer.envcolscheme = null;
+					layer.count = null;
 					this_.addLayerPopup(layer);
+					this_.setLegendGraphic(layer);
+					this_.map.changed();
+					this_.renderMapLegend();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -3076,19 +3232,20 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
 						}
 						this_.selectDataset(pid);
-						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
+						var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
 						layer.variable = strategyvariable;
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
+						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length: null;
 						this_.addLayerPopup(layer);
-						this_.setLegendGraphic(layer, breaks);	
+						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
 						this_.map.changed();
 						this_.renderMapLegend();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -3123,7 +3280,7 @@ class OpenFairViewer {
 					console.log("Add layer with strategy 'ogc_viewparams' (static styling)");
 					//static styling
 					this_.selectDataset(pid);
-					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, 0.9, false, null, null,strategyparams_str);
+					var layer = this_.addLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
@@ -3131,6 +3288,7 @@ class OpenFairViewer {
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
+					layer.envcolscheme = null;
 					layer.count = null;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
@@ -3175,7 +3333,7 @@ class OpenFairViewer {
 								var breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
 							}
 							
 							//update viewparams, envparams & legend
@@ -3193,8 +3351,9 @@ class OpenFairViewer {
 							layer.variable = strategyvariable;
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
+							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
-							this_.setLegendGraphic(layer, breaks);
+							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
 							this_.map.changed();
 							this_.renderMapLegend();
 							$("#datasetMapper").bootstrapBtn('reset');
@@ -3242,6 +3401,7 @@ class OpenFairViewer {
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
+						layer.envcolscheme = null;
 						layer.count = null;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -3308,7 +3468,7 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(geom, strategyvariable, breaks);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
 						}
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
@@ -3325,8 +3485,9 @@ class OpenFairViewer {
 						if(envparams) layer.getSource().updateParams({'env' : envparams});
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
+						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length : null;
-						this_.setLegendGraphic(layer, breaks);
+						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
 						this_.map.changed();
 						this_.renderMapLegend();
 						$("#datasetMapper").bootstrapBtn('reset');
@@ -3370,6 +3531,7 @@ class OpenFairViewer {
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
+					layer.envcolscheme = null;
 					layer.count = null;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
@@ -3698,7 +3860,6 @@ class OpenFairViewer {
 		$.get(layerUrl, function(response){
 			var features = new olFormat.WFS().readFeatures(response);
 			console.log(features);
-			console.log( new olFormat.WFS());
 			var featuresToExport = new Array();
 			for(var i=0;i<features.length;i++){
 				var feature = features[i];
@@ -3936,8 +4097,6 @@ class OpenFairViewer {
 						//case of geometry
 						if(meta.col == data_columns.indexOf('geometry')){
 							var wkt = data;
-							console.log(meta.col);
-							console.log(wkt);
 							if(wkt != "–"){
 								var button_id_zoom = 'zoom_feature-'+row[0];
 								var button_id_disp = 'display_feature'+row[0];
@@ -4135,6 +4294,22 @@ class OpenFairViewer {
 		var this_ = this;
 		this_.map = this_.initMap('map', true, false);
 		
+		if(this_.enable_3d){
+			Cesium.Ion.defaultAccessToken = this.options.cesium.defaultAccessToken;
+			this_.ol3d = new OLCesium({
+			  map: this_.map,
+			  time() {
+				return Cesium.JulianDate.now();
+			  }
+			});
+			const scene = this_.ol3d.getCesiumScene();
+			scene.terrainProvider = Cesium.createWorldTerrain();
+			this_.ol3d.setEnabled(this_.options.map.mode == '3D'? true : false);
+			this_.ol3d.enableAutoRenderLoop();
+		}else{
+			$("#map-olcesium-switcher").hide();
+		}
+		
 		$($("li[data-where='#pageMap']")).on("click", function(e){
 			$($("#map").find("canvas")).show();
 		});
@@ -4171,6 +4346,21 @@ class OpenFairViewer {
 			resolutions: resolutions,
 			matrixIds: matrixIds
 		});				
+	}
+	
+	/**
+	 * switchMapView
+	 * Switches from 2D to 3D and vice-versa
+	 */
+	switchMapView(){
+		var this_ = this;
+		if(this.ol3d.getEnabled()){
+			this.ol3d.setEnabled(false);
+			$("#map-olcesium-switcher-to").html('3D');
+		}else{
+			this.ol3d.setEnabled(true);
+			$("#map-olcesium-switcher-to").html('2D');
+		}
 	}
 	
 	/**
@@ -4223,9 +4413,9 @@ class OpenFairViewer {
 			target : mapId,
 			layers : this_.layers.baseLayers.concat(this_.layers.overlays),
 			view : new View({
-				projection: this_.options.map.projection,
+				projection: (this_.enable_3d? undefined : this_.options.map.projection),
 				center : defaultMapExtent? olExtent.getCenter(defaultMapExtent) : [0,0],
-				extent: defaultMapExtent,
+				extent: (this_.enable_3d? undefined : defaultMapExtent),
 				zoom : defaultMapZoom
 			}),
 			controls: [],
@@ -4239,8 +4429,8 @@ class OpenFairViewer {
 			undefinedHTML: 'Lat: - Lon: -'
  		}));
 		
-		//TODO
-		//map.addControl( new ol.control.LoadingPanel() );
+		//Loading panel
+		map.addControl( new LoadingPanel(this_.options.map.control_options.loadingpanel) );
 		
 		/*map.addControl( new OverviewMap({
 			className: 'ol-overviewmap ol-custom-overviewmap',
@@ -4262,7 +4452,7 @@ class OpenFairViewer {
 			extent	: extent? extent : defaultMapExtent,
 			zoom	: defaultMapZoom,
 			label : '',
-			tipLabel: 'Fit to extent'
+			tipLabel: this_.options.labels.fit_to_extent
 		}));
 		
 		//TODO
@@ -4271,8 +4461,8 @@ class OpenFairViewer {
 		if(main){
 			map.addControl( new OpenFairLayerSwitcher({
 				activationMode: 'click',
-				tipLabel: 'Show legend', // Optional label for button
-				collapseTipLabel: 'Hide legend', // Optional label for button
+				tipLabel: this_.options.labels.legend_title_show, // Optional label for button
+				collapseTipLabel: this_.options.labels.legend_title_hide, // Optional label for button
 				collapseLabel: ''
 			}));
 		}      
@@ -4297,7 +4487,7 @@ class OpenFairViewer {
 			
 			//manage the display of watermark (logo)
 			var attMaps = map.getTargetElement().getElementsByClassName("ol-attribution-map");
-			if( attMaps.length > 0) attMaps[0].getElementsByTagName("li")[0].innerHTML = this.options.map.attribution;
+			if( attMaps.length > 0) $(attMaps[0].getElementsByTagName("ul")[0]).append('<li>'+this_.options.map.attribution+'</li>');
 			
 			//hack to remove the baselayer attribution that for some reason is also added to the ol-attribution-map
 			//while explicitely referenced on ol-attribution-baselayer (to investigate if there is a cleaner solution)
@@ -4321,22 +4511,21 @@ class OpenFairViewer {
 				this_.displayDatasets(maxrecords, bbox); 
 			}
 		});
-
-		
+	
 		return map;
 	}
 	
 	renderMapLegend(){
-		var layerswitcher = this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0];
-		layerswitcher.renderPanel();
+		this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0].renderPanel();
 	}
 	
 	/**
 	 * setLegendGraphic Set legend graphic
 	 * @param {ol/Layer} lyr layer object
 	 * @param {Array} breaks an array of break values
+	 * @param {Array} colors
 	 */	 
-	setLegendGraphic(lyr, breaks) {
+	setLegendGraphic(lyr, breaks, colors) {
 		var this_ = this;
 		var source = lyr.getSource();
 		if( source instanceof TileWMS | source instanceof ImageWMS ){
@@ -4355,6 +4544,17 @@ class OpenFairViewer {
 			request += '&FORMAT=image/png';
 			request += '&TRANSPARENT=true';
 			request += '&WIDTH=30';
+			
+			if(colors){
+				request += '&env=';
+				var colreq = '';
+				for(var i=1;i<=colors.length;i++){
+					colreq += "c"+ i +":"+ colors[i-1] + ";";
+				}
+				request += encodeURIComponent(colreq);
+			}
+			
+			console.log(request);
 
 			//case of dynamic maps
 		 	if(breaks){
@@ -4408,6 +4608,7 @@ class OpenFairViewer {
 							dy = breakPt*(i+1) + breakSpace*i + palYStart;
 						} 
 						lyr.legendGraphic = canvas.toDataURL("image/png");
+						this_.renderMapLegend();
 				    }
 				};	
 			}else{
@@ -4586,6 +4787,8 @@ class OpenFairViewer {
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
+						var envcolscheme = datasetDef.envcolscheme;
+						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change'); 
 						break;
 					
 					case "ogc_dimensions":
@@ -4646,6 +4849,8 @@ class OpenFairViewer {
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
+						var envcolscheme = datasetDef.envcolscheme;
+						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change'); 
 						break;
 				}
 			}
@@ -4676,6 +4881,13 @@ class OpenFairViewer {
 		//url params
 		var params = this_.getAllUrlParams();
 		console.log(params);
+		
+		//mode
+		if(params.mode){
+			if(params.mode != this.options.map.mode){
+				this.switchMapView();
+			}
+		}
 		
 		//baseview
 		if(params.baseview){
@@ -4769,6 +4981,7 @@ class OpenFairViewer {
 				var envfun = encoded_view_obj.fun;
 				var envmaptype = encoded_view_obj.maptype;
 				var envparams = encoded_view_obj.env;
+				var envcolscheme = encoded_view_obj.cs;
 				var count = encoded_view_obj.count;
 				var style = encoded_view_obj.style;	
 				var query = encoded_view_obj.q == "true";
@@ -4779,7 +4992,8 @@ class OpenFairViewer {
 				}
 				encoded_datasets.push({
 					pid: pid, strategy: strategy, queryparams : queryparams, 
-					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, count : count, breaks: breaks, style: style, 
+					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, envcolscheme: envcolscheme, 
+					count : count, breaks: breaks, style: style, 
 					query: query, thematicmapping: (variable? true : false)
 				});
 			}

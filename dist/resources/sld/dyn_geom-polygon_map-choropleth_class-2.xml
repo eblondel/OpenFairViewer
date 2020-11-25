@@ -42,8 +42,14 @@
                     </ogc:Filter>
                     <sld:PolygonSymbolizer>
                         <sld:Fill>
-                            <sld:CssParameter name="fill">#fc9272</sld:CssParameter>
-                            <sld:CssParameter name="fill-opacity">0.7</sld:CssParameter>
+                            <!--<sld:CssParameter name="fill">#fc9272</sld:CssParameter>-->
+                          	<sld:CssParameter name="fill">
+                               <ogc:Function name="env">
+                                   <ogc:Literal>c1</ogc:Literal>
+								   <ogc:Literal>#fc9272</ogc:Literal>    
+							   </ogc:Function>
+                           </sld:CssParameter>
+                            <sld:CssParameter name="fill-opacity">0.8</sld:CssParameter>
                         </sld:Fill>
                     </sld:PolygonSymbolizer>
                 </sld:Rule>
@@ -81,8 +87,14 @@
                     </ogc:Filter>
                     <sld:PolygonSymbolizer>
                         <sld:Fill>
-                            <sld:CssParameter name="fill">#de2d26</sld:CssParameter>
-                            <sld:CssParameter name="fill-opacity">0.7</sld:CssParameter>
+                            <!--<sld:CssParameter name="fill">#de2d26</sld:CssParameter>-->
+                          	<sld:CssParameter name="fill">
+                               <ogc:Function name="env">
+                                   <ogc:Literal>c2</ogc:Literal>
+								   <ogc:Literal>#de2d26</ogc:Literal>    
+							   </ogc:Function>
+                           </sld:CssParameter>
+                            <sld:CssParameter name="fill-opacity">0.8</sld:CssParameter>
                         </sld:Fill>
                     </sld:PolygonSymbolizer>
                 </sld:Rule>
