@@ -1,7 +1,7 @@
 import Control from 'ol/control/Control';
 import { unByKey } from 'ol/Observable';
 import LayerSwitcher from 'ol-layerswitcher';
-import 'ol-layerswitcher/src/ol-layerswitcher.css';
+import 'ol-layerswitcher/dist/ol-layerswitcher.css';
 
 var CSS_PREFIX = 'layer-switcher-';
 
