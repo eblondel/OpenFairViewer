@@ -130,7 +130,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.2.1", DATE: new Date(2020,11,25)}
+		this.versioning = {VERSION: "2.2.0", DATE: new Date(2020,11,26)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -2439,8 +2439,20 @@ class OpenFairViewer {
 				//build UI
 				var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
 				$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
-				$("#dsd-ui-header").append('<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>');
-
+				//acccess dataset header
+				var accessHeader = '<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5><br>'; accessHeader += '<div>';
+				//button-->doi
+				if(entry.doi){
+					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-doi" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_doi+'" onclick="'+this_.config.OFV_ID+'.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>';
+				}
+				//button-->info (metadata)
+				accessHeader += '<button class="btn btn-xs dataset-button dataset-button-info" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_metadata+'" onclick="'+this_.config.OFV_ID+'.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>';
+				//button-->zoom
+				accessHeader += '<button class="btn btn-xs dataset-button dataset-button-zoom" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_zoom_extent+'" onclick="'+this_.config.OFV_ID+'.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>';
+				accessHeader += '</div></div>';
+				$("#dsd-ui-header").append(accessHeader);
+	
+				//access dataset query form
 				$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDataset('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
 				$(document).on('submit', '#dsd-ui-body', function(event) {
 					event.preventDefault();
