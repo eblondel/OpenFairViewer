@@ -3129,6 +3129,7 @@ class OpenFairViewer {
 							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
 							this_.map.changed();
 							this_.renderMapLegend();
+							this_.showLegendPanel();
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 								
@@ -3175,6 +3176,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
@@ -3205,6 +3207,7 @@ class OpenFairViewer {
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -3260,6 +3263,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 							
@@ -3305,6 +3309,7 @@ class OpenFairViewer {
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -3368,6 +3373,7 @@ class OpenFairViewer {
 							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
 							this_.map.changed();
 							this_.renderMapLegend();
+							this_.showLegendPanel();
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 							//actions o download buttons
@@ -3384,6 +3390,7 @@ class OpenFairViewer {
 								this_.removeLayerByProperty(pid, "id");
 								this_.map.changed();
 								this_.renderMapLegend();
+								this_.showLegendPanel();
 								$("#datasetMapper").bootstrapBtn('reset');
 								$("#datasetMapper").prop('disabled', false);
 								$(".query-nodata").show();
@@ -3418,6 +3425,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
@@ -3443,6 +3451,7 @@ class OpenFairViewer {
 					}
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -3502,6 +3511,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
@@ -3518,6 +3528,7 @@ class OpenFairViewer {
 							this_.removeLayerByProperty(pid, "id");
 							this_.map.changed();
 							this_.renderMapLegend();
+							this_.showLegendPanel();
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 							$(".query-nodata").show();
@@ -3548,6 +3559,7 @@ class OpenFairViewer {
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -4527,8 +4539,25 @@ class OpenFairViewer {
 		return map;
 	}
 	
+	/**
+	 * renderMapLegend
+	 */
 	renderMapLegend(){
 		this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0].renderPanel();
+	}
+	
+	/**
+	 * showLegendPanel
+	 */
+	showLegendPanel(){
+		this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0].showPanel();
+	}
+	
+	/**
+	 * hideLegendPanel
+	 */
+	hideLegendPanel(){
+		this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0].hidePanel();
 	}
 	
 	/**
@@ -5046,6 +5075,7 @@ class OpenFairViewer {
 
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 				});
 			});
 		}
