@@ -13,14 +13,22 @@ import OpenFairViewer from 'openfairviewer/src/OpenFairShiny.js'; //for shiny ha
 import colorbrewer from 'colorbrewer/index.js';
 
 window.OFV = null;
+window.ff = null;
 $(document).ready(function(){
+	
+	//OGC filter factory
+	ff = new FilterFactory({
+		version : "1.1.0",
+		schemas : [CSW_2_0_2]
+	});
+	
 	new OpenFairViewer({
 		id: 'OFV',
 		profile : '<p>Welcome to <b>OpenFairViewer</b></p>',
 		OGC_CSW_BASEURL: "https://localhost:8080/geonetwork/srv/eng/csw"
 	},{	
 		find : {
-			filter: undefined,
+			filter: ff.IsLike('dc:subject', '%subjec%'),
 			filterByWMS: false,
 			datasetInfoHandler : function(metadata){
 				//info handler to inherit geonetwork default html metadata view
