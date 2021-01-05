@@ -138,7 +138,7 @@ Application vocabulary used for customization of labels or forthcoming support o
 
 Name | Type | Description| Default value
 -----|------|------------|----------------
-filters | ``Object``| An OGC filter to restrain the selection of datasets through the CSW. See example at https://github.com/eblondel/OpenFairViewer/blob/master/main.js  | _empty_
+filter | ``Object``| An OGC filter to restrain the selection of datasets through the CSW. See example at https://github.com/eblondel/OpenFairViewer/blob/master/main.js  | _empty_
 filterByWMS| ``Boolean``| Indicates if only datasets with OGC WMS map resources should be listed | false
 datasetInfoHandler| ``function`` | A function taking as parameter a metadata object. By default it will open a new tab with | Function returning CSW GetRecordByID XML in new tab
 maxitems| ``Integer``| Maximum number of datasets to retrieve from the catalogue| null
