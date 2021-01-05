@@ -5,15 +5,18 @@ class IsGreaterThan extends Filter {
 		super(version, schemas);
 		this.object['ogc:Filter'].comparisonOps = {
 			'ogc:PropertyIsGreaterThan' : {
-				TYPE_NAME: "Filter_"+version.replaceAll('.','_')+".PropertyIsEqualTo",
-				literal: {
-					TYPE_NAME: "Filter_"+version.replaceAll('.','_')+".LiteralType",
-					content: [literal]
-				},
-				propertyName: {
-					TYPE_NAME: "Filter_"+version.replaceAll('.','_')+".PropertyNameType",
-					content: [propertyName]
-				}
+				TYPE_NAME: "Filter_"+version.replaceAll('.','_')+".PropertyIsGreaterThan",
+				expression: [{
+					'ogc:Literal': {
+						TYPE_NAME: "Filter_"+version.replaceAll('.','_')+".LiteralType",
+						content: [literal]
+					}
+				},{
+					'ogc:PropertyName': {
+						TYPE_NAME: "Filter_"+version.replaceAll('.','_')+".PropertyNameType",
+						content: [propertyName]
+					}
+				}]
 			}
 		};
 	}

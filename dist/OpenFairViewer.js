@@ -61,6 +61,7 @@ import IsGreaterThanOrEqualTo from './vendor/ows/IsGreaterThanOrEqualTo';
 import BBOX from './vendor/ows/BBOX';
 import And from './vendor/ows/And';
 import Or from './vendor/ows/Or';
+import Not from './vendor/ows/Not';
 import CSW from './vendor/ows/CSW';
 //bootpag
 import bootpag from 'bootpag/lib/jquery.bootpag';
@@ -130,7 +131,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.2.1", DATE: new Date(2020,11,25)}
+		this.versioning = {VERSION: "2.3", DATE: new Date(2021,1,5)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -173,7 +174,7 @@ class OpenFairViewer {
 		//--------------------------------------------------------------------------------------------------
 		this.options.find = {};
 		this.options.find.maxitems = null;
-		this.options.find.filters = [];
+		this.options.find.filter = undefined;
 		this.options.find.filterByWMS = false;
 		this.options.find.datasetInfoHandler = function(metadata){
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
@@ -181,11 +182,17 @@ class OpenFairViewer {
 		}
 		if(options.find){
 			if(options.find.maxitems) this.options.find.maxitems = options.find.maxitems;
-			if(options.find.filters) this.options.find.filters = options.find.filters;
+			if(options.find.filter) this.options.find.filter = options.find.filter;
 			if(options.find.datasetInfoHandler) this.options.find.datasetInfoHandler = options.find.datasetInfoHandler;
 			if(options.find.filterByWMS){
 				this.options.find.filterByWMS = options.find.filterByWMS;
-				this.options.find.filters.push( {name: 'csw:OnlineResourceType', value: '%WMS%'} );
+				var wmsFilter = new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, 'csw:OnlineResourceType', '%WMS%');
+				if(typeof this.options.find.filter == "undefined"){
+					this.options.find.filter = wmsFilter;
+				}else{
+					this.options.find.filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [this.options.find.filter, wmsFilter]);
+				}
+
 			}
 		}
 		
@@ -968,9 +975,10 @@ class OpenFairViewer {
 		);
 		//if(onLines.length == 0) console.warn("No Dataset URL from metadata entry");
 		if(onLines.length > 0){
+			console.log(onLines);
 			for(var i=0;i<onLines.length;i++){
 				//layerUrl
-				console.log(onLines);
+
 				var layerUrl = onLines[i].ciOnlineResource.linkage.url;
 				if(layerUrl.indexOf("ows?")>0) layerUrl = layerUrl.split("ows?")[0] + "ows?service="+ protocol;
 				if(layerUrl.indexOf(protocol.toLowerCase()+"?")>0) layerUrl = layerUrl.split(protocol.toLowerCase()+"?")[0] + "ows?service=" + protocol;
@@ -1625,17 +1633,19 @@ class OpenFairViewer {
 		var filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, dctypes.map(function(dctype){
 			return new IsLike(this_.config.OGC_FILTER_VERSION, this_.config.OGC_FILTER_SCHEMAS, 'dc:type', dctype);
 		}));
-		for(var i=0;i<this.options.find.filters.length;i++){
-			var inputFilter = this.options.find.filters[i];
-			var cswFilter = new IsLike(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, inputFilter.name, inputFilter.value);
-			if(typeof filter == 'undefined'){
-				filter = cswFilter;
-			}else{
-				filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, cswFilter]);
-			}
+		
+		//add config filters?
+
+
+
+		if(typeof this.options.find.filter != 'undefined'){
+
+
+			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, this.options.find.filter]);
+
 		}
 		
-		//free text filter
+		//add free text filter?
 		var txt = $("#dataset-search-text").val();
 		if(txt != ""){
 			txt = '%'+txt+'%';
@@ -1652,7 +1662,7 @@ class OpenFairViewer {
 			}
 		}
 		
-		//spatial filter
+		//add spatial filter?
 		if(bbox){
 			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [
 				filter, new BBOX(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326')
@@ -1691,7 +1701,9 @@ class OpenFairViewer {
 			thebbox = this_.map.getView().calculateExtent(this_.map.getSize());
 		}
 		
-		var thefilter = this_.createFilter(thebbox); 
+		var thefilter = this_.createFilter(thebbox);
+		console.log("OGC Filter:");
+
 		console.log(thefilter);
 		
 		//display based on templates
@@ -1769,6 +1781,8 @@ class OpenFairViewer {
 			
 			//filter
 			var filter = this.createFilter(bbox);
+			console.log("OGC Filter:");
+			console.log(filter);
 			
 			//get 1st record to get numberOfRecordsMatched
 			this.csw.GetRecords(1,1, filter, this.config.OGC_CSW_SCHEMA).then(function(response){
@@ -2439,8 +2453,20 @@ class OpenFairViewer {
 				//build UI
 				var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
 				$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
-				$("#dsd-ui-header").append('<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>');
-
+				//acccess dataset header
+				var accessHeader = '<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5><br>'; accessHeader += '<div>';
+				//button-->doi
+				if(entry.doi){
+					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-doi" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_doi+'" onclick="'+this_.config.OFV_ID+'.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>';
+				}
+				//button-->info (metadata)
+				accessHeader += '<button class="btn btn-xs dataset-button dataset-button-info" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_metadata+'" onclick="'+this_.config.OFV_ID+'.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>';
+				//button-->zoom
+				accessHeader += '<button class="btn btn-xs dataset-button dataset-button-zoom" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_zoom_extent+'" onclick="'+this_.config.OFV_ID+'.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>';
+				accessHeader += '</div></div>';
+				$("#dsd-ui-header").append(accessHeader);
+	
+				//access dataset query form
 				$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDataset('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
 				$(document).on('submit', '#dsd-ui-body', function(event) {
 					event.preventDefault();
@@ -3117,6 +3143,7 @@ class OpenFairViewer {
 							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
 							this_.map.changed();
 							this_.renderMapLegend();
+							this_.showLegendPanel();
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 								
@@ -3163,6 +3190,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
@@ -3193,6 +3221,7 @@ class OpenFairViewer {
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -3248,6 +3277,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 							
@@ -3293,6 +3323,7 @@ class OpenFairViewer {
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -3356,6 +3387,7 @@ class OpenFairViewer {
 							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
 							this_.map.changed();
 							this_.renderMapLegend();
+							this_.showLegendPanel();
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 							//actions o download buttons
@@ -3372,6 +3404,7 @@ class OpenFairViewer {
 								this_.removeLayerByProperty(pid, "id");
 								this_.map.changed();
 								this_.renderMapLegend();
+								this_.showLegendPanel();
 								$("#datasetMapper").bootstrapBtn('reset');
 								$("#datasetMapper").prop('disabled', false);
 								$(".query-nodata").show();
@@ -3406,6 +3439,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
@@ -3431,6 +3465,7 @@ class OpenFairViewer {
 					}
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -3490,6 +3525,7 @@ class OpenFairViewer {
 						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
 						this_.map.changed();
 						this_.renderMapLegend();
+						this_.showLegendPanel();
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
@@ -3506,6 +3542,7 @@ class OpenFairViewer {
 							this_.removeLayerByProperty(pid, "id");
 							this_.map.changed();
 							this_.renderMapLegend();
+							this_.showLegendPanel();
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 							$(".query-nodata").show();
@@ -3536,6 +3573,7 @@ class OpenFairViewer {
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
@@ -4515,8 +4553,25 @@ class OpenFairViewer {
 		return map;
 	}
 	
+	/**
+	 * renderMapLegend
+	 */
 	renderMapLegend(){
 		this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0].renderPanel();
+	}
+	
+	/**
+	 * showLegendPanel
+	 */
+	showLegendPanel(){
+		this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0].showPanel();
+	}
+	
+	/**
+	 * hideLegendPanel
+	 */
+	hideLegendPanel(){
+		this.map.getControls().getArray().filter(function(control){if(control instanceof LayerSwitcher) return control})[0].hidePanel();
 	}
 	
 	/**
@@ -5034,6 +5089,7 @@ class OpenFairViewer {
 
 					this_.map.changed();
 					this_.renderMapLegend();
+					this_.showLegendPanel();
 				});
 			});
 		}
