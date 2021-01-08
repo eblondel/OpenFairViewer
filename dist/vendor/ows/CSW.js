@@ -44,7 +44,7 @@ class CSW extends OWS {
 		this.url = url;
 	}
 	
-	GetCapabilities = function(){
+	GetCapabilities(){
 		var getCapabilities = new CSWCapabilities(this.owsVersion, this.version);
 		// XML to Post.
 		var myXML = this.marshalDocument(getCapabilities);
