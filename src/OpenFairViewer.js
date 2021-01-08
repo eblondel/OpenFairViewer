@@ -824,7 +824,6 @@ class OpenFairViewer {
 		//views
 		var encoded_views = new Array();
 		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray().filter(function(item){if(item.id != "ofv-csw-spatial-coverages") return item});
-		console.log(viewlayers);
 		for(var i=0;i<viewlayers.length;i++){
 			var encoded_view = "";
 			var viewlayer = viewlayers[i];
@@ -3651,7 +3650,11 @@ class OpenFairViewer {
 						var projection = this_.map.getView().getProjection().getCode();
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, ((strategyparams == null)? null : decodeURIComponent(strategyparams_str)), null, (strategyvariable? [strategyvariable] : null ), 'json', projection).then(function(response){
 							var format = new olFormat.GeoJSON();
-							var features = response.map(function(item){return format.readFeature(item)});
+							var features = response.map(function(item){
+								var feature = format.readFeature(item);
+								feature.layerid = layerName; //hack required to control layer-specific SelectCluster interaction
+								return feature;
+							});
 							console.log(features);
 							var source = new Vector({ projection: projection, features: features });
 							//update viewparams, envparams & legend
@@ -5091,7 +5094,11 @@ class OpenFairViewer {
 		this_.getDatasetFeatures(wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, null, 'json', projection).then(function(response){
 			console.log("Get features to set WFS layer");
 			var format = new olFormat.GeoJSON();
-			var features = response.map(function(item){return format.readFeature(item)})
+			var features = response.map(function(item){
+				var feature = format.readFeature(item);
+				feature.layerid = id; //hack required to control layer-specific SelectCluster interaction
+				return feature;
+			})
 			console.log(features);
 			var source = new Vector({ projection: (projection? projection : 'EPSG:4326'), features: features });
 			var layer = undefined;
@@ -5188,7 +5195,7 @@ class OpenFairViewer {
 		  if (c.length==1){
 			var feature = c[0];
 			console.log("One feature selected...(id = "+feature.getId()+")");
-			this_.getWFSFeatureInfo(layer, feature);
+			if(feature.layerid == layer.id) this_.getWFSFeatureInfo(layer, feature);
 		  } else {
 			console.log("Cluster ("+c.length+" features)");
 		  }
