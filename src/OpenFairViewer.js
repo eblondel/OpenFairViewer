@@ -427,7 +427,9 @@ class OpenFairViewer {
 				if(options.map.point_clustering_options.circleMaxObjects) this.options.map.point_clustering_options.circleMaxObjects = options.map.point_clustering_options.circleMaxObjects;
 				if(options.map.point_clustering_options.animate) this.options.map.point_clustering_options.animate = options.map.point_clustering_options.animate ;
 				if(options.map.point_clustering_options.animationDuration) this.options.map.point_clustering_options.animationDuration = options.map.point_clustering_options.animationDuration;
-				
+				if(options.map.point_clustering_options.style) this.options.map.point_clustering_options.style = options.map.point_clustering_options.style;
+				if(options.map.point_clustering_options.selectClusterFeatureStyle) this.options.map.point_clustering_options.selectClusterFeatureStyle = options.map.point_clustering_options.selectClusterFeatureStyle;
+				if(options.map.point_clustering_options.selectClusterStyle) this.options.map.point_clustering_options.selectClusterStyle = options.map.point_clustering_options.selectClusterStyle;
 			}
 		}
 			
