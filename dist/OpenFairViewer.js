@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,8)}
+		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,12)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -427,7 +427,9 @@ class OpenFairViewer {
 				if(options.map.point_clustering_options.circleMaxObjects) this.options.map.point_clustering_options.circleMaxObjects = options.map.point_clustering_options.circleMaxObjects;
 				if(options.map.point_clustering_options.animate) this.options.map.point_clustering_options.animate = options.map.point_clustering_options.animate ;
 				if(options.map.point_clustering_options.animationDuration) this.options.map.point_clustering_options.animationDuration = options.map.point_clustering_options.animationDuration;
-				
+				if(options.map.point_clustering_options.style) this.options.map.point_clustering_options.style = options.map.point_clustering_options.style;
+				if(options.map.point_clustering_options.selectClusterFeatureStyle) this.options.map.point_clustering_options.selectClusterFeatureStyle = options.map.point_clustering_options.selectClusterFeatureStyle;
+				if(options.map.point_clustering_options.selectClusterStyle) this.options.map.point_clustering_options.selectClusterStyle = options.map.point_clustering_options.selectClusterStyle;
 			}
 		}
 			
@@ -822,7 +824,6 @@ class OpenFairViewer {
 		//views
 		var encoded_views = new Array();
 		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray().filter(function(item){if(item.id != "ofv-csw-spatial-coverages") return item});
-		console.log(viewlayers);
 		for(var i=0;i<viewlayers.length;i++){
 			var encoded_view = "";
 			var viewlayer = viewlayers[i];
@@ -3266,6 +3267,7 @@ class OpenFairViewer {
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
+							var colors = undefined;
 							var geom = this_.getGeometryColumn(dataset.dsd);
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
@@ -3276,7 +3278,9 @@ class OpenFairViewer {
 								breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+								colors = colorbrewer[colorScheme][classNb];
+								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
 							
 							this_.selectDataset(pid);
@@ -3292,7 +3296,7 @@ class OpenFairViewer {
 							layer.params = layer.getSource().getParams();
 							layer.geomtype = this_.getGeometryType(dataset.dsd);
 							this_.addWMSLayerPopup(layer);
-							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
+							this_.setLegendGraphic(layer, breaks, colors);	
 							this_.map.changed();
 							this_.renderMapLegend();
 							this_.showLegendPanel();
@@ -3438,6 +3442,7 @@ class OpenFairViewer {
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
+						var colors = undefined;
 						var geom = this_.getGeometryColumn(dataset.dsd);
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
@@ -3448,7 +3453,10 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+							console.log(classNb);
+							colors = colorbrewer[colorScheme][classNb];
+							if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
 						this_.selectDataset(pid);
 						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
@@ -3463,7 +3471,7 @@ class OpenFairViewer {
 						layer.params = layer.getSource().getParams();
 						layer.geomtype = this_.getGeometryType(dataset.dsd);
 						this_.addWMSLayerPopup(layer);
-						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
+						this_.setLegendGraphic(layer, breaks, colors);	
 						this_.map.changed();
 						this_.renderMapLegend();
 						this_.showLegendPanel();
@@ -3577,6 +3585,7 @@ class OpenFairViewer {
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
+							var colors = undefined;
 							var geom = this_.getGeometryColumn(dataset.dsd);
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
@@ -3588,7 +3597,9 @@ class OpenFairViewer {
 								var breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+								colors = colorbrewer[colorScheme][classNb];
+								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
 							
 							//update viewparams, envparams & legend
@@ -3610,7 +3621,7 @@ class OpenFairViewer {
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
 							layer.geomtype = this_.getGeometryType(dataset.dsd);
-							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
+							this_.setLegendGraphic(layer, breaks, colors);
 							this_.map.changed();
 							this_.renderMapLegend();
 							this_.showLegendPanel();
@@ -3649,7 +3660,11 @@ class OpenFairViewer {
 						var projection = this_.map.getView().getProjection().getCode();
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, ((strategyparams == null)? null : decodeURIComponent(strategyparams_str)), null, (strategyvariable? [strategyvariable] : null ), 'json', projection).then(function(response){
 							var format = new olFormat.GeoJSON();
-							var features = response.map(function(item){return format.readFeature(item)});
+							var features = response.map(function(item){
+								var feature = format.readFeature(item);
+								feature.layerid = layerName; //hack required to control layer-specific SelectCluster interaction
+								return feature;
+							});
 							console.log(features);
 							var source = new Vector({ projection: projection, features: features });
 							//update viewparams, envparams & legend
@@ -3761,6 +3776,7 @@ class OpenFairViewer {
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
+						var colors = undefined;
 						var geom = this_.getGeometryColumn(dataset.dsd);
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
@@ -3772,7 +3788,9 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+							var colors = colorbrewer[colorScheme][classNb];
+							if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
@@ -3793,7 +3811,7 @@ class OpenFairViewer {
 						layer.count = values? values.length : null;
 						layer.params = layer.getSource().getParams();
 						layer.geomtype = this_.getGeometryType(dataset.dsd);
-						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
+						this_.setLegendGraphic(layer, breaks, colors);
 						this_.map.changed();
 						this_.renderMapLegend();
 						this_.showLegendPanel();
@@ -5089,7 +5107,11 @@ class OpenFairViewer {
 		this_.getDatasetFeatures(wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, null, 'json', projection).then(function(response){
 			console.log("Get features to set WFS layer");
 			var format = new olFormat.GeoJSON();
-			var features = response.map(function(item){return format.readFeature(item)})
+			var features = response.map(function(item){
+				var feature = format.readFeature(item);
+				feature.layerid = id; //hack required to control layer-specific SelectCluster interaction
+				return feature;
+			})
 			console.log(features);
 			var source = new Vector({ projection: (projection? projection : 'EPSG:4326'), features: features });
 			var layer = undefined;
@@ -5186,7 +5208,7 @@ class OpenFairViewer {
 		  if (c.length==1){
 			var feature = c[0];
 			console.log("One feature selected...(id = "+feature.getId()+")");
-			this_.getWFSFeatureInfo(layer, feature);
+			if(feature.layerid == layer.id) this_.getWFSFeatureInfo(layer, feature);
 		  } else {
 			console.log("Cluster ("+c.length+" features)");
 		  }

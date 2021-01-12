@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,8)}
+		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,12)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3267,6 +3267,7 @@ class OpenFairViewer {
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
+							var colors = undefined;
 							var geom = this_.getGeometryColumn(dataset.dsd);
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
@@ -3277,7 +3278,9 @@ class OpenFairViewer {
 								breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+								colors = colorbrewer[colorScheme][classNb];
+								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
 							
 							this_.selectDataset(pid);
@@ -3293,7 +3296,7 @@ class OpenFairViewer {
 							layer.params = layer.getSource().getParams();
 							layer.geomtype = this_.getGeometryType(dataset.dsd);
 							this_.addWMSLayerPopup(layer);
-							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
+							this_.setLegendGraphic(layer, breaks, colors);	
 							this_.map.changed();
 							this_.renderMapLegend();
 							this_.showLegendPanel();
@@ -3439,6 +3442,7 @@ class OpenFairViewer {
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
+						var colors = undefined;
 						var geom = this_.getGeometryColumn(dataset.dsd);
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
@@ -3449,7 +3453,10 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+							console.log(classNb);
+							colors = colorbrewer[colorScheme][classNb];
+							if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
 						this_.selectDataset(pid);
 						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
@@ -3464,7 +3471,7 @@ class OpenFairViewer {
 						layer.params = layer.getSource().getParams();
 						layer.geomtype = this_.getGeometryType(dataset.dsd);
 						this_.addWMSLayerPopup(layer);
-						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);	
+						this_.setLegendGraphic(layer, breaks, colors);	
 						this_.map.changed();
 						this_.renderMapLegend();
 						this_.showLegendPanel();
@@ -3578,6 +3585,7 @@ class OpenFairViewer {
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
+							var colors = undefined;
 							var geom = this_.getGeometryColumn(dataset.dsd);
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
@@ -3589,7 +3597,9 @@ class OpenFairViewer {
 								var breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+								colors = colorbrewer[colorScheme][classNb];
+								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
 							
 							//update viewparams, envparams & legend
@@ -3611,7 +3621,7 @@ class OpenFairViewer {
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
 							layer.geomtype = this_.getGeometryType(dataset.dsd);
-							this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
+							this_.setLegendGraphic(layer, breaks, colors);
 							this_.map.changed();
 							this_.renderMapLegend();
 							this_.showLegendPanel();
@@ -3766,6 +3776,7 @@ class OpenFairViewer {
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
+						var colors = undefined;
 						var geom = this_.getGeometryColumn(dataset.dsd);
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
@@ -3777,7 +3788,9 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colorbrewer[colorScheme][classNb]);
+							var colors = colorbrewer[colorScheme][classNb];
+							if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
@@ -3798,7 +3811,7 @@ class OpenFairViewer {
 						layer.count = values? values.length : null;
 						layer.params = layer.getSource().getParams();
 						layer.geomtype = this_.getGeometryType(dataset.dsd);
-						this_.setLegendGraphic(layer, breaks, colorbrewer[colorScheme][classNb]);
+						this_.setLegendGraphic(layer, breaks, colors);
 						this_.map.changed();
 						this_.renderMapLegend();
 						this_.showLegendPanel();
