@@ -1176,7 +1176,7 @@ class OpenFairViewer {
 		var viewProjection = this_.map.getView().getProjection().getCode();
 		var popup = this.map.getOverlayById(layer.id);
 
-		var featureInfoUrl = layer.getSource().getWMSFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"});
+		var featureInfoUrl = layer.getSource().getFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"});
 		if(this.secure) featureInfoUrl = featureInfoUrl.replace("http://", "https://");
 
 		$.ajax({
