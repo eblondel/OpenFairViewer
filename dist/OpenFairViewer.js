@@ -847,6 +847,7 @@ class OpenFairViewer {
 						if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
 						if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
 						if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
+						if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
 						if(viewlayer.geomtype) encoded_view += 'geomtype=' + viewlayer.geomtype + ',';
 					}
 					break;
@@ -865,6 +866,7 @@ class OpenFairViewer {
 					if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
 					if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
 					if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
+					if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
 					if(viewlayer.geomtype) encoded_view += 'geomtype=' + viewlayer.geomtype + ',';
 					break;
 			}	
@@ -1160,6 +1162,7 @@ class OpenFairViewer {
 	 * @param dsd
 	 */	
 	getGeometryType(dsd){
+		console.log(dsd);
 		var gmlProperty = dsd.filter(function(item){if(item.primitiveType.startsWith("gml")) return item});
 		if(gmlProperty.length == 0) return null;
 		return gmlProperty[0].primitiveType;
@@ -3252,6 +3255,9 @@ class OpenFairViewer {
 		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="" && item.startsWith("v")) return item}).length-2 : null);
 		var layerStyle =  from_query_form? this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb) : dataset.style;
 
+		var geom = from_query_form? this_.getGeometryColumn(dataset.dsd) : dataset.geom;
+		var geomtype = from_query_form? this_.getGeometryType(dataset.dsd) : dataset.geomtype;
+		
 		if(!layer){
 			console.log("Adding new layer");
 		    //ADD LAYER
@@ -3268,7 +3274,7 @@ class OpenFairViewer {
 							var breaks = undefined;
 							var envparams = undefined;
 							var colors = undefined;
-							var geom = this_.getGeometryColumn(dataset.dsd);
+							var geom = geom;
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -3294,7 +3300,7 @@ class OpenFairViewer {
 							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
-							layer.geomtype = this_.getGeometryType(dataset.dsd);
+							layer.geomtype = geomType;
 							this_.addWMSLayerPopup(layer);
 							this_.setLegendGraphic(layer, breaks, colors);	
 							this_.map.changed();
@@ -3346,7 +3352,7 @@ class OpenFairViewer {
 							layer.envcolscheme = null;
 							layer.count = null;
 							layer.params = {CQL_FILTER: (strategyparams == null)? null : decodeURIComponent(strategyparams_str)};
-							layer.geomtype = this_.getGeometryType(dataset.dsd);
+							layer.geomtype = geomtype
 							this_.setLegendGraphic(layer);
 							this_.map.changed();
 							this_.getMapLoadingPanel().hide();
@@ -3376,7 +3382,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
-						layer.geomtype = this_.getGeometryType(dataset.dsd);
+						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -3443,7 +3449,7 @@ class OpenFairViewer {
 						var breaks = undefined;
 						var envparams = undefined;
 						var colors = undefined;
-						var geom = this_.getGeometryColumn(dataset.dsd);
+						var geom = geom;
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -3469,7 +3475,7 @@ class OpenFairViewer {
 						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length: null;
 						layer.params = layer.getSource().getParams();
-						layer.geomtype = this_.getGeometryType(dataset.dsd);
+						layer.geomtype = geomtype;
 						this_.addWMSLayerPopup(layer);
 						this_.setLegendGraphic(layer, breaks, colors);	
 						this_.map.changed();
@@ -3520,7 +3526,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = {'VIEWPARAMS': strategyparams_str};
-						layer.geomtype = this_.getGeometryType(dataset.dsd);
+						layer.geomtype = geomtype;
 						//this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.getMapLoadingPanel().hide();
@@ -3551,7 +3557,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
-					layer.geomtype = this_.getGeometryType(dataset.dsd);
+					layer.geomtype = geomtype;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
@@ -3586,7 +3592,7 @@ class OpenFairViewer {
 							var breaks = undefined;
 							var envparams = undefined;
 							var colors = undefined;
-							var geom = this_.getGeometryColumn(dataset.dsd);
+							var geom = geom;
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -3620,7 +3626,7 @@ class OpenFairViewer {
 							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
-							layer.geomtype = this_.getGeometryType(dataset.dsd);
+							layer.geomtype = geomtype;
 							this_.setLegendGraphic(layer, breaks, colors);
 							this_.map.changed();
 							this_.renderMapLegend();
@@ -3678,7 +3684,7 @@ class OpenFairViewer {
 								layer.setSource(source);
 							}
 							layer.params = {CQL_FILTER: ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))};
-							layer.geomtype = this_.getGeometryType(dataset.dsd);
+							layer.geomtype = geomtype;
 							var selectCluster = this_.getSelectCluster(layer);
 							if(selectCluster) this_.map.removeInteraction(selectCluster);
 							this_.configureSelectCluster(layer);
@@ -3716,7 +3722,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
-						layer.geomtype = this_.getGeometryType(dataset.dsd);
+						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -3745,7 +3751,7 @@ class OpenFairViewer {
 						layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 					}
 					layer.params = layer.getSource().getParams();
-					layer.geomtype = this_.getGeometryType(dataset.dsd);
+					layer.geomtype = geomtype;
 					this_.map.changed();
 					this_.getMapLoadingPanel().hide();
 					this_.renderMapLegend();
@@ -3777,7 +3783,7 @@ class OpenFairViewer {
 						var breaks = undefined;
 						var envparams = undefined;
 						var colors = undefined;
-						var geom = this_.getGeometryColumn(dataset.dsd);
+						var geom = geom;
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -3810,7 +3816,7 @@ class OpenFairViewer {
 						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length : null;
 						layer.params = layer.getSource().getParams();
-						layer.geomtype = this_.getGeometryType(dataset.dsd);
+						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer, breaks, colors);
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -3863,7 +3869,7 @@ class OpenFairViewer {
 							layer.setSource(source);
 						}
 						layer.params = {'VIEWPARAMS' : strategyparams_str};
-						layer.geomtype = this_.getGeometryType(dataset.dsd);
+						layer.geomtype = geomtype;
 						this_.map.changed();
 						this_.renderMapLegend();
 						this_.showLegendPanel();
@@ -3893,7 +3899,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
-					layer.geomtype = this_.getGeometryType(dataset.dsd);
+					layer.geomtype = geomtype;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
@@ -5559,7 +5565,7 @@ class OpenFairViewer {
 						this_.resolveDatasetForQuery(encoded_dataset, true);
 					}else{
 						this_.resolveDatasetForMap(encoded_dataset);	
-					} 
+					}
 
 					//popup coords
 					if(params.popup_id) if(params.popup_id == encoded_dataset.pid) {
@@ -5574,8 +5580,8 @@ class OpenFairViewer {
 					}
 
 					this_.map.changed();
-					this_.renderMapLegend();
 					this_.showLegendPanel();
+					this_.renderMapLegend();
 				});
 			});
 		}
@@ -5593,7 +5599,7 @@ class OpenFairViewer {
 			this.map.getView().setCenter(center);
 		}
 		if(params.zoom) this.map.getView().setZoom(parseInt(params.zoom));
-
+		
 	}
 	
 	getMapLoadingPanel(){
