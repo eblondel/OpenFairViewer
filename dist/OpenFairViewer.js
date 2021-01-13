@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,12)}
+		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,13)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3527,7 +3527,7 @@ class OpenFairViewer {
 						layer.count = null;
 						layer.params = {'VIEWPARAMS': strategyparams_str};
 						layer.geomtype = geomtype;
-						//this_.setLegendGraphic(layer);
+						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.getMapLoadingPanel().hide();
 						this_.renderMapLegend();
@@ -5016,6 +5016,17 @@ class OpenFairViewer {
 				lyr.legendGraphic = request;
 			}
 		}
+		
+		if( source instanceof Vector){
+			var features = source instanceof Cluster? source.source.getFeatures() : source.getFeatures();
+			if(features.length > 0){
+				var style = lyr.getStyle()(features[0]);
+				var canvas = style.getImage().getImage();
+				console.log(canvas.toDataURL("image/png"));
+				lyr.legendGraphic = canvas.toDataURL("image/png");
+				this_.renderMapLegend();
+			}
+		}
 	}
 	
 	/**
@@ -5129,6 +5140,7 @@ class OpenFairViewer {
 					visible: true
 				});
 				layer.id = id;
+				layer.showLegendGraphic = true;
 				this_.layers.overlays[mainOverlayGroup].getLayers().push(layer);
 				var layerPointer = new olInteraction.Select({
 					condition: pointerMove,
@@ -5166,6 +5178,7 @@ class OpenFairViewer {
 					style : this_.options.map.point_clustering_options.style
 				});			
 				layer.id = id;
+				layer.showLegendGraphic = true;
 				this_.layers.overlays[mainOverlayGroup].getLayers().push(layer);
 				
 				this_.configureSelectCluster(layer);
