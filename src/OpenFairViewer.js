@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,13)}
+		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,15)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -5502,8 +5502,9 @@ class OpenFairViewer {
 									var attribute = elems[0];
 									var values = elems[1].split(")")[0].split(/(?!'),(?![^'])/g);
 									values = values.map(function(item){return item}); //replace double single quote for cql filter text with single quote
+									values = values.map(function(item){return decodeURIComponent(item)});
 									out = new Object();
-									out[attribute] = {type: 'list', content: decodeURIComponent(values)};
+									out[attribute] = {type: 'list', content: values};
 								}else if(item.indexOf('BEFORE')>0 && item.indexOf('AFTER')){
 									var elems = item.split(" AND ");
 									var time_filter_start = elems[0].split(" AFTER ");
@@ -5525,8 +5526,9 @@ class OpenFairViewer {
 								var elems = item.split(":"); 
 								var attribute = elems[0];
 								var values = elems[1].split('+');
+								values = values.map(function(item){return decodeURIComponent(item)});
 								var out = new Object(); 
-								out[attribute] = {type: ( (!isNaN(Date.parse(values[0])) & values[0].length >= 10)? "timeinstant" : "list"), content: decodeURIComponent(values)};
+								out[attribute] = {type: ( (!isNaN(Date.parse(values[0])) & values[0].length >= 10)? "timeinstant" : "list"), content: values};
 								return out;
 							});
 							break;
