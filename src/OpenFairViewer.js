@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.3.1", DATE: new Date(2021,1,22)}
+		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,1,22)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -431,6 +431,16 @@ class OpenFairViewer {
 				if(options.map.point_clustering_options.selectClusterFeatureStyle) this.options.map.point_clustering_options.selectClusterFeatureStyle = options.map.point_clustering_options.selectClusterFeatureStyle;
 				if(options.map.point_clustering_options.selectClusterStyle) this.options.map.point_clustering_options.selectClusterStyle = options.map.point_clustering_options.selectClusterStyle;
 			}
+		}
+		
+		//thematic mapping
+		this.options.map.thematicmapping_options = {
+			thresholding : true,
+			threshold : "> 0"
+		}
+		if(options.map) if(options.map.thematicmapping_options){
+			if(options.map.thematicmapping_options.thresholding) this.options.map.thematicmapping_options.thresholding = options.map.thematicmapping_options.thresholding;
+			if(options.map.thematicmapping_options.threshold) this.options.map.thematicmapping_options.threshold = options.map.thematicmapping_options.threshold;
 		}
 			
 		//zoom
@@ -3275,7 +3285,7 @@ class OpenFairViewer {
 					console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue");
 					if(dataset.thematicmapping && strategyvariable){
 						//thematic mapping
-						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
+						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series with "+features.length+" features");
 							var values = undefined;
 							var breaks = undefined;
@@ -3448,7 +3458,7 @@ class OpenFairViewer {
 			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Add layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
-					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
+					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 						console.log("Data series features");
 						console.log(features);
 						console.log("Data series values");
@@ -3591,7 +3601,7 @@ class OpenFairViewer {
 					if(dataset.thematicmapping && strategyvariable){
 						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (thematic mapping)");
 						//thematic mapping
-						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, (strategyparams == null)? null :  decodeURIComponent(strategyparams_str), null, (strategyvariable? [strategyvariable] : null )).then(function(features){
+						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, (strategyparams == null)? null :  decodeURIComponent(strategyparams_str), ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series features");
 							console.log(features);
 							console.log("Data series values");
@@ -3782,7 +3792,7 @@ class OpenFairViewer {
 			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Update layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
-					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
+					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 						console.log("Data series features");
 						console.log(features);
 						console.log("Data series values");
@@ -4416,8 +4426,17 @@ class OpenFairViewer {
 				outputFormat: encodeURIComponent("application/json"),
 				sortBy: sortByPropertyName
 			}
-			if(this_.dataset_on_query.strategy == "ogc_filters")  wfsParams.cql_filter = strategyparams_str;
+			if(this_.dataset_on_query.strategy == "ogc_filters")  wfsParams.cql_filter = cql_filter;
 			if(this_.dataset_on_query.strategy == "ogc_viewparams") wfsParams.viewparams = strategyparams_str;
+			var strategyvariable = this_.getStrategyVariable(this_.dataset_on_query);
+			if(this_.options.map.thematicmapping_options.thresholding && strategyvariable){
+				var th_cql = strategyvariable + this_.options.map.thematicmapping_options.threshold;
+				if(wfsParams.cql_filter){
+					wfsParams.cql_filter += " AND " + th_cql;
+				}else{
+					wfsParams.cql_filter = th_cql;
+				}
+			}
 			
 			this_.closeDashboardDialog();
 			this_.openDataDialog();
