@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,15)}
+		this.versioning = {VERSION: "2.3.1", DATE: new Date(2021,1,22)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3270,7 +3270,7 @@ class OpenFairViewer {
 			 case "ogc_filters":
 				if(dataset.dsd){
 					console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue");
-					if(dataset.thematicmapping){
+					if(dataset.thematicmapping && strategyvariable){
 						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series with "+features.length+" features");
@@ -3442,7 +3442,7 @@ class OpenFairViewer {
 				break;
 				
 			 case "ogc_viewparams":
-			    if(dataset.thematicmapping){
+			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Add layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
 					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
@@ -3585,7 +3585,7 @@ class OpenFairViewer {
 		    switch(dataset.strategy){
 			case "ogc_filters":
 				if(dataset.dsd){
-					if(dataset.thematicmapping){
+					if(dataset.thematicmapping && strategyvariable){
 						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (thematic mapping)");
 						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, (strategyparams == null)? null :  decodeURIComponent(strategyparams_str), null, (strategyvariable? [strategyvariable] : null )).then(function(features){
@@ -3776,7 +3776,7 @@ class OpenFairViewer {
 			    //TODO
 			    break;
 			case "ogc_viewparams":
-			    if(dataset.thematicmapping){
+			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Update layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
 					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){

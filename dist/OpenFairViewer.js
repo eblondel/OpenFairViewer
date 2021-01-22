@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.3.0", DATE: new Date(2021,1,13)}
+		this.versioning = {VERSION: "2.3.1", DATE: new Date(2021,1,22)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -2011,7 +2011,7 @@ class OpenFairViewer {
 		console.log("Display query form dataset with pid = " + pid);
 		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
 		if(dataset.length>0) dataset = dataset[0];
-		this.handleQueryForm(dataset);
+		this.handleQueryForm(dataset, false);
 	}
 	
 	/**
@@ -2295,13 +2295,14 @@ class OpenFairViewer {
 	/**
 	 * handleQueryForm
 	 * @param {Object} dataset
+	 * @param {Boolean} dsdOnly
 	 */
-	handleQueryForm(dataset){
+	handleQueryForm(dataset, dsdOnly){
 		console.log(dataset);
 		$("#dsd-ui").empty();
 		if(dataset.dsd){
 			console.log("Handle DSD Query Form for dataset with pid = " + dataset.pid );
-			return this.handleDSD(dataset);
+			return this.handleDSD(dataset, dsdOnly);
 		}else{ 
 			console.log("Handle Filter Query Form for dataset with pid = " + dataset.pid );
 			return this.handleFilter(dataset);
@@ -2564,8 +2565,9 @@ class OpenFairViewer {
 	/**
 	 * handleDSD
 	 * @param {Object} dataset
+	 * @param {Boolean} dsdOnly
 	 */
-	handleDSD(dataset){
+	handleDSD(dataset, dsdOnly){
 
 	    var deferred = $.Deferred();	
           
@@ -2604,381 +2606,383 @@ class OpenFairViewer {
 				if(this_.dataset_on_query.point_clustering) this_.dataset_on_query.thematicmapping = false;
 				
 				//build UI
-				var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
-				$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
-				//acccess dataset header
-				var accessHeader = '<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5><br>'; accessHeader += '<div>';
-				//button-->doi
-				if(entry.doi){
-					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-doi" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_doi+'" onclick="'+this_.config.OFV_ID+'.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>';
-				}
-				//button-->info (metadata)
-				accessHeader += '<button class="btn btn-xs dataset-button dataset-button-info" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_metadata+'" onclick="'+this_.config.OFV_ID+'.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>';
-				//button-->zoom
-				accessHeader += '<button class="btn btn-xs dataset-button dataset-button-zoom" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_zoom_extent+'" onclick="'+this_.config.OFV_ID+'.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>';
-				accessHeader += '</div></div>';
-				$("#dsd-ui-header").append(accessHeader);
-	
-				//access dataset query form
-
-				$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDataset('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
-				$(document).on('submit', '#dsd-ui-body', function(event) {
-					event.preventDefault();
-				});
-				
-				$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
-				$("#dsd-ui-body").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
-				
-				//1. Build UI from ATTRIBUTES filtering
-				//-------------------------------------------
-				var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "attribute") return item});
-				if(attributes.length > 0){
-					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
-					var attributeMatcher = function(params, data){
-						params.term = params.term || '';
-						if ($.trim(params.term) === '') {
-						  return data;
-						}  
-						
-						var term = params.term.toUpperCase();
-						var altText = data.alternateText? data.alternateText : '';
-						if (data.text.toUpperCase().indexOf(term) > -1  |
-							data.id.toUpperCase().indexOf(term) > -1    |
-							altText.toUpperCase().indexOf(term) > -1    ) {
-							return data;
-						}
-						return null;
+				if(!dsdOnly){
+					var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
+					$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
+					//acccess dataset header
+					var accessHeader = '<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5><br>'; accessHeader += '<div>';
+					//button-->doi
+					if(entry.doi){
+						accessHeader += '<button class="btn btn-xs dataset-button dataset-button-doi" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_doi+'" onclick="'+this_.config.OFV_ID+'.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>';
 					}
-
-					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.labels.attributes+'</label></p></div>');
-					for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
-						var dsd_component = this_.dataset_on_query.dsd[i];
-						if(dsd_component.columnType == "attribute"){
-							
-							//attribute with list values --> DROPDOWNLISTS
-							if(dsd_component.values){
-								
-								var withNames = dsd_component.values.map(function(item){return item.text}).every(function(element, index, array){return element != null && element != ""});
-								
-								//id
-								var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
-									
-								var isRequired = dsd_component.minOccurs == 1? true : false;
-								var isMultiple = dsd_component.maxOccurs == Infinity? true : false; 								
-
-								if(dsd_component.primitiveType == "xsd:string" || withNames){
-								
-									//html
-									$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '
-										+ (isMultiple? 'multiple="multiple"' : '')
-										+ (isRequired? 'required' : '')
-										+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>'
-										+ (isRequired? '<span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>' : ''));
-									
-									//jquery widget
-									var attributeItemSelection = function(item) {
-									  if (!item.id) { return item.text; }
-									  //TODO vocabulary stuff for countries
-									  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
-										  var $item = $(
-											'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
-											'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
-										  );
-									  }else{
-										  if(item.alternateText){
-											  var $item = $(
-												'<span class="dsd-ui-item-label" >' + 
-													item.text + 
-													' <span class="dsd-ui-item-code">['+item.id+']</span>' + 	
-												'</span>'+
-												'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>' +
-												(item.href? ' <a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.labels.listedvalue_href_placeholder+'</a>' : '' )
-											  );
-										  }else{
-											  var $item = $(
-												'<span class="dsd-ui-item-label" >' + 
-													item.text + 
-													' <span class="dsd-ui-item-code">['+item.id+']</span>' + 
-												'</span>' +
-												(item.href? '<br><a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.labels.listedvalue_href_placeholder+'</a>' : '' )
-											  );
-										  }
-									  }
-									  return $item;
-									};
-									var attributeItemResult = function(item) {
-									  if (!item.id) { return item.text; }
-									  //TODO vocabulary stuff for countries
-									  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
-										  var $item = $(
-											'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
-											'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
-										  );
-									  }else{
-										  if(item.alternateText){
-											  var $item = $(
-												'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'+
-												'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>'
-											  );
-										  }else{
-											  var $item = $(
-												'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
-											  );
-										  }
-									  }
-									  return $item;
-									};
-									var dsd_component_placeholder = dsd_component.name;
-									
-									$("#" + dsd_component_id).select2({
-										theme: 'classic',
-										allowClear: true,
-										placeholder: dsd_component_placeholder,
-										data: dsd_component.values,
-										templateResult: attributeItemResult,
-										templateSelection: attributeItemSelection,
-										matcher: attributeMatcher
-									});
-									
-									//add info button
-									if(dsd_component.definition) if(dsd_component.definition.length > 0){
-										$("#dsd-ui-col-1").append('<span class="glyphicon glyphicon-info-sign attribute-info" title="'+dsd_component.definition+'"></span>');
-									}
-								}else if((dsd_component.primitiveType == "xsd:int" ||
-										 dsd_component.primitiveType == "xsd:decimal") && !withNames){
-									
-									var values = dsd_component.values.map(function(item){return parseInt(item.id)});
-									var values_min = Math.min.apply(Math, values);
-									var values_max = Math.max.apply(Math, values);					
-									
-									//html
-									var dsd_component_id_range = dsd_component_id + "-range";
-									var dsd_component_id_slider = dsd_component_id + "-slider";
-									var dsd_component_slider_html = '<div id="'+dsd_component_id+'" class="dsd-ui-dimension dsd-ui-dimension-attribute dsd-ui-dimension-slider">' +
-									'<p><label for="'+dsd_component_id_range+'">'+dsd_component.name+': </label>' +
-									'<input type="text" id="'+dsd_component_id_range+'" readonly style="margin-left:5px; border:0; color:#f6931f; font-weight:bold;"></p>' +
-									'<div id="'+dsd_component_id_slider+'"></div>' +
-									'</div>';
-									$("#dsd-ui-col-1").append(dsd_component_slider_html);
-									
-									//jquery widget
-									$("#"+dsd_component_id_slider).slider({
-									  range: isMultiple, min: values_min, max: values_max,
-									  values: (isMultiple? [ values_min, values_max ] : values_min),
-									  slide: function( event, ui ) {
-										var value = ui.values? ui.values[ 0 ] + " - " + ui.values[ 1 ] : ui.value;
-										$("#"+event.target.id.split("-slider")[0]+"-range").val(value);
-									  },
-									  change: function( event, ui ) {
-										var value = ui.values? ui.values[ 0 ] + " - " + ui.values[ 1 ] : ui.value;
-										$("#"+event.target.id.split("-slider")[0]+"-range").val(value); 
-									  }
-									});
-									var value = isMultiple? $("#"+dsd_component_id_slider).slider( "values", 0 ) + " - " +  $("#"+dsd_component_id_slider).slider( "values", 1 ) : $("#"+dsd_component_id_slider).slider( "value");
-									$("#"+dsd_component_id_range).val(value);
-									
-								}
-								
-							}
-							
-							//attribute with time --> datepicker / datetimepicker
-							if(dsd_component.primitiveType == "xsd:date" || dsd_component.primitiveType == "xsd:datetime"){
-								//indicates local tzone but required to display well the original date
-								var entry_time_start = entry.time_start; if(entry_time_start.length == 4) entry_time_start = entry_time_start + "-01-01";
-								var time_start_local = new Date(Date.parse(entry_time_start.split('Z')[0]));
-								var time_start_local_offset = time_start_local.getTimezoneOffset()*60000;
-								var time_start = new Date(time_start_local.getTime() + time_start_local_offset);
-								var entry_time_end = entry.time_end; if(entry_time_end.length == 4) entry_time_end = entry_time_end + "-12-31";
-								var time_end_local = new Date(Date.parse(entry_time_end.split('Z')[0]));
-								var time_end_local_offset = time_end_local.getTimezoneOffset()*60000;
-								var time_end = new Date(time_end_local.getTime() + time_end_local_offset);
+					//button-->info (metadata)
+					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-info" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_metadata+'" onclick="'+this_.config.OFV_ID+'.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>';
+					//button-->zoom
+					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-zoom" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_zoom_extent+'" onclick="'+this_.config.OFV_ID+'.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>';
+					accessHeader += '</div></div>';
+					$("#dsd-ui-header").append(accessHeader);
 		
-								//id
-								var dsd_component_id_start = "dsd-ui-dimension-time-start-"+dsd_component.primitiveCode;
-								var dsd_component_id_end = "dsd-ui-dimension-time-end-"+dsd_component.primitiveCode;
-								//html
-								var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:0px;margin-bottom:5px;">';
-								dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label><br> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" autocomplete="off" >'
-								if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" autocomplete="off">'
-								$("#dsd-ui-col-1").append(dsd_component_time_html);
-								
-								var startRange = $("#"+dsd_component_id_start);
-								var endRange = $("#"+dsd_component_id_end);
-								
-								//jquery widget
-								if(dsd_component.primitiveType == "xsd:date"){
-									switch(dsd.strategy){
-										case "ogc_filters":
-											startRange.datetimepicker({
-												minDate: time_start, maxDate: time_end,
-												formatDate:'Y-d-m',
-												formatTime: 'HH:mm:ss',
-												timepicker:false,
-												onShow:function( ct ){
-													this.setOptions({
-														maxDate:endRange.val()?endRange.val():false
-													})
-												}
-											});
-											//startRange.val(time_start.toISOString().split('T')[0]);
-											endRange.datetimepicker({
-												minDate: time_start, maxDate: time_end,
-												formatDate:'Y-d-m',
-												formatTime: 'HH:mm:ss',
-												timepicker:false,
-												onShow:function( ct ){
-													this.setOptions({
-														minDate:startRange.val()?startRange.val():false
-													})
-												}
-											});
-											//endRange.val(time_end.toISOString().split('T')[0]);
-											break;
-										case "ogc_viewparams":
-											startRange.datetimepicker({
-												minDate: time_start, maxDate: time_end,
-												yearStart: time_start.getFullYear(), yearEnd: time_end.getFullYear(),
-												format:'Y-d-m', timepicker:false
-											});
-											//startRange.val(time_start.toISOString().split('T')[0]); break;
-									}
-								}else if(dsd_component.primitiveType == "xsd:datetime"){
-									switch(dsd.strategy){
-										case "ogc_filters":
-											startRange.datetimepicker({
-												minDate: time_start, maxDate: time_end,
-												formatDate:'Y-d-m',
-												formatTime: 'HH:mm:ss',
-												onShow:function( ct ){
-													this.setOptions({
-														maxDate:endRange.val()?endRange.val():false
-													})
-												}
-											});
-											//startRange.val(time_start.toISOString().replace('T', ' '));
-											endRange.datetimepicker({
-												minDate: time_start, maxDate: time_end,
-												formatDate:'Y-d-m',
-												formatTime: 'HH:mm:ss',
-												onShow:function( ct ){
-													this.setOptions({
-														minDate:startRange.val()?startRange.val():false
-													})
-												}
-											});
-											//endRange.val(time_end.toISOString().replace('T', ' '));
-											break;
-										case "ogc_viewparams":
-											startRange.datetimepicker({
-												minDate: time_start, maxDate: time_end,
-												formatDate:'Y-d-m',
-												formatTime: 'HH:mm:ss'
-											});
-											//startRange.val(time_start.toISOString().replace('T', ' ')); break;
-									}
-								}
-								
-								$("#dsd-ui-col-1").append('</div>');
-							}
+					//access dataset query form
 
-						}
-					}
-				}
-				
-				// Next follow UI for variables
-				var variables = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "variable") return item});
-				
-				//2. Build UI from VARIABLES filtering
-				//-------------------------------------------
-				/*if(variables.length > 0) {
-						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.labels.variables+'</label></p></div>');
-						$("#dsd-ui-col-1").append('<p><em>Coming Soon!</em></p>');
-				}*/
-				
-				//3. Build UI for THEMATIC MAPPING on Variables
-				//---------------------------------------------	
-				$("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
-				if(this_.dataset_on_query.thematicmapping) {
-					
-					//VARIABLES handling as drop-down list
-					//------------------------------------
-					//variable matcher
-					var variableMatcher = function(params, data){
-						params.term = params.term || '';
-						if ($.trim(params.term) === '') {
-						  return data;
-						}  
-						var term = params.term.toUpperCase();
-						var altText = data.alternateText? data.alternateText : '';
-						if (data.text.toUpperCase().indexOf(term) > -1  |
-							data.id.toUpperCase().indexOf(term) > -1    |
-							altText.toUpperCase().indexOf(term) > -1    ) {
-							return data;
-						}
-						return null;
-					}
-					//variableItem
-					var variableItem = function(item, alternate) {
-					  if (!item.id) { return item.text; }			 
-					  if(alternate && item.alternateText){
-						  var $item = $(
-							'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'+
-							'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>'
-						  );
-					  }else{
-						  var $item = $(
-							'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
-						  );
-					  }
-					  return $item;
-					};
-					var variableItemSelection = function(item){
-						return variableItem(item, false);
-					}
-					var variableItemResult = function(item){
-						return variableItem(item, true);
-					}
-					
-					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
-					
-					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_variable+'</label></p></div>');
-					
-					//prepare dropdownlist items
-					var variable_items = new Array();
-					for(var i=0;i<variables.length;i++){
-						var dsd_variable = variables[i];
-						variable_items.push( {
-							id: dsd_variable.primitiveCode, 
-							text: dsd_variable.name, 
-							alternateText: dsd_variable.definition, 
-							type: dsd_variable.primitiveType
-						} );
-					}
-					//init selector
-					//id
-					var dsd_variables_id = "dsd-ui-dimension-variable";
-					//html
-					$("#dsd-ui-col-2").append('<select id = "'+dsd_variables_id+'" class="dsd-ui-dimension dsd-ui-dimension-variable" title="'+this_.options.labels.thematicmapping_variable+'"><option></option></select>');
-					$("#" + dsd_variables_id).select2({
-						theme: 'classic',
-						allowClear: true,
-						data: variable_items,
-						templateResult: variableItemResult,
-						templateSelection: variableItemSelection,
-						matcher: variableMatcher,
-						placeholder: this_.options.labels.thematicmapping_variable
+					$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDataset('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
+					$(document).on('submit', '#dsd-ui-body', function(event) {
+						event.preventDefault();
 					});
 					
-					//VARIABLES OPTIONS
-					//------------------------------------
-					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_options+'</label></p></div>');
-					this_.handleQueryMapOptions(2);
+					$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
+					$("#dsd-ui-body").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
+					
+					//1. Build UI from ATTRIBUTES filtering
+					//-------------------------------------------
+					var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "attribute") return item});
+					if(attributes.length > 0){
+						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
+						var attributeMatcher = function(params, data){
+							params.term = params.term || '';
+							if ($.trim(params.term) === '') {
+							  return data;
+							}  
+							
+							var term = params.term.toUpperCase();
+							var altText = data.alternateText? data.alternateText : '';
+							if (data.text.toUpperCase().indexOf(term) > -1  |
+								data.id.toUpperCase().indexOf(term) > -1    |
+								altText.toUpperCase().indexOf(term) > -1    ) {
+								return data;
+							}
+							return null;
+						}
+
+						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.labels.attributes+'</label></p></div>');
+						for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
+							var dsd_component = this_.dataset_on_query.dsd[i];
+							if(dsd_component.columnType == "attribute"){
+								
+								//attribute with list values --> DROPDOWNLISTS
+								if(dsd_component.values){
+									
+									var withNames = dsd_component.values.map(function(item){return item.text}).every(function(element, index, array){return element != null && element != ""});
+									
+									//id
+									var dsd_component_id = "dsd-ui-dimension-attribute-" + dsd_component.primitiveCode;
+										
+									var isRequired = dsd_component.minOccurs == 1? true : false;
+									var isMultiple = dsd_component.maxOccurs == Infinity? true : false; 								
+
+									if(dsd_component.primitiveType == "xsd:string" || withNames){
+									
+										//html
+										$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '
+											+ (isMultiple? 'multiple="multiple"' : '')
+											+ (isRequired? 'required' : '')
+											+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>'
+											+ (isRequired? '<span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>' : ''));
+										
+										//jquery widget
+										var attributeItemSelection = function(item) {
+										  if (!item.id) { return item.text; }
+										  //TODO vocabulary stuff for countries
+										  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
+											  var $item = $(
+												'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
+												'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+											  );
+										  }else{
+											  if(item.alternateText){
+												  var $item = $(
+													'<span class="dsd-ui-item-label" >' + 
+														item.text + 
+														' <span class="dsd-ui-item-code">['+item.id+']</span>' + 	
+													'</span>'+
+													'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>' +
+													(item.href? ' <a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.labels.listedvalue_href_placeholder+'</a>' : '' )
+												  );
+											  }else{
+												  var $item = $(
+													'<span class="dsd-ui-item-label" >' + 
+														item.text + 
+														' <span class="dsd-ui-item-code">['+item.id+']</span>' + 
+													'</span>' +
+													(item.href? '<br><a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.labels.listedvalue_href_placeholder+'</a>' : '' )
+												  );
+											  }
+										  }
+										  return $item;
+										};
+										var attributeItemResult = function(item) {
+										  if (!item.id) { return item.text; }
+										  //TODO vocabulary stuff for countries
+										  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
+											  var $item = $(
+												'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
+												'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+											  );
+										  }else{
+											  if(item.alternateText){
+												  var $item = $(
+													'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'+
+													'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>'
+												  );
+											  }else{
+												  var $item = $(
+													'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+												  );
+											  }
+										  }
+										  return $item;
+										};
+										var dsd_component_placeholder = dsd_component.name;
+										
+										$("#" + dsd_component_id).select2({
+											theme: 'classic',
+											allowClear: true,
+											placeholder: dsd_component_placeholder,
+											data: dsd_component.values,
+											templateResult: attributeItemResult,
+											templateSelection: attributeItemSelection,
+											matcher: attributeMatcher
+										});
+										
+										//add info button
+										if(dsd_component.definition) if(dsd_component.definition.length > 0){
+											$("#dsd-ui-col-1").append('<span class="glyphicon glyphicon-info-sign attribute-info" title="'+dsd_component.definition+'"></span>');
+										}
+									}else if((dsd_component.primitiveType == "xsd:int" ||
+											 dsd_component.primitiveType == "xsd:decimal") && !withNames){
+										
+										var values = dsd_component.values.map(function(item){return parseInt(item.id)});
+										var values_min = Math.min.apply(Math, values);
+										var values_max = Math.max.apply(Math, values);					
+										
+										//html
+										var dsd_component_id_range = dsd_component_id + "-range";
+										var dsd_component_id_slider = dsd_component_id + "-slider";
+										var dsd_component_slider_html = '<div id="'+dsd_component_id+'" class="dsd-ui-dimension dsd-ui-dimension-attribute dsd-ui-dimension-slider">' +
+										'<p><label for="'+dsd_component_id_range+'">'+dsd_component.name+': </label>' +
+										'<input type="text" id="'+dsd_component_id_range+'" readonly style="margin-left:5px; border:0; color:#f6931f; font-weight:bold;"></p>' +
+										'<div id="'+dsd_component_id_slider+'"></div>' +
+										'</div>';
+										$("#dsd-ui-col-1").append(dsd_component_slider_html);
+										
+										//jquery widget
+										$("#"+dsd_component_id_slider).slider({
+										  range: isMultiple, min: values_min, max: values_max,
+										  values: (isMultiple? [ values_min, values_max ] : values_min),
+										  slide: function( event, ui ) {
+											var value = ui.values? ui.values[ 0 ] + " - " + ui.values[ 1 ] : ui.value;
+											$("#"+event.target.id.split("-slider")[0]+"-range").val(value);
+										  },
+										  change: function( event, ui ) {
+											var value = ui.values? ui.values[ 0 ] + " - " + ui.values[ 1 ] : ui.value;
+											$("#"+event.target.id.split("-slider")[0]+"-range").val(value); 
+										  }
+										});
+										var value = isMultiple? $("#"+dsd_component_id_slider).slider( "values", 0 ) + " - " +  $("#"+dsd_component_id_slider).slider( "values", 1 ) : $("#"+dsd_component_id_slider).slider( "value");
+										$("#"+dsd_component_id_range).val(value);
+										
+									}
+									
+								}
+								
+								//attribute with time --> datepicker / datetimepicker
+								if(dsd_component.primitiveType == "xsd:date" || dsd_component.primitiveType == "xsd:datetime"){
+									//indicates local tzone but required to display well the original date
+									var entry_time_start = entry.time_start; if(entry_time_start.length == 4) entry_time_start = entry_time_start + "-01-01";
+									var time_start_local = new Date(Date.parse(entry_time_start.split('Z')[0]));
+									var time_start_local_offset = time_start_local.getTimezoneOffset()*60000;
+									var time_start = new Date(time_start_local.getTime() + time_start_local_offset);
+									var entry_time_end = entry.time_end; if(entry_time_end.length == 4) entry_time_end = entry_time_end + "-12-31";
+									var time_end_local = new Date(Date.parse(entry_time_end.split('Z')[0]));
+									var time_end_local_offset = time_end_local.getTimezoneOffset()*60000;
+									var time_end = new Date(time_end_local.getTime() + time_end_local_offset);
+			
+									//id
+									var dsd_component_id_start = "dsd-ui-dimension-time-start-"+dsd_component.primitiveCode;
+									var dsd_component_id_end = "dsd-ui-dimension-time-end-"+dsd_component.primitiveCode;
+									//html
+									var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:0px;margin-bottom:5px;">';
+									dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label><br> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" autocomplete="off" >'
+									if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" autocomplete="off">'
+									$("#dsd-ui-col-1").append(dsd_component_time_html);
+									
+									var startRange = $("#"+dsd_component_id_start);
+									var endRange = $("#"+dsd_component_id_end);
+									
+									//jquery widget
+									if(dsd_component.primitiveType == "xsd:date"){
+										switch(dsd.strategy){
+											case "ogc_filters":
+												startRange.datetimepicker({
+													minDate: time_start, maxDate: time_end,
+													formatDate:'Y-d-m',
+													formatTime: 'HH:mm:ss',
+													timepicker:false,
+													onShow:function( ct ){
+														this.setOptions({
+															maxDate:endRange.val()?endRange.val():false
+														})
+													}
+												});
+												//startRange.val(time_start.toISOString().split('T')[0]);
+												endRange.datetimepicker({
+													minDate: time_start, maxDate: time_end,
+													formatDate:'Y-d-m',
+													formatTime: 'HH:mm:ss',
+													timepicker:false,
+													onShow:function( ct ){
+														this.setOptions({
+															minDate:startRange.val()?startRange.val():false
+														})
+													}
+												});
+												//endRange.val(time_end.toISOString().split('T')[0]);
+												break;
+											case "ogc_viewparams":
+												startRange.datetimepicker({
+													minDate: time_start, maxDate: time_end,
+													yearStart: time_start.getFullYear(), yearEnd: time_end.getFullYear(),
+													format:'Y-d-m', timepicker:false
+												});
+												//startRange.val(time_start.toISOString().split('T')[0]); break;
+										}
+									}else if(dsd_component.primitiveType == "xsd:datetime"){
+										switch(dsd.strategy){
+											case "ogc_filters":
+												startRange.datetimepicker({
+													minDate: time_start, maxDate: time_end,
+													formatDate:'Y-d-m',
+													formatTime: 'HH:mm:ss',
+													onShow:function( ct ){
+														this.setOptions({
+															maxDate:endRange.val()?endRange.val():false
+														})
+													}
+												});
+												//startRange.val(time_start.toISOString().replace('T', ' '));
+												endRange.datetimepicker({
+													minDate: time_start, maxDate: time_end,
+													formatDate:'Y-d-m',
+													formatTime: 'HH:mm:ss',
+													onShow:function( ct ){
+														this.setOptions({
+															minDate:startRange.val()?startRange.val():false
+														})
+													}
+												});
+												//endRange.val(time_end.toISOString().replace('T', ' '));
+												break;
+											case "ogc_viewparams":
+												startRange.datetimepicker({
+													minDate: time_start, maxDate: time_end,
+													formatDate:'Y-d-m',
+													formatTime: 'HH:mm:ss'
+												});
+												//startRange.val(time_start.toISOString().replace('T', ' ')); break;
+										}
+									}
+									
+									$("#dsd-ui-col-1").append('</div>');
+								}
+
+							}
+						}
+					}
+					
+					// Next follow UI for variables
+					var variables = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "variable") return item});
+					
+					//2. Build UI from VARIABLES filtering
+					//-------------------------------------------
+					/*if(variables.length > 0) {
+							$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.labels.variables+'</label></p></div>');
+							$("#dsd-ui-col-1").append('<p><em>Coming Soon!</em></p>');
+					}*/
+					
+					//3. Build UI for THEMATIC MAPPING on Variables
+					//---------------------------------------------	
+					$("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
+					if(this_.dataset_on_query.thematicmapping) {
+						
+						//VARIABLES handling as drop-down list
+						//------------------------------------
+						//variable matcher
+						var variableMatcher = function(params, data){
+							params.term = params.term || '';
+							if ($.trim(params.term) === '') {
+							  return data;
+							}  
+							var term = params.term.toUpperCase();
+							var altText = data.alternateText? data.alternateText : '';
+							if (data.text.toUpperCase().indexOf(term) > -1  |
+								data.id.toUpperCase().indexOf(term) > -1    |
+								altText.toUpperCase().indexOf(term) > -1    ) {
+								return data;
+							}
+							return null;
+						}
+						//variableItem
+						var variableItem = function(item, alternate) {
+						  if (!item.id) { return item.text; }			 
+						  if(alternate && item.alternateText){
+							  var $item = $(
+								'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'+
+								'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>'
+							  );
+						  }else{
+							  var $item = $(
+								'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+							  );
+						  }
+						  return $item;
+						};
+						var variableItemSelection = function(item){
+							return variableItem(item, false);
+						}
+						var variableItemResult = function(item){
+							return variableItem(item, true);
+						}
+						
+						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
+						
+						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_variable+'</label></p></div>');
+						
+						//prepare dropdownlist items
+						var variable_items = new Array();
+						for(var i=0;i<variables.length;i++){
+							var dsd_variable = variables[i];
+							variable_items.push( {
+								id: dsd_variable.primitiveCode, 
+								text: dsd_variable.name, 
+								alternateText: dsd_variable.definition, 
+								type: dsd_variable.primitiveType
+							} );
+						}
+						//init selector
+						//id
+						var dsd_variables_id = "dsd-ui-dimension-variable";
+						//html
+						$("#dsd-ui-col-2").append('<select id = "'+dsd_variables_id+'" class="dsd-ui-dimension dsd-ui-dimension-variable" title="'+this_.options.labels.thematicmapping_variable+'"><option></option></select>');
+						$("#" + dsd_variables_id).select2({
+							theme: 'classic',
+							allowClear: true,
+							data: variable_items,
+							templateResult: variableItemResult,
+							templateSelection: variableItemSelection,
+							matcher: variableMatcher,
+							placeholder: this_.options.labels.thematicmapping_variable
+						});
+						
+						//VARIABLES OPTIONS
+						//------------------------------------
+						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_options+'</label></p></div>');
+						this_.handleQueryMapOptions(2);
+					}
+					
+					//query form buttons
+					if(variables.length == 0) $("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
+					this_.handleQueryFormButtons(2);
 				}
 				
-				//query form buttons
-				if(variables.length == 0) $("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
-				this_.handleQueryFormButtons(2);
-
 				deferred.resolve(this_.dataset_on_query);
 			}
 		});
@@ -3266,7 +3270,7 @@ class OpenFairViewer {
 			 case "ogc_filters":
 				if(dataset.dsd){
 					console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue");
-					if(dataset.thematicmapping){
+					if(dataset.thematicmapping && strategyvariable){
 						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series with "+features.length+" features");
@@ -3438,7 +3442,7 @@ class OpenFairViewer {
 				break;
 				
 			 case "ogc_viewparams":
-			    if(dataset.thematicmapping){
+			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Add layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
 					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
@@ -3581,7 +3585,7 @@ class OpenFairViewer {
 		    switch(dataset.strategy){
 			case "ogc_filters":
 				if(dataset.dsd){
-					if(dataset.thematicmapping){
+					if(dataset.thematicmapping && strategyvariable){
 						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (thematic mapping)");
 						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, (strategyparams == null)? null :  decodeURIComponent(strategyparams_str), null, (strategyvariable? [strategyvariable] : null )).then(function(features){
@@ -3772,7 +3776,7 @@ class OpenFairViewer {
 			    //TODO
 			    break;
 			case "ogc_viewparams":
-			    if(dataset.thematicmapping){
+			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Update layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
 					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null )).then(function(features){
@@ -5280,7 +5284,7 @@ class OpenFairViewer {
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
 		this_.openAccessDialog();
-		this_.handleQueryForm(datasetDef).then(function(dataset){					
+		this_.handleQueryForm(datasetDef, !datasetDef.query).then(function(dataset){					
 
 			datasetDef.dsd = dataset.dsd;
 			if(datasetDef.query){
@@ -5502,8 +5506,9 @@ class OpenFairViewer {
 									var attribute = elems[0];
 									var values = elems[1].split(")")[0].split(/(?!'),(?![^'])/g);
 									values = values.map(function(item){return item}); //replace double single quote for cql filter text with single quote
+									values = values.map(function(item){return decodeURIComponent(item)});
 									out = new Object();
-									out[attribute] = {type: 'list', content: decodeURIComponent(values)};
+									out[attribute] = {type: 'list', content: values};
 								}else if(item.indexOf('BEFORE')>0 && item.indexOf('AFTER')){
 									var elems = item.split(" AND ");
 									var time_filter_start = elems[0].split(" AFTER ");
@@ -5525,8 +5530,9 @@ class OpenFairViewer {
 								var elems = item.split(":"); 
 								var attribute = elems[0];
 								var values = elems[1].split('+');
+								values = values.map(function(item){return decodeURIComponent(item)});
 								var out = new Object(); 
-								out[attribute] = {type: ( (!isNaN(Date.parse(values[0])) & values[0].length >= 10)? "timeinstant" : "list"), content: decodeURIComponent(values)};
+								out[attribute] = {type: ( (!isNaN(Date.parse(values[0])) & values[0].length >= 10)? "timeinstant" : "list"), content: values};
 								return out;
 							});
 							break;
@@ -5573,12 +5579,15 @@ class OpenFairViewer {
 					console.log(encoded_dataset);
 					this_.selection.push(encoded_dataset);	
 					
+					
 					//if it was the last dataset queried by user we fill the query interface with param values
-					if(encoded_dataset.query){
+					//otherwise DSD (if existing) will be fetched but no html markup will be managed
+					this_.resolveDatasetForQuery(encoded_dataset, true);
+					/*if(encoded_dataset.query){
 						this_.resolveDatasetForQuery(encoded_dataset, true);
 					}else{
 						this_.resolveDatasetForMap(encoded_dataset);	
-					}
+					}*/
 
 					//popup coords
 					if(params.popup_id) if(params.popup_id == encoded_dataset.pid) {
