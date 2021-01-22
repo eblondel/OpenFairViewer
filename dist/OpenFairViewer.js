@@ -1218,12 +1218,13 @@ class OpenFairViewer {
 	 * OpenFairViewer.prototype.getWFSFeatureInfo
 	 * @param layer
 	 * @param feature
+	 * @param coords
 	 */
-	getWFSFeatureInfo(layer, feature){
+	getWFSFeatureInfo(layer, feature, coords){
 		var this_ = this;
 		var popup = this.map.getOverlayById(layer.id);
 		if(feature){
-			var coords = feature.getGeometry().getCoordinates();
+			if(!coords) coords = feature.getGeometry().getCoordinates();
 			feature.geometry_column = feature.getGeometryName();
 			feature.popup_coordinates = coords;
 			popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
@@ -1241,7 +1242,9 @@ class OpenFairViewer {
 	 * @returns a Jquery promise
 	 */
 	getDatasetNextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue){
-	    var wfsRequest = this.getDatasetWFSLink(layerUrl, serviceVersion, layerName, 'ogc_filters', null, propertyName + ' > ' + propertyValue, null, 'json');
+		var this_ = this;
+		var projection = this_.map.getView().getProjection().getCode();
+	    var wfsRequest = this.getDatasetWFSLink(layerUrl, serviceVersion, layerName, 'ogc_filters', null, propertyName + ' > ' + propertyValue, null, 'json', projection);
 	    wfsRequest += '&sortBy='+propertyName+'&maxFeatures=1';
 	    var deferred = $.Deferred();
 	    $.ajax({
@@ -1275,7 +1278,6 @@ class OpenFairViewer {
 		var layer = this.getLayerByProperty(pid, "id");
 		var viewResolution = this_.map.getView().getResolution();
 		var viewProjection = this_.map.getView().getProjection().getCode();
-		var popup = this.map.getOverlayById(layer.id);
 
 		this.getDatasetNextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue).then(function(nextresponse){
 			
@@ -1289,10 +1291,11 @@ class OpenFairViewer {
 					coords = geom.getCoordinates()[0][Math.floor(geom.getCoordinates()[0].length/2)];
 				}
 				if(geom instanceof olGeom.Point) coords = geom.getCoordinates();			
-
+				console.log("Feature In Time");
+				console.log(coords);
+				
 				//popup handling
-				popup.show(coords, this_.options.map.tooltip.handler(layer, nextfeature));
-				this_.popup = {id: layer.id, coords: coords};
+				this_.getWFSFeatureInfo(layer, nextfeature, coords);
 			}else{
 				popup.hide();
 				this_.popup = {};
@@ -4618,7 +4621,7 @@ class OpenFairViewer {
 			var vectorSource = target_layer.getSource();
 			if(vectorSource instanceof Cluster) vectorSource = vectorSource.getSource();
 			feature = vectorSource.getFeatureById(id);
-			this_.getWFSFeatureInfo(target_layer, feature);
+			this_.getWFSFeatureInfo(target_layer, feature, coords);
 		}else{
 			this_.getWMSFeatureInfo(target_layer, coords);
 		}
