@@ -146,6 +146,7 @@ QueryInfo <- function(input, output, session) {
 	}else{
 		NULL
 	}
+	print(bbox)
     
     srs <-if (!is.null(query$srs)){
       query$srs
@@ -230,7 +231,7 @@ QueryInfo <- function(input, output, session) {
         }
         
         if(is.null(par)){
-          Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = URLencode(bbox, reserved=T),propertyName = propertyName)
+          Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = bbox,propertyName = propertyName)
         }
       }
       
