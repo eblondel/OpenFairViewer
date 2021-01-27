@@ -152,7 +152,7 @@ QueryInfo <- function(input, output, session) {
 		NULL
 	}
     
-    SRS <-if (!is.null(query$srs)){
+    srs <-if (!is.null(query$srs)){
       query$srs
     }else{
       "'EPSG:4326'"
