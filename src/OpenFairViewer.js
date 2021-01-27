@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,1,22)}
+		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,1,27)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1191,7 +1191,8 @@ class OpenFairViewer {
 
 		var featureInfoUrl = layer.getSource().getFeatureInfoUrl(coords, viewResolution, viewProjection, {'INFO_FORMAT': "application/vnd.ogc.gml"});
 		if(this.secure) featureInfoUrl = featureInfoUrl.replace("http://", "https://");
-
+		var featureInfoParams = featureInfoUrl.split('?')[1].split("&").map(function(item){return item.split('=')});
+		
 		$.ajax({
 			url: featureInfoUrl,
 			crossOrigin: true,
@@ -1204,6 +1205,16 @@ class OpenFairViewer {
 					var feature = features[0];
 					feature.geometry_column = feature.getGeometryName();
 					feature.popup_coordinates = coords;
+					
+					//TODO investigate how to deal with similar in shiny popup when layer is vector
+					//(for now shiny popups limited to WMS layers)
+					feature.info = {
+						x: featureInfoParams.filter(function(item){if(item[0]=="X") return item;})[0][1],
+						y: featureInfoParams.filter(function(item){if(item[0]=="Y") return item;})[0][1],
+						width: featureInfoParams.filter(function(item){if(item[0]=="WIDTH") return item;})[0][1],
+						height: featureInfoParams.filter(function(item){if(item[0]=="HEIGHT") return item;})[0][1],
+						bbox: featureInfoParams.filter(function(item){if(item[0]=="BBOX") return item;})[0][1]
+					}
 					popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
 					this_.popup = {id: layer.id, coords: coords};
 				}else{
