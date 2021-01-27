@@ -117,6 +117,17 @@ QueryInfo <- function(input, output, session) {
       NULL
     }
     
+	coord.x <- if(!is.null(query$coord.x)){
+		as.numeric(query$coord.x)
+	}else{
+		NULL
+	}
+	coord.y <- if(!is.null(query$coord.y)){
+		as.numeric(query$coord.y)
+	}else{
+		NULL
+	}
+	
     x <-if (!is.null(query$x)){
       as.numeric(query$x)
     }else{
@@ -128,14 +139,24 @@ QueryInfo <- function(input, output, session) {
     }else{
       NULL
     }
+	
+	width <-if(!is.null(query$width)){
+		as.numeric(query$width)
+	}else{
+		NULL
+	}
+	
+	height <- if(!is.null(query$height)){
+		as.numeric(query$height)
+	}else{
+		NULL
+	}
     
     SRS <-if (!is.null(query$srs)){
-     # paste0("'",query$srs,"'")
       query$srs
     }else{
       "'EPSG:4326'"
     }
-    print(SRS)
     
     dsd<-if (!is.null(query$dsd)){
       jsonlite::fromJSON(query$dsd)
@@ -204,26 +225,17 @@ QueryInfo <- function(input, output, session) {
         
         Layer <- WMS$capabilities$findLayerByName(layer)
         
-        srs <- NULL
-        crs <- NULL
-        
-        if(startsWith(wms_version, "1.1")){
-          srs <- SRS
-        }else if(wms_version == "1.3.0"){
-          crs <- SRS
-        }
-        
-        bbox <- paste0(x-0.1,",",y-0.1,",",x+0.1,",",y+0.1)
+        bbox <- paste0(coord.x-0.1,",",coord.y-0.1,",",coord.x+0.1,",",coord.y+0.1)
         
         if(!is.null(par)){
           Data <- switch(strategy,
-                            "ogc_filters"=Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName)),
-                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox, viewparams = URLencode(par),propertyName = propertyName)
+                            "ogc_filters"=Layer$getFeatureInfo(srs = srs,x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = URLencode(bbox, reserved=T),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName)),
+                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = URLencode(bbox, reserved=T), viewparams = URLencode(par),propertyName = propertyName)
           )
         }
         
         if(is.null(par)){
-          Layer$getFeatureInfo(srs = srs, crs = crs,x = 50, y = 50, width = 101, height = 101, feature_count = 1000000, info_format = "application/json", bbox = bbox,propertyName = propertyName)
+          Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = URLencode(bbox, reserved=T),propertyName = propertyName)
         }
       }
       
@@ -278,8 +290,12 @@ QueryInfo <- function(input, output, session) {
             "strategy: ", data$query$strategy, "\n",
             "par: ", data$query$par, "\n",
             "geom: ", data$query$geom, "\n",
-            "x: ", data$query$x, "\n",
+            "coord.x: ", data$query$coord.x, "\n",
+            "coord.y: ", data$query$coord.y, "\n",
+			"x: ", data$query$x, "\n",
             "y: ", data$query$y, "\n",
+			"width: ", data$query$width, "\n",
+			"height: ", data$query$height, "\n",
             "srs: ",data$query$srs, "\n",
             "dsd: ",data$query$dsd, "\n"
       )
