@@ -116,17 +116,6 @@ QueryInfo <- function(input, output, session) {
     }else{
       NULL
     }
-    
-	coord.x <- if(!is.null(query$coord.x)){
-		as.numeric(query$coord.x)
-	}else{
-		NULL
-	}
-	coord.y <- if(!is.null(query$coord.y)){
-		as.numeric(query$coord.y)
-	}else{
-		NULL
-	}
 	
     x <-if (!is.null(query$x)){
       as.numeric(query$x)
@@ -148,6 +137,12 @@ QueryInfo <- function(input, output, session) {
 	
 	height <- if(!is.null(query$height)){
 		as.numeric(query$height)
+	}else{
+		NULL
+	}
+	
+	bbox <- if(!is.null(query$bbox)){
+		query$bbox
 	}else{
 		NULL
 	}
@@ -225,12 +220,12 @@ QueryInfo <- function(input, output, session) {
         
         Layer <- WMS$capabilities$findLayerByName(layer)
         
-        bbox <- paste0(coord.x-0.1,",",coord.y-0.1,",",coord.x+0.1,",",coord.y+0.1)
+        #bbox <- paste0(coord.x-0.1,",",coord.y-0.1,",",coord.x+0.1,",",coord.y+0.1)
         
         if(!is.null(par)){
           Data <- switch(strategy,
-                            "ogc_filters"=Layer$getFeatureInfo(srs = srs,x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = URLencode(bbox, reserved=T),cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName)),
-                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = URLencode(bbox, reserved=T), viewparams = URLencode(par),propertyName = propertyName)
+                            "ogc_filters"=Layer$getFeatureInfo(srs = srs,x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = bbox,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName)),
+                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = bbox, viewparams = URLencode(par),propertyName = propertyName)
           )
         }
         
@@ -290,12 +285,11 @@ QueryInfo <- function(input, output, session) {
             "strategy: ", data$query$strategy, "\n",
             "par: ", data$query$par, "\n",
             "geom: ", data$query$geom, "\n",
-            "coord.x: ", data$query$coord.x, "\n",
-            "coord.y: ", data$query$coord.y, "\n",
 			"x: ", data$query$x, "\n",
             "y: ", data$query$y, "\n",
 			"width: ", data$query$width, "\n",
 			"height: ", data$query$height, "\n",
+			"bbox: ", data$query$bbox, "\n",
             "srs: ",data$query$srs, "\n",
             "dsd: ",data$query$dsd, "\n"
       )
