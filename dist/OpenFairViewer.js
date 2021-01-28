@@ -561,11 +561,12 @@ class OpenFairViewer {
 			}
 		}
 		
-		//tooltip
-		this.options.map.tooltip = {};
-		this.options.map.tooltip.enabled = true;
+		//popup
+		this.options.map.popup = {};
+		this.options.map.popup.mode = 'map';
+		this.options.map.popup.enabled = true;
 		//default handlers
-		this.options.map.tooltip.DEFAULT_HANDLER = function(layer, feature){
+		this.options.map.popup.DEFAULT_HANDLER = function(layer, feature){
 			console.log(layer);
 			console.log(feature);
 			console.log("Inherit DSD from layer in popup");
@@ -650,11 +651,12 @@ class OpenFairViewer {
 		} 
 		
 		//Set default handler
-		this.options.map.tooltip.handler = this.options.map.tooltip.DEFAULT_HANDLER;
-		//handler option
-		if(options.map) if(options.map.tooltip) {
-			if(options.map.tooltip.enabled) this.options.map.tooltip.enabled = options.map.tooltip.enabled;
-			if(options.map.tooltip.handler) this.options.map.tooltip.handler = options.map.tooltip.handler;
+		this.options.map.popup.handler = this.options.map.popup.DEFAULT_HANDLER;
+		//popup handler option
+		if(options.map) if(options.map.popup) {
+			if(options.map.popup.mode) this.options.map.popup.mode = options.map.popup.mode;
+			if(options.map.popup.enabled) this.options.map.popup.enabled = options.map.popup.enabled;
+			if(options.map.popup.handler) this.options.map.popup.handler = options.map.popup.handler;
 		}
 		
 		//cesium
@@ -1215,7 +1217,7 @@ class OpenFairViewer {
 						height: featureInfoParams.filter(function(item){if(item[0]=="HEIGHT") return item;})[0][1],
 						bbox: featureInfoParams.filter(function(item){if(item[0]=="BBOX") return item;})[0][1]
 					}
-					popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
+					popup.show(coords, this_.options.map.popup.handler(layer, feature));
 					this_.popup = {id: layer.id, coords: coords};
 				}else{
 					popup.hide();
@@ -1248,7 +1250,7 @@ class OpenFairViewer {
 			if(!coords) coords = feature.getGeometry().getCoordinates();
 			feature.geometry_column = feature.getGeometryName();
 			feature.popup_coordinates = coords;
-			popup.show(coords, this_.options.map.tooltip.handler(layer, feature));
+			popup.show(coords, this_.options.map.popup.handler(layer, feature));
 			this_.popup = {id: layer.id, coords: coords};
 		}
 	}
@@ -2020,7 +2022,17 @@ class OpenFairViewer {
 	displayDatasetMetadata(elm){  
 		var pid = elm.getAttribute('data-pid');
 		console.log("Display metadata dataset with pid = " + pid);
-		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
+		var dataset = null;
+		if(this.dataset_on_query){
+			if(pid == this.dataset_on_query.pid) dataset = this.dataset_on_query.entry;
+		}
+		if(!dataset){
+			dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
+		}
+		if(!dataset){
+			console.warn("displayDatasetMetadata disabled, can't find dataset for pid '"+pid+"'");
+			return;
+		}
 		this.options.find.datasetInfoHandler(dataset.metadata);
 	}
 	  
@@ -2047,8 +2059,19 @@ class OpenFairViewer {
 	zoomToExtent(elm){
 		var pid = elm.getAttribute('data-pid');
 		console.log("Zoom to dataset with pid = " + pid);
-		var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
-		if(dataset.length>0) dataset = dataset[0];
+		var dataset = null
+		if(this.dataset_on_query){
+			if(pid == this.dataset_on_query.pid) dataset = this.dataset_on_query.entry;
+		}
+		if(!dataset){
+			dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}});
+			if(dataset.length>0) dataset = dataset[0];
+		}
+		if(!dataset){
+			console.warn("zoomToExtent disabled, no dataset identified from pid '"+pid+"'");
+			return;
+		}
+		
 		var idents = dataset.metadata.identificationInfo;
 		if(!idents) return; if(idents.length == 0) return;
 		var extents = idents[0].extent;
@@ -2162,8 +2185,19 @@ class OpenFairViewer {
 	resolveDatasetDOI(elm){
 		var pid = elm.getAttribute('data-pid');
 		console.log("Resove DOI for dataset pid = " + pid);
-		var the_dataset = this.datasets.filter(function(item){if(item.pid == pid) return item});
-		if(the_dataset.length > 0) the_dataset = the_dataset[0]; window.open("//dx.doi.org/" + the_dataset.doi,'_blank');
+		var the_dataset = null;
+		if(this.dataset_on_query){
+			if(pid == this.dataset_on_query.pid) the_dataset = this.dataset_on_query;
+		}
+		if(!the_dataset){
+			the_dataset = this.datasets.filter(function(item){if(item.pid == pid) return item});
+			if(the_dataset.length > 0) the_dataset = the_dataset[0];
+		}
+		if(!the_dataset){
+			console.warn("resolveDatasetDOI disabled, can't find dataset for pid '"+pid+"'");
+			return;
+		}
+		window.open("//dx.doi.org/" + the_dataset.doi,'_blank');
 	}
 
 	
@@ -2634,15 +2668,15 @@ class OpenFairViewer {
 					var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
 					$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
 					//acccess dataset header
-					var accessHeader = '<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5><br>'; accessHeader += '<div>';
+					var accessHeader = '<div class="row" style="padding:6px;margin:6px;text-align:left;background-color: #d9edf7;color: #31708f;"><div class="col-md-10"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>'; accessHeader += '<div class="col-md-2">';
 					//button-->doi
 					if(entry.doi){
-						accessHeader += '<button class="btn btn-xs dataset-button dataset-button-doi" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_doi+'" onclick="'+this_.config.OFV_ID+'.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>';
+						accessHeader += '<button class="btn btn-xs dataset-button dataset-button-doi" style="top:10px;" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_doi+'" onclick="'+this_.config.OFV_ID+'.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>';
 					}
 					//button-->info (metadata)
-					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-info" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_metadata+'" onclick="'+this_.config.OFV_ID+'.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>';
+					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-info" style="top:10px;" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_access_metadata+'" onclick="'+this_.config.OFV_ID+'.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>';
 					//button-->zoom
-					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-zoom" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_zoom_extent+'" onclick="'+this_.config.OFV_ID+'.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>';
+					accessHeader += '<button class="btn btn-xs dataset-button dataset-button-zoom" style="top:10px;" data-pid="'+entry.pid+'" title="'+this_.options.labels.dataset_zoom_extent+'" onclick="'+this_.config.OFV_ID+'.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>';
 					accessHeader += '</div></div>';
 					$("#dsd-ui-header").append(accessHeader);
 		
@@ -5821,6 +5855,20 @@ class OpenFairViewer {
 	*/
 	closeDashboardDialog(){
 		this.closeDialog("dashboardDialog");
+	}
+	
+	/**
+	* openFeatureDialog Open 'Feature' dialog
+	*/
+	openFeatureDialog(){
+		this.openDialog("featureDialog");
+	}
+   
+   	/**
+	* closeFeatureDialog Close 'Feature' dialog
+	*/
+	closeFeatureDialog(){
+		this.closeDialog("featureDialog");
 	}
 	
   	/**
