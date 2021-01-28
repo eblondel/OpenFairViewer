@@ -155,7 +155,9 @@ QueryInfo <- function(input, output, session) {
     }
     
     dsd<-if (!is.null(query$dsd)){
-      jsonlite::fromJSON(query$dsd)
+      parsed_dsd <- jsonlite::fromJSON(query$dsd)
+	  print(parsed_dsd)
+	  parsed_dsd
     }else{
       NULL
     }
