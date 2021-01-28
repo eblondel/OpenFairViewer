@@ -155,12 +155,9 @@ QueryInfo <- function(input, output, session) {
     }
     
     dsd<-if (!is.null(query$dsd)){
-	  print("encoded")
-	  print(query$dsd)
-	  print("decoded")
-	  print(URLdecode(query$dsd))
-	  
-      jsonlite::fromJSON(URLdecode(query$dsd))
+      parsed_dsd <- jsonlite::fromJSON(query$dsd)
+	  print(parsed_dsd)
+	  parsed_dsd
     }else{
       NULL
     }
