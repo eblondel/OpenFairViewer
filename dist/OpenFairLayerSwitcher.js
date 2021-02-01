@@ -1,5 +1,6 @@
 import Control from 'ol/control/Control';
 import { unByKey } from 'ol/Observable';
+import {Group as LayerGroup} from 'ol/layer';
 import LayerSwitcher from 'ol-layerswitcher';
 import 'ol-layerswitcher/dist/ol-layerswitcher.css';
 
@@ -10,6 +11,9 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	constructor(opt_options){
 		super(opt_options);
 		var options = opt_options || {};
+		this.reverse = options.reverse !== false;
+		this.dragAndDrop = options.dragAndDrop !== false;
+		this.dragSrcEl = null;
 	}
 
 	/**
@@ -17,13 +21,13 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	 * @private 
 	 * @param {Layer} lyr Layer for which the legend should be rendered.
 	 */
-	static renderLegendGraphic_(lyr, idx, li) {
+	static renderLegendGraphic_(lyr, li) {
 		if(lyr.get('type') != 'base' && lyr.showLegendGraphic){
 			var imgSrc = (lyr.legendGraphic)? lyr.legendGraphic : false;
 			console.log(imgSrc);
 			if(imgSrc){
 				var legend = document.createElement('div');
-				var legendId = lyr.get('title').replace(' ', '-') + '_' + idx + "_legend";
+				var legendId = lyr.get('title').replace(' ', '-') + "_legend";
 				legend.id = legendId;
 				var img = new Image();
 				img.src = imgSrc;
@@ -43,8 +47,8 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	 * @private
 	 * @param {ol.layer.Base} lyr Layer for which the legend should be rendered
 	 */
-	static toggleLegendGraphic_(lyr, idx) {
-		var legendId = lyr.get('title').replace(' ', '-') + '_' + idx + "_legend";
+	static toggleLegendGraphic_(lyr) {
+		var legendId = lyr.get('title').replace(' ', '-') + "_legend";
 		var legend = document.getElementById(legendId);
 		legend.style.display = (lyr.getVisible()? "block" : "none");
 	}	
@@ -56,7 +60,8 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		this.dispatchEvent({ type: 'render' });
 		OpenFairLayerSwitcher.renderPanel(this.getMap(), this.panel, {
 		  groupSelectStyle: this.groupSelectStyle,
-		  reverse: this.reverse
+		  reverse: this.reverse,
+		  dragAndDrop: this.dragAndDrop
 		});
 		this.dispatchEvent({ type: 'rendercomplete' });
 	} 
@@ -122,7 +127,17 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		var rendercomplete_event = new Event('rendercomplete');
 		// Dispatch the event.
 		panel.dispatchEvent(rendercomplete_event);
-	  }
+		
+		//refresh layer tree
+		if(options.dragAndDrop){
+			OpenFairLayerSwitcher.refreshLayerTree_(map, panel, options, function render(
+			  changedLyr
+			) {
+			  // console.log('render');
+			  OpenFairLayerSwitcher.renderPanel(map, panel, options);
+			});
+		}
+	 }
 
 	  
 	/**
@@ -130,7 +145,6 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	 * @private
 	 * @param {ol/Map~Map} map The map instance.
 	 * @param {ol/layer/Base~BaseLayer} lyr Layer to be rendered (should have a title property).
-	 * @param {Number} idx Position in parent group list.
 	 * @param {Object} options Options for groups and layers
 	 * @param {String} options.groupSelectStyle either `'none'` - groups don't get a checkbox,
 	 *   `'children'` (default) groups have a checkbox and affect child visibility or
@@ -139,7 +153,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	 * @param {Function} render Callback for change event on layer
 	 * @returns {HTMLElement} List item containing layer control markup
 	 */
-	static renderLayer_(map, lyr, idx, options, render) {
+	static renderLayer_(map, lyr, options, render) {
 		var li = document.createElement('li');
 
 		var lyrTitle = lyr.get('title');
@@ -176,6 +190,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			input.checked = lyr.getVisible();
 			input.indeterminate = lyr.get('indeterminate');
 			input.onchange = function (e) {
+			  e.target.parentElement.setAttribute("data-checked", e.target.checked);
 			  LayerSwitcher.setVisible_(
 				map,
 				lyr,
@@ -184,6 +199,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			  );
 			  render(lyr);
 			};
+			li.setAttribute("data-checked", lyr.get('visible'));
 			li.appendChild(input);
 			label.htmlFor = checkboxId;
 		  }
@@ -207,15 +223,18 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		  input.checked = lyr.get('visible');
 		  input.indeterminate = lyr.get('indeterminate');
 		  input.onchange = function (e) {
+			e.target.parentElement.setAttribute("data-checked", e.target.checked);
 			LayerSwitcher.setVisible_(
 			  map,
 			  lyr,
 			  e.target.checked,
 			  options.groupSelectStyle
 			);
-			OpenFairLayerSwitcher.toggleLegendGraphic_(lyr, idx);
+			OpenFairLayerSwitcher.toggleLegendGraphic_(lyr);
 			render(lyr);
 		  };
+		  li.setAttribute("data-pid", lyr.id);
+		  li.setAttribute("data-checked", lyr.get('visible'));
 		  li.appendChild(input);
 
 		  label.htmlFor = checkboxId;
@@ -229,7 +248,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		  li.appendChild(label);
 		  
 		  //handling legend graphic for overlays
-		  OpenFairLayerSwitcher.renderLegendGraphic_(lyr, idx, li);
+		  OpenFairLayerSwitcher.renderLegendGraphic_(lyr, li);
 		  
 		}
 
@@ -252,12 +271,131 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	static renderLayers_(map, lyr, elm, options, render) {
 		var lyrs = lyr.getLayers().getArray().slice();
 		if (options.reverse) lyrs = lyrs.reverse();
+		if (options.dragAndDrop){
+			if(lyrs[0]) if(!(lyrs[0] instanceof LayerGroup)) if(lyrs[0].getZIndex()!=NaN){
+				console.info("Sorting by layer Z indexes!");
+				lyrs.sort((a, b) => { 
+					return ((a.getZIndex() - b.getZIndex()) > 0 ? -1 : 1); 
+				});
+			}
+		}
 		for (var i = 0, l; i < lyrs.length; i++) {
 		  l = lyrs[i];
 		  if (l.get('title')) {
-			elm.appendChild(OpenFairLayerSwitcher.renderLayer_(map, l, i, options, render));
+			elm.appendChild(OpenFairLayerSwitcher.renderLayer_(map, l, options, render));
 		  }
 		}
+	}
+	
+	/**
+	 * **Static** .
+	 * @private
+	 * @param {ol/Map~Map} map The map instance.
+	 * @param {Element} panel The DOM Element into which the layer tree will be rendered
+	 * @param {Object} options Options for panel, group, and layers
+	 */
+	static refreshLayerTree_(map, panel, options, render){
+		var this_ = this;
+		var dragLayerStart = function(e) {
+		  //this.style.opacity = '0.4';
+		  this_.dragSrcEl = this;
+		  e.dataTransfer.effectAllowed = 'move';
+		  e.dataTransfer.setData('text/html', this.outerHTML);
+		};
+
+		var dragLayerEnter = function(e) {
+		  this.classList.add('draggable-layer-over');
+		}
+
+		var dragLayerLeave = function(e) {
+		  this.style.backgroundColor = "transparent";
+		  e.stopPropagation();
+		  this.classList.remove('draggable-layer-over');
+		}
+
+		var dragLayerOver = function(e) {
+		  this.style.backgroundColor = "#DCDCDC";
+		  e.preventDefault();
+		  e.dataTransfer.dropEffect = 'move';
+		  return false;
+		}
+
+		var dragLayerDrop = function(e) {
+			this.style.backgroundColor = "transparent";
+		  //this.style.opacity = '1';
+		  if (this_.dragSrcEl != this) {
+			this_.dragSrcEl.outerHTML = this.outerHTML;
+			this.outerHTML = e.dataTransfer.getData('text/html');
+			this_.refreshLayerTree_(map, panel, options, render);
+			this_.renderPanel(map, panel, options);
+		  }
+		  return false;
+		}
+
+		var dragLayerEnd = function(e) {
+		  var listItens = document.querySelectorAll('.draggable-layer');
+		  [].forEach.call(listItens, function(item) {
+			item.childNodes[0].checked = item.getAttribute('data-checked') === "true";
+			item.classList.remove('draggable-layer-over');
+		  });
+		  this.style.opacity = '1';
+		}
+
+		var addDragAndDropLayerEvents = function(el) {
+		  el.addEventListener('dragstart', dragLayerStart, false);
+		  el.addEventListener('dragenter', dragLayerEnter, false);
+		  el.addEventListener('dragover', dragLayerOver, false);
+		  el.addEventListener('dragleave', dragLayerLeave, false);
+		  el.addEventListener('drop', dragLayerDrop, false);
+		  el.addEventListener('dragend', dragLayerEnd, false);
+		}
+		
+		var mapLayerGroups = new Array();
+		var total = 0;
+		map.getLayers().getArray().forEach(function(item){mapLayerGroups.push(item)});
+		mapLayerGroups.shift(); //not applied on baselayers
+		$($(".group")
+			.filter(function(i, item){if($(item).prop('class').indexOf('base')==-1) return item;})
+			.get().reverse())
+			.each(function(i, layergroup){
+				
+				var mapLayerGroup = mapLayerGroups[i];
+				var mapLayers = mapLayerGroup.getLayers().getArray().filter(function(item){if(item.id != "ofv-csw-spatial-coverages") return item;});
+				var layers = $(layergroup).find(".layer").get().reverse();
+				$(layers).each(function(j,item){
+					$(item).prop("draggable","true");
+					$(item).addClass("draggable-layer");
+					$(item).attr("data-order",total + j);
+					addDragAndDropLayerEvents(item);
+				});
+				total += mapLayers.length;
+			});
+			
+		$($(".group")
+			.filter(function(i, item){if($(item).prop('class').indexOf('base')==-1) return item;})
+			.get().reverse())
+			.each(function(i, layergroup){
+				var mapLayerGroup = mapLayerGroups[i];
+				var mapLayers = mapLayerGroup.getLayers().getArray().filter(function(item){if(item.id != "ofv-csw-spatial-coverages") return item;});
+				var layers = $(layergroup).find(".layer").get().reverse();
+				$(layers).each(function(j,item){
+					var mapLayer = OpenFairLayerSwitcher.getLayerByProperty(map, $(item).attr("data-pid"), 'id');
+					mapLayer.setZIndex(parseInt($(item).attr("data-order")));
+				});
+			});
+	}
+	
+	static getLayerByProperty(map, layerProperty, by){
+		var target = undefined;
+		for(var i=0;i<map.getLayerGroup().getLayersArray().length;i++){
+			var layer = map.getLayerGroup().getLayersArray()[i];
+			var condition  = by? (layer[by] === layerProperty) : (layer.getSource().getParams()["LAYERS"] === layerProperty);
+			if(condition){
+				target = map.getLayerGroup().getLayersArray()[i];
+				break;
+			}
+		}
+		return target;
 	}
 	
 }

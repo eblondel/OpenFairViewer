@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,1,27)}
+		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,2,1)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -835,7 +835,9 @@ class OpenFairViewer {
 
 		//views
 		var encoded_views = new Array();
-		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray().filter(function(item){if(item.id != "ofv-csw-spatial-coverages") return item});
+		var viewlayers = this.layers.overlays[this.options.map.mainlayergroup].getLayers().getArray().filter(function(item){if(item.id != "ofv-csw-spatial-coverages" && typeof item.strategy != "undefined") return item});
+		viewlayers.sort((a, b) => { return ((a.getZIndex() - b.getZIndex()) > 0 ? 1 : -1);  });
+		console.log(viewlayers);
 		for(var i=0;i<viewlayers.length;i++){
 			var encoded_view = "";
 			var viewlayer = viewlayers[i];
@@ -1490,8 +1492,7 @@ class OpenFairViewer {
 	 */
 	getDatasetViewTitle(dataset, strategyparams){
 		var this_ = this;
-		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="'+this_.options.labels.dataset_remove+'" '
-		layerTitle += 'onclick="'+this_.config.OFV_ID+'.unselectDataset(this)"> X </button>';
+		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="'+this_.options.labels.dataset_remove+'" onclick="'+this_.config.OFV_ID+'.unselectDataset(this)"> X </button>';
 		layerTitle += '<span>'+dataset.entry.title+'</span>';
 
 		if(strategyparams) if(strategyparams instanceof Array) if(strategyparams.length > 0){
@@ -1725,7 +1726,7 @@ class OpenFairViewer {
 				visible: visible
 			});
 			layer.id = layerId;
-			this.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
+			this.layers.overlays[this_.options.map.mainlayergroup+1].getLayers().push(layer);
 			var layerPointer = new olInteraction.Select({
 				condition: pointerMove,
 				layers: [layer]
@@ -4849,6 +4850,12 @@ class OpenFairViewer {
 			});
 			overlays.push(overlay);
 		}
+		//special overlay group for coverages
+		var covOverlay = new LayerGroup({
+			layers: []
+		});
+		overlays.push(covOverlay);
+		//extent/zoom
 	    var defaultMapExtent = this.options.map.extent;
 	    var defaultMapZoom = this.options.map.zoom;
             
@@ -4918,7 +4925,8 @@ class OpenFairViewer {
 				activationMode: 'click',
 				tipLabel: this_.options.labels.legend_title_show, // Optional label for button
 				collapseTipLabel: this_.options.labels.legend_title_hide, // Optional label for button
-				collapseLabel: ''
+				collapseLabel: '',
+				dragAndDrop: true
 			}));
 		}      
 					
@@ -5165,6 +5173,7 @@ class OpenFairViewer {
 			alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
 	    }
 	    layer.overlayGroup = this.options.map.layergroups[mainOverlayGroup];
+		layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
 	    this.layers.overlays[mainOverlayGroup].getLayers().push(layer);
 	    
  	    //inherit properties
@@ -5212,6 +5221,7 @@ class OpenFairViewer {
 				});
 				layer.id = id;
 				layer.showLegendGraphic = true;
+				layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
 				this_.layers.overlays[mainOverlayGroup].getLayers().push(layer);
 				var layerPointer = new olInteraction.Select({
 					condition: pointerMove,
@@ -5250,6 +5260,7 @@ class OpenFairViewer {
 				});			
 				layer.id = id;
 				layer.showLegendGraphic = true;
+				layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
 				this_.layers.overlays[mainOverlayGroup].getLayers().push(layer);
 				
 				this_.configureSelectCluster(layer);
@@ -5673,6 +5684,7 @@ class OpenFairViewer {
 					this_.renderMapLegend();
 				});
 			});
+
 		}
 		
 		//extent, center, zoom
