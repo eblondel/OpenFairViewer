@@ -5361,7 +5361,7 @@ class OpenFairViewer {
 	resolveDatasetForQuery(datasetDef, resolveMap){
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
-		this_.openAccessDialog();
+		if(datasetDef.query) this_.openAccessDialog();
 		this_.handleQueryForm(datasetDef, !datasetDef.query).then(function(dataset){					
 
 			datasetDef.dsd = dataset.dsd;
