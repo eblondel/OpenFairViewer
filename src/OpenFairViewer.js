@@ -3731,7 +3731,7 @@ class OpenFairViewer {
 							var format = new olFormat.GeoJSON();
 							var features = response.map(function(item){
 								var feature = format.readFeature(item);
-								feature.layerid = layerName; //hack required to control layer-specific SelectCluster interaction
+								feature.layerid = pid; //hack required to control layer-specific SelectCluster interaction
 								return feature;
 							});
 							console.log(features);
