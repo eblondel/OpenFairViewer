@@ -12,16 +12,6 @@ Many thanks to the following organizations that have provided fundings for stren
 </div>
 
 
-
-
-
-
-
-
-
-
-
-
 ## Introduction 
 
 The OpenFairViewer is an HTML5/JS map viewer application  developed to adopt the FAIR Data principles, while complying with ISO/OGC standards for geospatial data. It enables data findn, access, query and sharing of geospatial data, in interoperable way.
