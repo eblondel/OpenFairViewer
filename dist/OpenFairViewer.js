@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,2,3)}
+		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,2,5)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1162,6 +1162,7 @@ class OpenFairViewer {
 	 * @param dsd
 	 */	
 	getGeometryColumn(dsd){
+		if(!dsd) return null;
 		var gmlProperty = dsd.filter(function(item){if(item.primitiveType.startsWith("gml")) return item});
 		if(gmlProperty.length == 0) return null;
 		return gmlProperty[0].primitiveCode;
@@ -1172,7 +1173,7 @@ class OpenFairViewer {
 	 * @param dsd
 	 */	
 	getGeometryType(dsd){
-		console.log(dsd);
+		if(!dsd) return null;
 		var gmlProperty = dsd.filter(function(item){if(item.primitiveType.startsWith("gml")) return item});
 		if(gmlProperty.length == 0) return null;
 		return gmlProperty[0].primitiveType;
