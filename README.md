@@ -222,8 +222,10 @@ Name | Type | Description| Default value
 |`function`| `style`: Function with args (feature, resolution) used to display a feature either clustered or not. | A default function that will show a simple circle for single feature and a larger circle with the number of features displayed for a cluster. 
 |`function`| `selectClusterFeatureStyle`: Function with args (feature, resolution) used to display the cluster 'exploded' features | Default orangle small circle for 'exploded' features attached to the cluster feature by a dashed gray line 
 |`function`| `selectClusterStyle`: Function with args (feature, resolution) used to display the selected feature either clustered or not. | same as the `style` default function 
-**styling**|``Object``| Sub options for dynamic styling in geo-referenced statistics if thematic mapping is enabled for a layer. |
+**thematicmapping_options**|``Object``| Sub options for thematic mapping in geo-referenced statistics if thematic mapping is enabled for a layer. See belows |
 |``Array``| ``breaks`` for labeling class interval breaks |[""," to ",""]
+|`boolean`| `thresholding`: enable threshold of statistical values. This will be propagated to filters applied to statistical variables (both to WMS visualization and WFS for data) |true
+|`String`| `threshold`: a simple threshold definition using mathematical operators (=,>=,<=,>,<). By default only positive values are kept. ***Experimental*** (likely to evolve) |"> 0"
 **popup**|``Object``| Sub options for map layer tooltip/popup. , |
 |`boolean`| ``enabled``: true/false |true
 |`function`| ``handler``: A function with args ``layer``/ ``feature`` to return popup content as plain html. Default will list attributes of features. The access is operated through WMS GetFeatureInfo protocol for WMS layers, and WFS GetFeature for vector WFS layers. This requires that the data protocol uses the same protocol as the viewer (no mix of http/https origin) and is CORS enabled to allow GetFeatureInfo XMLHttpRequest to be performed. To use R shiny app as popups, you can import the ``OpenFairShiny.js`` that provides utilities to load Shiny apps as iFrames. This handler allows to condition the plug of different popup handlers depending on the layers. By default, a simple handler (DEFAULT_HANDLER) will be provided by OpenFairViewer. See below example. |

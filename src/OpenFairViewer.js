@@ -432,16 +432,6 @@ class OpenFairViewer {
 				if(options.map.point_clustering_options.selectClusterStyle) this.options.map.point_clustering_options.selectClusterStyle = options.map.point_clustering_options.selectClusterStyle;
 			}
 		}
-		
-		//thematic mapping
-		this.options.map.thematicmapping_options = {
-			thresholding : true,
-			threshold : "> 0"
-		}
-		if(options.map) if(options.map.thematicmapping_options){
-			if(options.map.thematicmapping_options.thresholding) this.options.map.thematicmapping_options.thresholding = options.map.thematicmapping_options.thresholding;
-			if(options.map.thematicmapping_options.threshold) this.options.map.thematicmapping_options.threshold = options.map.thematicmapping_options.threshold;
-		}
 			
 		//zoom
 		this.options.map.zoom = 3;
@@ -538,21 +528,28 @@ class OpenFairViewer {
 			if(options.map.layer_options.opacity) this.options.map.layer_options.opacity = options.map.layer_options.opacity;
 		}	
 
-		//styling
-		this.options.map.styling = {};
-		this.options.map.styling.breaks = [""," to ",""]; 
-		if(options.map) if(options.map.styling){
-			if(options.map.styling.breaks){
-				if(!(options.map.styling.breaks instanceof Array)){
+		//thematic options
+		this.options.map.thematicmapping_options = {
+			breaks: [""," to ",""],
+			thresholding : true,
+			threshold : "> 0"
+		}
+		if(options.map) if(options.map.thematicmapping_options){
+			//breaks
+			if(options.map.thematicmapping_options.breaks){
+				if(!(options.map.thematicmapping_options.breaks instanceof Array)){
 					console.error("Styling breaks should be an array");
 				}else{
-					if(options.map.styling.breaks.length != 3){
+					if(options.map.thematicmapping_options.breaks.length != 3){
 						console.error("Styling breaks array should be of length 3");
 					}else{
-						this.options.map.styling.breaks = options.map.styling.breaks;		
+						this.options.map.thematicmapping_options.breaks = options.map.thematicmapping_options.breaks;		
 					}
 				}			
 			}
+			//threshold
+			if(options.map.thematicmapping_options.thresholding) this.options.map.thematicmapping_options.thresholding = options.map.thematicmapping_options.thresholding;
+			if(options.map.thematicmapping_options.threshold) this.options.map.thematicmapping_options.threshold = options.map.thematicmapping_options.threshold;
 		}
 		
 		//popup
@@ -5084,7 +5081,7 @@ class OpenFairViewer {
 				    var dx = 36;
 				    var dy = breakPt + palYStart;
 				    if(breaks){
-						var break_signs = this_.options.map.styling.breaks;
+						var break_signs = this_.options.map.thematicmapping_options.breaks;
 						for(var i=1;i<breaks.length;i++){
 							var minVal = (Math.round(breaks[i-1] * 100) / 100);
 							var maxVal = (Math.round(breaks[i] * 100) / 100);
