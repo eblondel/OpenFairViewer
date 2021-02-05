@@ -64,7 +64,7 @@
 	"class_quantile" : "Cuantiles",
 	"classnb_selector" : "Seleccionar el número de intervalos",
 	"classnb_selector_title" : "Seleccionar el número de intervalos de datos",
-	"switchto" : "Mover hacía la vista",
+	"switchto" : "Vista",
 	"colorscheme_selector" : "Seleccionar una paleta de colores",
 	"colorscheme_selector_title" : "Seleccionar una paleta de colores para los intervalos de datos",
 	"colorscheme_sequential" : "Secuencial",
