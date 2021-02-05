@@ -537,12 +537,6 @@ class OpenFairViewer {
 			if(options.map.layer_options.tiled) this.options.map.layer_options.tiled = options.map.layer_options.tiled;
 			if(options.map.layer_options.opacity) this.options.map.layer_options.opacity = options.map.layer_options.opacity;
 		}	
-		
-		//aggregate
-		this.options.map.aggregated_layer_suffix = "_aggregated";
-		if(options.map) if(options.map.aggregated_layer_suffix){
-			this.options.map.aggregated_layer_suffix = options.map.aggregated_layer_suffix;
-		}
 
 		//styling
 		this.options.map.styling = {};
@@ -2415,7 +2409,7 @@ class OpenFairViewer {
 				$("#dsd-ui-buttons").append(button_dashboard);
 			}
 			//data download
-			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="'+this_.options.labels.download_data+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV(false)"></button>';
+			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="'+this_.options.labels.download_data+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV()"></button>';
 			$("#dsd-ui-buttons").append(button_csv_raw);
 		}
 		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="'+this_.options.labels.download_map+'" onclick="'+this_.config.OFV_ID+'.downloadMapPNG()"></button>';
@@ -3308,15 +3302,15 @@ class OpenFairViewer {
 		var wfsVersion = undefined;
 		var wmsVersion = undefined;
 		if(dataset.entry.wfs.length > 0){
-			var baseWFS = dataset.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = dataset.entry.wfs[0] };
+			var baseWFS = dataset.entry.wfs;
+			if(baseWFS.length>0){ baseWFS = dataset.entry.wfs[0] };
 			if(this.secure) baseWFS.url = baseWFS.url.replace("http://", "https://");
 			baseWfsUrl = baseWFS.url;
 			wfsVersion = baseWFS.version;
 		}
 		if(dataset.entry.wms.length > 0){
-			var baseWMS = dataset.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = dataset.entry.wms[0] };
+			var baseWMS = dataset.entry.wms;
+			if(baseWMS.length>0){ baseWMS = dataset.entry.wms[0] };
 			baseWmsUrl = baseWMS.url;
 			layerName = baseWMS.name;
 			wmsVersion = baseWMS.version;
@@ -3377,7 +3371,7 @@ class OpenFairViewer {
 							var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							layer.variable = strategyvariable;
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
@@ -3428,7 +3422,7 @@ class OpenFairViewer {
 							layer = response;
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							this_.addWFSLayerPopup(layer);
 							layer.variable = null;
 							layer.envfun = null;
@@ -3458,7 +3452,7 @@ class OpenFairViewer {
 						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						this_.addWMSLayerPopup(layer);
 						layer.variable = null;
 						layer.envfun = null;
@@ -3491,7 +3485,7 @@ class OpenFairViewer {
 					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, null, null, null, null, null);
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
@@ -3552,7 +3546,7 @@ class OpenFairViewer {
 						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.variable = strategyvariable;
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
@@ -3602,7 +3596,7 @@ class OpenFairViewer {
 						layer = response;
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						this_.addWFSLayerPopup(layer);
 						layer.variable = null;
 						layer.envfun = null;
@@ -3633,7 +3627,7 @@ class OpenFairViewer {
 					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					this_.addWMSLayerPopup(layer);
 					layer.variable = null;
 					layer.envfun = null;
@@ -3695,7 +3689,7 @@ class OpenFairViewer {
 							//update viewparams, envparams & legend
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							layer.setProperties({title: layerTitle});
 							if(strategyparams_str != ""){
 								layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
@@ -3760,7 +3754,7 @@ class OpenFairViewer {
 							//update viewparams, envparams & legend
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							layer.setProperties({title: layerTitle});
 							if(layer.getSource() instanceof Cluster){
 								layer.getSource().setSource(source);
@@ -3799,7 +3793,7 @@ class OpenFairViewer {
 						}
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -3827,7 +3821,7 @@ class OpenFairViewer {
 					console.log("Update layer with strategy 'ogc_filters' with simple CQL filter");
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					layer.setProperties({title: layerTitle});
 					if(strategyparams_str != ""){
 						layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
@@ -3885,7 +3879,7 @@ class OpenFairViewer {
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.setProperties({title: layerTitle});
 						if(strategyparams_str != ""){
 							layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
@@ -3945,7 +3939,7 @@ class OpenFairViewer {
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.setProperties({title: layerTitle});
 						if(layer.getSource() instanceof Cluster){
 							layer.getSource().setSource(source);
@@ -3976,7 +3970,7 @@ class OpenFairViewer {
 					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
@@ -4288,9 +4282,8 @@ class OpenFairViewer {
 	
 	/**
 	 * OpenFairViewer.prototype.downloadDatasetCSV
-	 * @param aggregated true if aggregated, false otherwise
 	 */
-	downloadDatasetCSV(aggregated){
+	downloadDatasetCSV(){
 		
 		//options
 		var add_colnames = $("#dataset-export-option-colnames").prop("checked");
@@ -4298,7 +4291,6 @@ class OpenFairViewer {
 		
 		var this_ = this;
 		var wfsResources = this.dataset_on_query.entry.wfs;
-		if(aggregated) wfsResources = wfsResources.filter(function(item){item.name.indexOf(this_.options.map.aggregated_layer_suffix)>0});
 		var baseWFS = wfsResources[0];
 		var baseLayerUrl = baseWFS.url;
 		var layerName = baseWFS.name;
@@ -4351,7 +4343,6 @@ class OpenFairViewer {
 			}
 			var csv = this_.json2csv(featuresToExport);
 			var fileName = this_.dataset_on_query.pid;
-			if(aggregated) fileName += this_.options.map.aggregated_layer_suffix;
 			fileName += "_"+ this_.getDateTimeString(new Date()) + ".csv";
 			this_.downloadCSV(csv, fileName); 
 		});
