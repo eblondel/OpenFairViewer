@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,2,1)}
+		this.versioning = {VERSION: "2.4.0", DATE: new Date(2021,2,3)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -432,16 +432,6 @@ class OpenFairViewer {
 				if(options.map.point_clustering_options.selectClusterStyle) this.options.map.point_clustering_options.selectClusterStyle = options.map.point_clustering_options.selectClusterStyle;
 			}
 		}
-		
-		//thematic mapping
-		this.options.map.thematicmapping_options = {
-			thresholding : true,
-			threshold : "> 0"
-		}
-		if(options.map) if(options.map.thematicmapping_options){
-			if(options.map.thematicmapping_options.thresholding) this.options.map.thematicmapping_options.thresholding = options.map.thematicmapping_options.thresholding;
-			if(options.map.thematicmapping_options.threshold) this.options.map.thematicmapping_options.threshold = options.map.thematicmapping_options.threshold;
-		}
 			
 		//zoom
 		this.options.map.zoom = 3;
@@ -537,28 +527,29 @@ class OpenFairViewer {
 			if(options.map.layer_options.tiled) this.options.map.layer_options.tiled = options.map.layer_options.tiled;
 			if(options.map.layer_options.opacity) this.options.map.layer_options.opacity = options.map.layer_options.opacity;
 		}	
-		
-		//aggregate
-		this.options.map.aggregated_layer_suffix = "_aggregated";
-		if(options.map) if(options.map.aggregated_layer_suffix){
-			this.options.map.aggregated_layer_suffix = options.map.aggregated_layer_suffix;
-		}
 
-		//styling
-		this.options.map.styling = {};
-		this.options.map.styling.breaks = [""," to ",""]; 
-		if(options.map) if(options.map.styling){
-			if(options.map.styling.breaks){
-				if(!(options.map.styling.breaks instanceof Array)){
+		//thematic options
+		this.options.map.thematicmapping_options = {
+			breaks: [""," to ",""],
+			thresholding : true,
+			threshold : "> 0"
+		}
+		if(options.map) if(options.map.thematicmapping_options){
+			//breaks
+			if(options.map.thematicmapping_options.breaks){
+				if(!(options.map.thematicmapping_options.breaks instanceof Array)){
 					console.error("Styling breaks should be an array");
 				}else{
-					if(options.map.styling.breaks.length != 3){
+					if(options.map.thematicmapping_options.breaks.length != 3){
 						console.error("Styling breaks array should be of length 3");
 					}else{
-						this.options.map.styling.breaks = options.map.styling.breaks;		
+						this.options.map.thematicmapping_options.breaks = options.map.thematicmapping_options.breaks;		
 					}
 				}			
 			}
+			//threshold
+			if(options.map.thematicmapping_options.thresholding) this.options.map.thematicmapping_options.thresholding = options.map.thematicmapping_options.thresholding;
+			if(options.map.thematicmapping_options.threshold) this.options.map.thematicmapping_options.threshold = options.map.thematicmapping_options.threshold;
 		}
 		
 		//popup
@@ -626,7 +617,10 @@ class OpenFairViewer {
 					html += "</td></tr>";
 				  }
 				}
-			}			
+			}
+			//before/after handlers
+			this.options.map.popup.onopen = function(layer, feature){};
+			this.options.map.popup.onclose = function(layer, feature){};
 			
 			//image fields
 			var imgPropNames = propNames.filter(function(propName){
@@ -657,6 +651,8 @@ class OpenFairViewer {
 			if(options.map.popup.mode) this.options.map.popup.mode = options.map.popup.mode;
 			if(options.map.popup.enabled) this.options.map.popup.enabled = options.map.popup.enabled;
 			if(options.map.popup.handler) this.options.map.popup.handler = options.map.popup.handler;
+			if(options.map.popup.onopen) this.options.map.popup.onopen = options.map.popup.onopen;
+			if(options.map.popup.onclose) this.options.map.popup.onclose = options.map.popup.onclose;
 		}
 		
 		//cesium
@@ -1188,7 +1184,9 @@ class OpenFairViewer {
 	 * @param coords
 	 */
 	getWMSFeatureInfo(layer, coords){
+		
 		var this_ = this;
+		
 		var viewResolution = this_.map.getView().getResolution();
 		var viewProjection = this_.map.getView().getProjection().getCode();
 		var popup = this.map.getOverlayById(layer.id);
@@ -1205,8 +1203,9 @@ class OpenFairViewer {
 				var parser = new olFormat.WMSGetFeatureInfo();
 				var features = parser.readFeatures(text);
 				console.log(features);
+				var feature = null;
 				if(features.length > 0){
-					var feature = features[0];
+					feature = features[0];
 					feature.geometry_column = feature.getGeometryName();
 					feature.popup_coordinates = coords;
 					
@@ -1220,10 +1219,12 @@ class OpenFairViewer {
 						bbox: featureInfoParams.filter(function(item){if(item[0]=="BBOX") return item;})[0][1]
 					}
 					popup.show(coords, this_.options.map.popup.handler(layer, feature));
+					this_.options.map.popup.onopen(layer, feature);
 					this_.popup = {id: layer.id, coords: coords};
 				}else{
 					popup.hide();
 					this_.popup = {};
+					this_.options.map.popup.onclose(layer, feature);
 
 					//in case feature markers are highlighted we remove them
 					var markersId = 'ofv-feature-marker';
@@ -1246,14 +1247,27 @@ class OpenFairViewer {
 	 * @param coords
 	 */
 	getWFSFeatureInfo(layer, feature, coords){
-		var this_ = this;
+		var this_ = this;		
 		var popup = this.map.getOverlayById(layer.id);
 		if(feature){
 			if(!coords) coords = feature.getGeometry().getCoordinates();
 			feature.geometry_column = feature.getGeometryName();
 			feature.popup_coordinates = coords;
-			popup.show(coords, this_.options.map.popup.handler(layer, feature));
+			popup.show(coords, this_.options.map.popup.handler(layer, feature));		
+			this_.options.map.popup.onopen(layer, feature);
 			this_.popup = {id: layer.id, coords: coords};
+		}else{
+			popup.hide();
+			this_.popup = {};
+			this_.options.map.popup.onclose(layer, feature);
+
+			//in case feature markers are highlighted we remove them
+			var markersId = 'ofv-feature-marker';
+			var markers = this_.getLayerByProperty(markersId, 'id');
+			if(markers){
+				var source = new Vector({ features: [] });
+				markers.setSource(source);
+			}
 		}
 	}
 
@@ -1306,10 +1320,12 @@ class OpenFairViewer {
 
 		this.getDatasetNextFeatureInTime(layerUrl, serviceVersion, layerName, propertyName, propertyValue).then(function(nextresponse){
 			
+			var nextfeature = null;
+			var coords = null;
 			if(nextresponse.length > 0){
-				var nextfeature = nextresponse[0];
+				nextfeature = nextresponse[0];
 				var geom = nextfeature.getGeometry();
-				var coords = olExtent.getCenter(geom.getExtent());
+				coords = olExtent.getCenter(geom.getExtent());
 				if(geom instanceof olGeom.LineString ||
 		   	   	   geom instanceof olGeom.MultiLineString ||
 	 	   	   	   geom instanceof olGeom.MultiPoint){
@@ -1318,13 +1334,9 @@ class OpenFairViewer {
 				if(geom instanceof olGeom.Point) coords = geom.getCoordinates();			
 				console.log("Feature In Time");
 				console.log(coords);
-				
-				//popup handling
-				this_.getWFSFeatureInfo(layer, nextfeature, coords);
-			}else{
-				popup.hide();
-				this_.popup = {};
 			}
+			//popup handling
+			this_.getWFSFeatureInfo(layer, nextfeature, coords);
 		});
 	}
 	
@@ -2394,7 +2406,7 @@ class OpenFairViewer {
 				$("#dsd-ui-buttons").append(button_dashboard);
 			}
 			//data download
-			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="'+this_.options.labels.download_data+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV(false)"></button>';
+			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="'+this_.options.labels.download_data+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV()"></button>';
 			$("#dsd-ui-buttons").append(button_csv_raw);
 		}
 		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="'+this_.options.labels.download_map+'" onclick="'+this_.config.OFV_ID+'.downloadMapPNG()"></button>';
@@ -3287,15 +3299,15 @@ class OpenFairViewer {
 		var wfsVersion = undefined;
 		var wmsVersion = undefined;
 		if(dataset.entry.wfs.length > 0){
-			var baseWFS = dataset.entry.wfs.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWFS.length>0){ baseWFS = baseWFS[0] } else { baseWFS = dataset.entry.wfs[0] };
+			var baseWFS = dataset.entry.wfs;
+			if(baseWFS.length>0){ baseWFS = dataset.entry.wfs[0] };
 			if(this.secure) baseWFS.url = baseWFS.url.replace("http://", "https://");
 			baseWfsUrl = baseWFS.url;
 			wfsVersion = baseWFS.version;
 		}
 		if(dataset.entry.wms.length > 0){
-			var baseWMS = dataset.entry.wms.filter(function(item){return item.name.indexOf(this_.options.map.aggregated_layer_suffix)>-1});
-			if(baseWMS.length>0){ baseWMS = baseWMS[0] } else { baseWMS = dataset.entry.wms[0] };
+			var baseWMS = dataset.entry.wms;
+			if(baseWMS.length>0){ baseWMS = dataset.entry.wms[0] };
 			baseWmsUrl = baseWMS.url;
 			layerName = baseWMS.name;
 			wmsVersion = baseWMS.version;
@@ -3356,7 +3368,7 @@ class OpenFairViewer {
 							var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							layer.variable = strategyvariable;
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
@@ -3407,7 +3419,7 @@ class OpenFairViewer {
 							layer = response;
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							this_.addWFSLayerPopup(layer);
 							layer.variable = null;
 							layer.envfun = null;
@@ -3437,7 +3449,7 @@ class OpenFairViewer {
 						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						this_.addWMSLayerPopup(layer);
 						layer.variable = null;
 						layer.envfun = null;
@@ -3470,7 +3482,7 @@ class OpenFairViewer {
 					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, null, null, null, null, null);
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
@@ -3531,7 +3543,7 @@ class OpenFairViewer {
 						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.variable = strategyvariable;
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
@@ -3581,7 +3593,7 @@ class OpenFairViewer {
 						layer = response;
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						this_.addWFSLayerPopup(layer);
 						layer.variable = null;
 						layer.envfun = null;
@@ -3612,7 +3624,7 @@ class OpenFairViewer {
 					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					this_.addWMSLayerPopup(layer);
 					layer.variable = null;
 					layer.envfun = null;
@@ -3674,7 +3686,7 @@ class OpenFairViewer {
 							//update viewparams, envparams & legend
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							layer.setProperties({title: layerTitle});
 							if(strategyparams_str != ""){
 								layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
@@ -3731,7 +3743,7 @@ class OpenFairViewer {
 							var format = new olFormat.GeoJSON();
 							var features = response.map(function(item){
 								var feature = format.readFeature(item);
-								feature.layerid = layerName; //hack required to control layer-specific SelectCluster interaction
+								feature.layerid = pid; //hack required to control layer-specific SelectCluster interaction
 								return feature;
 							});
 							console.log(features);
@@ -3739,7 +3751,7 @@ class OpenFairViewer {
 							//update viewparams, envparams & legend
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
-							layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 							layer.setProperties({title: layerTitle});
 							if(layer.getSource() instanceof Cluster){
 								layer.getSource().setSource(source);
@@ -3748,9 +3760,9 @@ class OpenFairViewer {
 							}
 							layer.params = {CQL_FILTER: ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))};
 							layer.geomtype = geomtype;
-							var selectCluster = this_.getSelectCluster(layer);
+							var selectCluster = this_.getSelectCluster();
 							if(selectCluster) this_.map.removeInteraction(selectCluster);
-							this_.configureSelectCluster(layer);
+							this_.configureSelectCluster();
 							this_.map.changed();
 							this_.getMapLoadingPanel().hide();
 							this_.renderMapLegend();
@@ -3778,7 +3790,7 @@ class OpenFairViewer {
 						}
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -3806,7 +3818,7 @@ class OpenFairViewer {
 					console.log("Update layer with strategy 'ogc_filters' with simple CQL filter");
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					layer.setProperties({title: layerTitle});
 					if(strategyparams_str != ""){
 						layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
@@ -3864,7 +3876,7 @@ class OpenFairViewer {
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.setProperties({title: layerTitle});
 						if(strategyparams_str != ""){
 							layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
@@ -3924,7 +3936,7 @@ class OpenFairViewer {
 						//update viewparams, envparams & legend
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
-						layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 						layer.setProperties({title: layerTitle});
 						if(layer.getSource() instanceof Cluster){
 							layer.getSource().setSource(source);
@@ -3955,7 +3967,7 @@ class OpenFairViewer {
 					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
-					layer.baseDataUrl = baseWfsUrl? baseWfsUrl.replace(this_.options.map.aggregated_layer_suffix, "") : null;
+					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
@@ -4267,9 +4279,8 @@ class OpenFairViewer {
 	
 	/**
 	 * OpenFairViewer.prototype.downloadDatasetCSV
-	 * @param aggregated true if aggregated, false otherwise
 	 */
-	downloadDatasetCSV(aggregated){
+	downloadDatasetCSV(){
 		
 		//options
 		var add_colnames = $("#dataset-export-option-colnames").prop("checked");
@@ -4277,7 +4288,6 @@ class OpenFairViewer {
 		
 		var this_ = this;
 		var wfsResources = this.dataset_on_query.entry.wfs;
-		if(aggregated) wfsResources = wfsResources.filter(function(item){item.name.indexOf(this_.options.map.aggregated_layer_suffix)>0});
 		var baseWFS = wfsResources[0];
 		var baseLayerUrl = baseWFS.url;
 		var layerName = baseWFS.name;
@@ -4330,7 +4340,6 @@ class OpenFairViewer {
 			}
 			var csv = this_.json2csv(featuresToExport);
 			var fileName = this_.dataset_on_query.pid;
-			if(aggregated) fileName += this_.options.map.aggregated_layer_suffix;
 			fileName += "_"+ this_.getDateTimeString(new Date()) + ".csv";
 			this_.downloadCSV(csv, fileName); 
 		});
@@ -4446,7 +4455,10 @@ class OpenFairViewer {
 		var strategyparams_str = null;
 		if(strategyparams){
 			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true, true);
-			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
+			if(strategyparams.length>0){
+				if(this_.dataset_on_query.strategy == "ogc_filters") cql_filter = strategyparams_str;
+				if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;
+			}
 		}
 		
 		//this.getWFSSupportedFormats(baseLayerUrl, '2.0.0');
@@ -5069,7 +5081,7 @@ class OpenFairViewer {
 				    var dx = 36;
 				    var dy = breakPt + palYStart;
 				    if(breaks){
-						var break_signs = this_.options.map.styling.breaks;
+						var break_signs = this_.options.map.thematicmapping_options.breaks;
 						for(var i=1;i<breaks.length;i++){
 							var minVal = (Math.round(breaks[i-1] * 100) / 100);
 							var maxVal = (Math.round(breaks[i] * 100) / 100);
@@ -5263,7 +5275,8 @@ class OpenFairViewer {
 				layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
 				this_.layers.overlays[mainOverlayGroup].getLayers().push(layer);
 				
-				this_.configureSelectCluster(layer);
+				var selectCluster = this_.getSelectCluster();
+				if(!selectCluster) this_.configureSelectCluster();
 			}
 			deferred.resolve(layer);
 		});
@@ -5273,24 +5286,17 @@ class OpenFairViewer {
 	/**
 	 * getSelectCluster
 	 */
-	getSelectCluster(layer){
+	getSelectCluster(){
 		var selectClusters = this.map.getInteractions().getArray().filter(function(item){if(item instanceof SelectCluster) return item;});
-		if(selectClusters.length == 0) return;
-		var selectCluster = undefined;
-		for(var i=0;i<selectClusters.length;i++){
-			if(selectClusters[i].id == layer.id){
-				selectCluster = selectClusters[i];
-				break;
-			}
-		}
-		return selectCluster;
+		if(selectClusters.length == 0) return null;
+		return selectClusters[0];
 	}
 	
 	/**
 	 * configureSelectCluster
 	 * @param layer
 	 */
-	configureSelectCluster(layer){
+	configureSelectCluster(){
 		var this_ = this;
 		var layerPointer = new SelectCluster({
 			pointRadius : this_.options.map.point_clustering_options.pointRadius,
@@ -5301,32 +5307,34 @@ class OpenFairViewer {
 			featureStyle : this_.options.map.point_clustering_options.selectClusterFeatureStyle,
 			style : this_.options.map.point_clustering_options.selectClusterStyle
 		});
-		layerPointer.id = layer.id;
 		this_.map.addInteraction(layerPointer);
-		
-		layerPointer.getFeatures().on(['add'], function (e){
-		  var c = e.element.get('features');
-		  if (c.length==1){
-			var feature = c[0];
-			console.log("One feature selected...(id = "+feature.getId()+")");
-			if(feature.layerid == layer.id) this_.getWFSFeatureInfo(layer, feature);
-		  } else {
-			console.log("Cluster ("+c.length+" features)");
-		  }
-		})
-		layerPointer.getFeatures().on(['remove'], function (e){
-			var popup = this_.map.getOverlayById(layer.id);
-			popup.hide();
-			this_.popup = {};
+		layerPointer.getFeatures().on(['add','remove'], function (e){
+			var c = e.element.get('features');
+			if(e.type == "add"){
+			  var layer = this_.getLayerByProperty(c[0].layerid, "id");
+			  if (c.length==1){
+				var feature = c[0];
+				this_.getWFSFeatureInfo(layer, feature);
+			  } else {
+				console.log("Cluster ("+c.length+" features)");
+				this_.options.map.popup.onclose(layer, e.element);
+			  }
+			}else if(e.type == "remove"){
+				var feature = c[0];
+				var layer = this_.getLayerByProperty(feature.layerid, "id");
+				var popup = this_.map.getOverlayById(layer.id);
+				popup.hide();
+				this_.popup = {};
+				this_.options.map.popup.onclose(layer, e.element);
 
-			//in case feature markers are highlighted we remove them
-			var markersId = 'ofv-feature-marker';
-			var markers = this_.getLayerByProperty(markersId, 'id');
-			if(markers){
-				var source = new Vector({ features: [] });
-				markers.setSource(source);
+				//in case feature markers are highlighted we remove them
+				var markersId = 'ofv-feature-marker';
+				var markers = this_.getLayerByProperty(markersId, 'id');
+				if(markers){
+					var source = new Vector({ features: [] });
+					markers.setSource(source);
+				}
 			}
-			
 		})
 	}
 	
@@ -5361,7 +5369,7 @@ class OpenFairViewer {
 	resolveDatasetForQuery(datasetDef, resolveMap){
 		var this_ = this;
 		console.log("Fetching query interface for pid = '"+datasetDef.pid+"'");
-		this_.openAccessDialog();
+		if(datasetDef.query) this_.openAccessDialog();
 		this_.handleQueryForm(datasetDef, !datasetDef.query).then(function(dataset){					
 
 			datasetDef.dsd = dataset.dsd;
