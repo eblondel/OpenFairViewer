@@ -219,6 +219,8 @@ Name | Type | Description| Default value
 **popup**|``Object``| Sub options for map layer tooltip/popup. , |
 |`boolean`| ``enabled``: true/false |true
 |`function`| ``handler``: A function with args ``layer``/ ``feature`` to return popup content as plain html. Default will list attributes of features. The access is operated through WMS GetFeatureInfo protocol for WMS layers, and WFS GetFeature for vector WFS layers. This requires that the data protocol uses the same protocol as the viewer (no mix of http/https origin) and is CORS enabled to allow GetFeatureInfo XMLHttpRequest to be performed. To use R shiny app as popups, you can import the ``OpenFairShiny.js`` that provides utilities to load Shiny apps as iFrames. This handler allows to condition the plug of different popup handlers depending on the layers. By default, a simple handler (DEFAULT_HANDLER) will be provided by OpenFairViewer. See below example. |
+|`function`| `onopen`: A function with with args ``layer``/ ``feature``to trigger on popup opening. |
+|`function`| `onclose`: A function with with args ``layer``/ ``feature``to trigger on popup closing. |
 **cesium**|``Object``| 3D mode options. See below. |
 |`String`| `defaultAccessToken`. The Cesium service token to configure in your OpenFairViewer instance if you want to use 3D mode |
 
