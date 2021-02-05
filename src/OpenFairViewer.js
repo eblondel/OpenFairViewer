@@ -544,7 +544,10 @@ class OpenFairViewer {
 		//popup
 		this.options.map.popup = {};
 		this.options.map.popup.mode = 'map';
-		this.options.map.popup.enabled = true;
+		this.options.map.popup.enabled = true;	
+		this.options.map.popup.onopen = function(layer, feature){};
+		this.options.map.popup.onclose = function(layer, feature){};
+		
 		//default handlers
 		this.options.map.popup.DEFAULT_HANDLER = function(layer, feature){
 			console.log(layer);
@@ -607,9 +610,6 @@ class OpenFairViewer {
 				  }
 				}
 			}
-			//before/after handlers
-			this.options.map.popup.onopen = function(layer, feature){};
-			this.options.map.popup.onclose = function(layer, feature){};
 			
 			//image fields
 			var imgPropNames = propNames.filter(function(propName){
