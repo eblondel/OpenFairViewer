@@ -141,6 +141,67 @@ class OpenFairViewer {
 		
 		//Cesium 3D support?
 		this.enable_3d = window.Cesium != undefined;
+		
+		//set-up application labels
+		this.initApplicationLanguage(config, opt_options).then(function(labels){	
+			this_.initApplicationConfig(config, opt_options, labels);
+		});
+		
+	}
+	
+	/**
+	 * @param {Object} The OpenFairViewer config.
+	 * @param {Object} opt_options
+	 * @return a Jquery promise
+	 */	
+	initApplicationLanguage(config, opt_options){
+		var options = opt_options || {};
+		var this_ = this;
+		
+		var language_auto = true;
+		var language_default = 'en';
+		if(options.language){
+			console.log(options.language);
+			if(typeof options.language.auto != "undefined") language_auto = options.language.auto;
+			if(options.language.default) language_default = options.language.default;
+		}
+		
+		var url = './i18n/'+language_default+'.json';
+		if(language_auto){
+			console.log("Language auto mode enabled");
+			var lang = navigator.language || navigator.userLanguage;
+			switch(lang.substr(0,2)){
+				case "fr": url = './i18n/fr.json'; break;
+				case "en": url = './i18n/en.json'; break;
+				case "es": url = './i18n/es.json'; break;
+				default: url = './i18n/'+language_default+'.json'; break;
+			}
+			console.log("Browser language '"+lang+"' detected -> Load labels from JSON file '"+url+"'");
+		}
+		if(options.labels) if(options.labels.file) {
+			url = options.labels.file;
+		}
+		console.log("Use language labels from JSON file: '"+url+"'");
+		var deferred = $.Deferred();
+		$.ajax({
+			type: 'GET',
+			url: url, 
+			success: function(labels){
+				deferred.resolve(labels);
+			}
+		});
+		return deferred.promise();
+	}
+	
+	/**
+	 * @param {Object} The OpenFairViewer config.
+	 * @param {Object} opt_options
+	 * @param {Object} labels
+	 *
+	 */
+	initApplicationConfig(config, opt_options, labels){
+		
+		var this_ = this;
 
 		//CSW
 		if(!config.OGC_CSW_BASEURL){
@@ -171,6 +232,16 @@ class OpenFairViewer {
 		
 		var options = opt_options || {};
 		this.options = {};
+		
+		//LABELS
+		//--------------------------------------------------------------------------------------------------
+		this.options.labels = labels;
+		//apply option labels if defined
+		if(options.labels) if(options.labels.terms){
+			Object.keys(this_.options.labels).forEach(function(label){
+				if(options.labels[label]) this_.options.labels[label] = options.labels.terms[label];
+			});
+		}
 		
 		//BROWSE options
 		//--------------------------------------------------------------------------------------------------
@@ -215,88 +286,6 @@ class OpenFairViewer {
 		
 		//QUERY options
 		//--------------------------------------------------------------------------------------------------
-		//labels
-		this.options.labels = {
-			about : 'About',
-			about_title : 'Welcome',
-			find: 'Find',
-			find_title: 'Find data by browsing the data catalogue',
-			search: 'Search',
-			info: 'Dataset information',
-			access: 'Access',
-			access_title: 'Access and query data',
-			link: 'Link',
-			link_title: 'Paste the link in email or chat',
-			settings: 'Advanced settings',
-			settings_mapextent: 'Enable Search on map extent',
-			settings_mapmove: 'Auto-Search on map move',
-			settings_bbox: 'Display dataset bounding box (if any)',
-			settings_geom: 'Display dataset extent geometries (if any)',
-			show: 'Show',
-			datasets: 'datasets',
-			datasets_loader: 'Fetching datasets...',
-			datasets_search_placeholder: 'Search a dataset',
-			dataset_access_doi: 'Access resource with DOI',
-			dataset_access_metadata: 'Access dataset metadata',
-			dataset_zoom_extent: 'Zoom to dataset spatial extent',
-			dataset_query_map: 'Query & Map',
-			dataset_query_map_title: 'Query & Map dataset',
-			dataset_remove: 'Remove from map',
-			dsd_loader: 'Fetching data structure definition...',
-			listedvalue_href_placeholder: 'More info...',
-			filtering: 'Filtering',
-			attributes: 'Attributes',
-			variable: 'Variable',
-			variables: 'Variables',
-			thematicmapping: 'Thematic Mapping',
-			thematicmapping_variable: 'Select a variable',
-			thematicmapping_options: 'Map options',
-			ogc_filters: "Filters",
-			ogc_dimensions: "Dimensions",
-			ogc_viewparams: "View parameters",
-			export_options: 'Export options',
-			export_options_prettify: 'Prettify column names',
-			export_options_labels: 'Enrich with data labels',
-			export_options_more: 'More export methods?',
-			tabulardata: "Tabular data",
-			tabulardata_title: 'Open tabular data',
-			dashboard: "Dashboard",
-			dashboard_title: 'Open dashboard',
-			legend_title_show: 'Show legend',
-			legend_title_hide: 'Hide legend',
-			fit_to_extent: 'Fit to extent',
-			nodata: 'Ups! There is no data for this query...',
-			download_data: 'Download data (CSV)',
-			download_map: 'Download map (PNG)',
-			download_rscript: 'Download R Script',
-			download_wfs: 'Get OGC WFS features',
-			basemaps: 'Basemaps',
-			maptype_selector: 'Select a map type',
-			maptype_selector_title: 'Select the type of statistical map',
-			maptype_choropleth: 'Choropleth map',
-			maptype_graduated: 'Graduated symbol map',
-			class_selector: 'Select a classification',
-			class_selector_title: 'Select the type of data interval classification',
-			class_ckmeans: 'Ckmeans clustering',
-			class_equal: 'Equal intervals',
-			class_quantile: 'Quantiles',
-			classnb_selector: 'Select the number of intervals',
-			classnb_selector_title: 'Select the number of data intervals',
-			switchto: 'Switch to',
-			colorscheme_selector: 'Select a color palette',
-			colorscheme_selector_title: 'Select a color palette to apply to data intervals',
-			colorscheme_sequential: 'Sequential',
-			colorscheme_diverging: 'Diverging',
-			colorscheme_singlehue: 'Singlehue'
-			
-		};
-		console.log(Object.keys(this.options.labels));
-		//apply option labels if defined
-		if(options.labels){
-			Object.keys(this.options.labels).forEach(function(label){
-				if(options.labels[label]) this_.options.labels[label] = options.labels[label];
-			});
-		}
 		
 		//Access
 		this.options.access = {};

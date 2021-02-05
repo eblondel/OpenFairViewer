@@ -3,13 +3,12 @@ window.$ = $;
 
 //for filters
 import 'openfairviewer/src/import-jsonix';
-import 'openfairviewer/src/import-w3c-schemas';
 import 'openfairviewer/src/import-ogc-schemas';
 import FilterFactory from 'openfairviewer/src/vendor/ows/FilterFactory';
 
 //openfairviewer
 import OpenFairViewer from 'openfairviewer/src/OpenFairViewer.js';
-import OpenFairViewer from 'openfairviewer/src/OpenFairShiny.js'; //for shiny handlers
+import OpenFairShiny from 'openfairviewer/src/OpenFairShiny.js'; //for shiny handlers
 import colorbrewer from 'colorbrewer/index.js';
 
 window.OFV = null;

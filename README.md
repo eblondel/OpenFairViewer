@@ -137,7 +137,8 @@ $(document).ready(function(){
 		//an OGC CSW endpoint URL
 		OGC_CSW_BASEURL: "https://localhost:8080/geonetwork/srv/eng/csw"
 	},{
-		labels: { <label options here> },
+		language: {<language options here>},
+        labels: { <label options here> },
 		find: { <browse options here> },
 		access: { <browse options here> },
 		map: { <map options here> }
@@ -149,9 +150,19 @@ $(document).ready(function(){
 
 The next sections highlight the current options available in OpenFairViewer
 
-### _labels_ options
+### *language* options
 
-Application vocabulary used for customization of labels or forthcoming support of i18n. If ignored, default (English) labels will be applied. At this early stage of development, the list of labels managed by OpenFairViewer is still not externalized and can be found at https://github.com/eblondel/OpenFairViewer/blob/master/src/OpenFairViewer.js#L219
+| Name    | Type       | Description                                                  | Default value |
+| ------- | ---------- | ------------------------------------------------------------ | ------------- |
+| auto    | `boolean`  | The auto mode will detect the browser language and tries to apply a language for label terms. If no labels are available in the browser language, the english labels will be applied. | true          |
+| default | ``String`` | The default language to apply in case `auto` mode is set to ``false`` Use this parameter and disable ``auto`` to set a fixed language for the application | "en"          |
+
+### *labels* options
+
+| Name  | Type     | Description                                                  | Default value |
+| ----- | -------- | ------------------------------------------------------------ | ------------- |
+| file  | `String` | The relative path of a JSON file to specify custom label terms |               |
+| terms | `Object` | Label terms used for customization of labels or forthcoming support of i18n. If ignored, default (English) labels will be taken from the embedded label terms (handled in JSON files). This option is useful when some specific terms needs to be overwriten. |               |
 
 ### _find_ options
 
