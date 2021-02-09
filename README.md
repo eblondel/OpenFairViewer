@@ -11,6 +11,11 @@ Many thanks to the following organizations that have provided fundings for stren
   <a href="https://www.inrae.fr"><img height=200 width=200 src="https://www.inrae.fr/themes/custom/inrae_socle/logo.svg"></a>
 </div>
 
+## Contributors
+
+* Julien Barde @juldebar
+* Wilfried Heintz @wheintz
+* Alexandre Bennici @abennici
 
 ## Introduction 
 
