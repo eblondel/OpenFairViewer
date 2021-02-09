@@ -51,6 +51,7 @@
 	"download_data" : "Descargar datos (CSV)",
 	"download_map" : "Descargar mapa (PNG)",
 	"download_rscript" : "Descargar script R",
+	"download_jupyter" : "Descargar notebook Jupyter",
 	"download_wfs" : "Recuperar datos (OGC WFS)",
 	"basemaps" : "Fondos de mapa",
 	"maptype_selector" : "Seleccionar un tipo de mapa",

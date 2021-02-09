@@ -51,6 +51,7 @@
 	"download_data" : "Download data (CSV)",
 	"download_map" : "Download map (PNG)",
 	"download_rscript" : "Download R Script",
+	"download_jupyter" : "Download Jupyter Notebook",
 	"download_wfs" : "Get OGC WFS features",
 	"basemaps" : "Basemaps",
 	"maptype_selector" : "Select a map type",
