@@ -1,5 +1,4 @@
-###This Shiny module proposes to retrieve data from WMS WFS services via url parameters. 
-###The 'data' object in output containing the data, the associated metadata as well as the retrieved parameters. 
+###This Shiny module proposes to interrogate data from WMS WFS services with url query parameters. 
 ###This module can be integrated into a shiny application intended to offer a dashboard or a popup under OpenFairViewer.
 
 
@@ -45,144 +44,62 @@ QueryInfo <- function(input, output, session) {
     
 ####Extraction of url parameters
     
-    pid <- if (!is.null(query$pid)){
-      as.character(query$pid)
-    }else{
-      NULL
-    }
+    pid <- if(!is.null(query$pid)){as.character(query$pid)}else{NULL}
     
-    layer <-if (!is.null(query$layer)){
-      as.character(query$layer)
-    }else{
-      NULL
-    }
+    layer <-if(!is.null(query$layer)){as.character(query$layer)}else{NULL}
     
-    wfs_server <-if (!is.null(query$wfs_server)){
-      as.character(query$wfs_server)
-    }else{
-      NULL
-    }
+    wfs_server <-if(!is.null(query$wfs_server)){as.character(query$wfs_server)}else{NULL}
     
-    wfs_version <-if (!is.null(query$wfs_version)){
-      as.character(query$wfs_version)
-    }else{
-      NULL
-    }
+    wfs_version <-if(!is.null(query$wfs_version)){as.character(query$wfs_version)}else{NULL}
     
-    feature_geom <-if (!is.null(query$feature_geom)){
-      as.logical(query$feature_geom)
-    }else{
-      TRUE
-    }
-    if(is.na(feature_geom)) feature_geom<-TRUE
+    feature_geom <-if(!is.null(query$feature_geom)){as.logical(query$feature_geom)}else{TRUE}
     
-    wms_server <-if (!is.null(query$wms_server)){
-      as.character(query$wms_server)
-    }else{
-      NULL
-    }
-    wms_version <-if (!is.null(query$wms_version)){
-      as.character(query$wms_version)
-    }else{
-      NULL
-    }
+    wms_server <-if(!is.null(query$wms_server)){as.character(query$wms_server)}else{NULL}
     
-    csw_server <-if (!is.null(query$csw_server)){
-      as.character(query$csw_server)
-    }else{
-      NULL
-    }
+    wms_version <-if(!is.null(query$wms_version)){as.character(query$wms_version)}else{NULL}
     
-    csw_version <-if (!is.null(query$csw_version)){
-      as.character(query$csw_version)
-    }else{
-      "2.0.2"
-    }
+    csw_server <-if(!is.null(query$csw_server)){as.character(query$csw_server)}else{NULL}
     
-    strategy <-if (!is.null(query$strategy)){
-      as.character(query$strategy)
-    }else{
-      NULL
-    }
+    csw_version <-if(!is.null(query$csw_version)){as.character(query$csw_version)}else{NULL}
     
-    par <-if (!is.null(query$par)){
-      as.character(query$par)
-    }else{
-      NULL
-    }
+    strategy <-if(!is.null(query$strategy)){as.character(query$strategy)}else{NULL}
     
-    geom <-if (!is.null(query$geom)){
-      as.character(query$geom)
-    }else{
-      NULL
-    }
+    par <-if(!is.null(query$par)){as.character(query$par)}else{NULL}
 	
-    x <-if (!is.null(query$x)){
-      as.numeric(query$x)
-    }else{
-      NULL
-    }
+    x <-if(!is.null(query$x)){as.numeric(query$x)}else{NULL}
     
-    y <-if (!is.null(query$y)){
-      as.numeric(query$y)
-    }else{
-      NULL
-    }
+    y <-if(!is.null(query$y)){as.numeric(query$y)}else{NULL}
 	
-	width <-if(!is.null(query$width)){
-		as.numeric(query$width)
-	}else{
-		NULL
-	}
+	  width <-if(!is.null(query$width)){as.numeric(query$width)}else{NULL}
 	
-	height <- if(!is.null(query$height)){
-		as.numeric(query$height)
-	}else{
-		NULL
-	}
+	  height <- if(!is.null(query$height)){as.numeric(query$height)}else{NULL}
 	
-	bbox <- if(!is.null(query$bbox)){
-		query$bbox
-	}else{
-		NULL
-	}
-	print(bbox)
+	  bbox <- if(!is.null(query$bbox)){query$bbox}else{NULL}
+
+    srs <-if(!is.null(query$srs)){query$srs}else{"'EPSG:4326'"}
     
-    srs <-if (!is.null(query$srs)){
-      query$srs
-    }else{
-      "'EPSG:4326'"
-    }
-    
-    dsd<-if (!is.null(query$dsd)){
-      jsonlite::fromJSON(query$dsd)
-    }else{
-      NULL
-    }
+    dsd<-if (!is.null(query$dsd)){jsonlite::fromJSON(query$dsd)}else{NULL}
     
     #Type of shiny apps 
     shiny_type <- ifelse(!is.null(wms_server),"popup","dashboard")
     
-#####
-    
 #### Get columns definition
    
-       if(!is.null(dsd)){
+    if(!is.null(dsd)){
         names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
         dsd[is.na(dsd)]<-""
-        }
+    }
     
-      if(is.null(dsd)){ 
-              CSW <- CSWClient$new(
+    if(is.null(dsd)){
+      print("QUERYINFO : No dsd parameter provided in url...dsd will be compute with CSW service")
+        CSW <- CSWClient$new(
         url = csw_server,
         serviceVersion = csw_version,
         logger = "INFO"
-      )
+    )
       
       fc <- CSW$getRecordById(paste0(pid,"_dsd"), outputSchema = "http://www.isotc211.org/2005/gfc")
       dsd<-getColumnDefinitions(fc)
-      #cat("DSD :")
-      #print(dsd)
       }
 #####
 
@@ -203,8 +120,10 @@ QueryInfo <- function(input, output, session) {
       desc <- ft$getDescription(TRUE) 
       
       if(!feature_geom){
+      print("QUERYINFO : FEATURE WITHOUT GEOMETRY SELECTED")
       ColumnName<-desc[desc$type!="geometry","name"]
       }else{
+      print("QUERYINFO : FEATURE WITH GEOMETRY SELECTED")
       ColumnName<-desc[,"name"]  
       }
       propertyName<-paste(ColumnName, collapse = ',')
@@ -212,16 +131,15 @@ QueryInfo <- function(input, output, session) {
       ###Get data feature for popup apps with WMS service
       
       if(shiny_type=="popup"){
+        print("QUERYINFO : MODE POPUP SELECTED")
         
         WMS <- WMSClient$new(
           url = wms_server, 
           serviceVersion = wms_version, 
           logger = "INFO"
-          )
+        )
         
         Layer <- WMS$capabilities$findLayerByName(layer)
-        
-        #bbox <- paste0(coord.x-0.1,",",coord.y-0.1,",",coord.x+0.1,",",coord.y+0.1)
         
         if(!is.null(par)){
           Data <- switch(strategy,
@@ -238,7 +156,8 @@ QueryInfo <- function(input, output, session) {
       ###Get data feature for dashboard apps with WFS service
       
       if(shiny_type=="dashboard"){
-      
+        print("QUERYINFO : MODE DASHBOARD SELECTED")
+        
         if(is.null(par)){
           Data <- ft$getFeatures(propertyName=propertyName)
         }
@@ -253,17 +172,15 @@ QueryInfo <- function(input, output, session) {
       }
       
     #Final columns selection for data et columns informations
-      Data<-subset(Data,select=ColumnName)
-      dsd<-subset(dsd,MemberCode%in%ColumnName)
+    Data<-subset(Data,select=ColumnName)
+    dsd<-subset(dsd,MemberCode%in%ColumnName)
 
-    
-     data$data<-Data
-     data$dsd<-dsd
-     cat("DATA:")
-     print(data)
-     data$query<-query
+    data$data<-Data
+    data$dsd<-dsd
+    data$query<-query
      
     }
+    
     end_time <- Sys.time()
     data$time <-end_time - start_time
     print(data$time)
@@ -285,22 +202,22 @@ QueryInfo <- function(input, output, session) {
             "csw_version: ", data$query$csw_version, "\n",
             "strategy: ", data$query$strategy, "\n",
             "par: ", data$query$par, "\n",
-            "geom: ", data$query$geom, "\n",
-			"x: ", data$query$x, "\n",
+			      "x: ", data$query$x, "\n",
             "y: ", data$query$y, "\n",
-			"width: ", data$query$width, "\n",
-			"height: ", data$query$height, "\n",
-			"bbox: ", data$query$bbox, "\n",
+			      "width: ", data$query$width, "\n",
+			      "height: ", data$query$height, "\n",
+			      "bbox: ", data$query$bbox, "\n",
             "srs: ",data$query$srs, "\n",
             "dsd: ",data$query$dsd, "\n"
       )
     })
-      #Number of value selected
-      output$value <- renderText({paste(sep = "","number of values : ",nrow(data$data))})
+  
+  #Number of value selected
+  output$value <- renderText({paste(sep = "","number of values : ",nrow(data$data))})
       
-      #Speed to compute data
-      output$time <- renderText({paste(sep = "","running time : ",round(data$time,2)," sec")})
+  #Speed to compute data
+  output$time <- renderText({paste(sep = "","running time : ",round(data$time,2)," sec")})
       
-      return(data)
-    }
-####
+  return(data)
+}
+####END
