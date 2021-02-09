@@ -20,7 +20,14 @@ Connect `QueryInfo`in server part of the app to use it. The object assigned to t
 ```r
 server <- function(input, output, session) {
   source("https://raw.githubusercontent.com/eblondel/OpenFairViewer/master/src/resources/shinyModule/QueryInfo.R")
-  data<-callModule(module = QueryInfo, id = "data")
+  query_outputs <- callModule(module = QueryInfo, id = "data")
+  
+  data <- query_outputs$data #get data
+  dsd <- query_outputs$dsd #get dsd
+  query <- query_outputs$query #get query
+  time <- query_outputs$time #get querying time
+  
+  ... your business logic ...
 }
 ```
 
