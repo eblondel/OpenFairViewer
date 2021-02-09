@@ -1,12 +1,13 @@
 ### Overview
-`QueryInfo` is a **R Shiny Module** to easily the data interrogation from **OpenFairViewer** map Viewer.
+`QueryInfo` is a **R Shiny Module** to facilitate the data access from **OpenFairViewer** map Viewer.
 This module include a **URL** query string parsing to produce the data and metadata from **OGC services**.
 
 ### Inputs
-Pass to `QueryInfo ` or Shiny app that uses `QueryInfo` module in url a list of parameters. 
+Pass to the `QueryInfo ` module or Shiny app that make use of `QueryInfo` module in url a list of parameters. 
 The declaration of parameters is at the form: `parameterName=parameterValue` and two parameters must be separate by `&`. 
 
 ### Outputs
+The outputs are Shiny Reactive objects:
 * `data`: a datatable spatialized or not with data requested 
 * `dsd`: a datatable object with columns definition information from dsd parameters or CSW interrogation
 * `query`: a list including all parameters specified in url
@@ -14,12 +15,14 @@ The declaration of parameters is at the form: `parameterName=parameterValue` and
 
 ### Use inside Shiny application
 
-Connect `QueryInfo`in server part of the app to use it. The object assigned to the module is a reactive list including the four outputs items listed upper. 
+Connect `QueryInfo`in server part of the app to use it. The object assigned to the module is a reactive list including the four outputs items listed above. 
 
-`server <- function(input, output, session) {`
-`source("https://raw.githubusercontent.com/eblondel/OpenFairViewer/master/src/resources/shinyModule/QueryInfo.R")`
-`data<-callModule(module = QueryInfo, id = "data")`
-`}`
+```r
+server <- function(input, output, session) {
+  source("https://raw.githubusercontent.com/eblondel/OpenFairViewer/master/src/resources/shinyModule/QueryInfo.R")
+  data<-callModule(module = QueryInfo, id = "data")
+}
+```
 
 ### Summary of parameters usage
 
