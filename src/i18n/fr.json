@@ -51,6 +51,7 @@
 	"download_data" : "Télécharger les données (CSV)",
 	"download_map" : "Télécharger la carte (PNG)",
 	"download_rscript" : "Télécharger le script R d'accès aux données",
+	"download_jupyter": "Télécharger le notebook Jupyter d'accès aux données",
 	"download_wfs" : "Télécharger les données (WFS)",
 	"basemaps" : "Fonds de carte",
 	"maptype_selector" : "Sélectionner un type de carte",

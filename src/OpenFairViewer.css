@@ -277,6 +277,7 @@ ul.pagination {margin: 0px !important;}
 .data-png-map {background-image: url(img/buttons/png-icon-map.png);}
 .data-wfs {background-image: url(img/buttons/ogc-wfs-icon.png);}
 .data-rscript {background-image: url(img/buttons/rscript-icon.png);}
+.data-jupyter-notebook{background-image: url(img/buttons/jupyter-icon.png);}
 .data-export-buttons {margin: 0 auto;width: 90%;text-align: center !important;}
 
 /** MAP **/
