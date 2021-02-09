@@ -42,7 +42,7 @@ export default class OpenFairShiny {
 		shinyapp_url += "&csw_version=" + layer.csw_version;
 		shinyapp_url += "&wfs_server=" + layer.baseDataUrl.split('?')[0];
 		shinyapp_url += "&wfs_version=1.0.0";
-		shinyapp_url += "&wms_server=" + (layer.getSource().getUrl? layer.getSource().getUrl().replace('ows?service=WMS','wms') : layer.getSource().getUrls()[0].replace('ows?service=WMS','wms'));
+		shinyapp_url += "&wms_server=" + (layer.getSource().getUrl? layer.getSource().getUrl() : layer.getSource().getUrls()[0]).replace('ows?service=WMS','wms');
 		shinyapp_url += "&wms_version=" + layer.getSource().getParams().VERSION;
 		shinyapp_url += "&feature_geom=" + withGeom;
 		shinyapp_url += "&strategy=" + layer.strategy;
@@ -53,8 +53,11 @@ export default class OpenFairShiny {
 		}
 		if(params) shinyapp_url += "&par=" + params;
 		shinyapp_url += "&geom=" + feature.geometry_column;
-		shinyapp_url += "&x=" + feature.popup_coordinates[0];
-		shinyapp_url += "&y=" + feature.popup_coordinates[1];
+		shinyapp_url += "&x=" + feature.info.x;
+		shinyapp_url += "&y=" + feature.info.y;
+		shinyapp_url += "&width=" + feature.info.width;
+		shinyapp_url += "&height=" + feature.info.height;
+		shinyapp_url += "&bbox=" + feature.info.bbox;
 		shinyapp_url += "&srs=EPSG:4326";
 
 		if(layer.dsd){
@@ -68,7 +71,7 @@ export default class OpenFairShiny {
 			shinyapp_url += "&dsd="+ encodeURI(JSON.stringify(dsd_small));
 		}
 
-		var html = '<iframe src ="' + shinyapp_url + '" width="400" height="350" frameborder="0" marginheight="0"></iframe>';
+		var html = '<iframe src ="' + shinyapp_url + '" width="400" height="400" frameborder="0" marginheight="0"></iframe>';
 		return html;
 	}
 

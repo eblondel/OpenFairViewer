@@ -346,6 +346,8 @@ li.layer-switcher-base-group > label {
 	padding-left:16px;
 }
 .layer-switcher li label {width: 100% !important;}
+.layer-switcher .panel { overflow-x: hidden;}
+
 
 /** custom tooltip css **/
 .ol-popup { background-color: transparent; bottom: 12px; display: none; left: -50px; padding: 0; position: absolute; border:0px; }
@@ -425,7 +427,47 @@ div.ol-custom-overviewmap:not(.ol-collapsed) button{bottom: auto;left: auto;righ
 	cursor: default;
 }
 
-
 /* data table */
 table.dataTable thead th, table.dataTable thead td {padding: 5px 5px;}
+
+/* layer tree */
+body ul .draggable-layer {
+  will-change: transform;
+  /*font-family: "Raleway", sans-serif;
+  font-weight: 800;
+  height: 50px;
+  list-style-type: none;
+  margin: 10px;
+  background-color: white;
+  color: #212121;
+  width: 250px;
+  line-height: 3.2;
+  padding-left: 10px;*/
+  cursor: move;
+  transition: all 200ms;
+  user-select: none;
+  position: relative;
+}
+body ul .draggable-layer:before {
+  content: 'drag me';
+  right: 7px;
+  font-size: 10px;
+  position: absolute;
+  cursor: pointer;
+  line-height: 5;
+  transition: all 200ms;
+  transition-timing-function: cubic-bezier(0.48, 0.72, 0.62, 1.5);
+  transform: translateX(120%);
+  opacity: 0;
+}
+body ul .draggable-layer:hover:before {
+  opacity: 1;
+  transform: translate(0);
+}
+ 
+body ul .draggable-layer-over {
+  transform: scale(1.1, 1.1);
+  border:1px dashed #0C71B8;
+  padding:1px;
+}
 

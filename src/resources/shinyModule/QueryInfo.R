@@ -77,9 +77,9 @@ QueryInfo <- function(input, output, session) {
 	  bbox <- if(!is.null(query$bbox)){query$bbox}else{NULL}
 
     srs <-if(!is.null(query$srs)){query$srs}else{"'EPSG:4326'"}
-    
+
     dsd<-if (!is.null(query$dsd)){jsonlite::fromJSON(query$dsd)}else{NULL}
-    
+
     #Type of shiny apps 
     shiny_type <- ifelse(!is.null(wms_server),"popup","dashboard")
     
