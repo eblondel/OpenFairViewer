@@ -297,7 +297,7 @@ class OpenFairViewer {
 			}
 			if(options.access.time) this.options.access.time = options.access.time;
 		}
-
+		
 		//dashboard
 		this.options.access.dashboard = {};
 		this.options.access.dashboard.enabled = true;
@@ -309,6 +309,7 @@ class OpenFairViewer {
 			if(options.access.dashboard.enabled) this.options.access.dashboard.enabled = options.access.dashboard.enabled;
 			if(options.access.dashboard.handler) this.options.access.dashboard.handler = options.access.dashboard.handler;
 		}
+		
 
 		//MAP options
 		//--------------------------------------------------------------------------------------------------
@@ -660,6 +661,92 @@ class OpenFairViewer {
 		
 		//datasets caching
 		this.datasets = new Array();
+		
+		//dataset access export (managed at the end to support config conditions
+		//export methods
+		this.options.access.defaultExports = [
+			{
+				'id': 'data-table',
+				'main': true,
+				'enabled': true,
+				'services': ['wms','wfs'],
+				'title': this.options.labels.tabulardata_title,
+				'handler': this.displayDataTable,
+				'class': 'data-table'
+			},
+			{
+				'id': 'data-dashboard',
+				'main': true,
+				'enabled': (this.options.access.dashboard.enabled && this.options.access.dashboard.handler),
+				'services': ['wms', 'wfs'],
+				'title': this.options.labels.dashboard_title,
+				'handler': this.displayDashboard,
+				'class': 'data-dashboard'
+			},
+			{
+				'id': 'data-csv-raw',
+				'main': true,
+				'enabled': true,
+				'services': ['wfs'],
+				'title': this.options.labels.download_data,
+				'handler': this.exportToCSV,
+				'class': 'data-csv-raw'
+			},
+			{
+				'id': 'data-png-map',
+				'main': true,
+				'enabled': true,
+				'services': ['wms'],
+				'title': this.options.labels.download_map,
+				'handler': this.exportToPNG,
+				'class': 'data-png-map'
+			},
+			{
+				'id': 'data-wfs',
+				'main': false,
+				'enabled': true,
+				'services': ['wfs'],
+				'title': this.options.labels.download_wfs,
+				'handler': this.exportToWFS,
+				'class': 'data-wfs'
+			},
+			{
+				'id': 'data-rscript',
+				'main': false,
+				'enabled': true,
+				'services': ['wfs'],
+				'title': this.options.labels.download_rscript,
+				'handler': this.exportToRScript,
+				'class': 'data-rscript'
+			},
+			{
+				'id': 'data-jupyter-notebook',
+				'main': false,
+				'enabled': true,
+				'services': ['wfs'],
+				'title': this.options.labels.download_jupyter,
+				'handler': this.exportToRJupyterNotebook,
+				'class': 'data-jupyter-notebook'
+			}
+		];
+		this.options.access.exports = this.options.access.defaultExports;
+		if(options.access) if(options.access.exports) {
+			//overwrite default methods in case they are declared from config
+			this.options.access.exports = this.options.access.exports.map(function(item){
+				var export_method = item;
+				options.access.exports.forEach(function(added_method){
+					if(item.id == added_method.id) export_method = added_method;
+				});
+				return export_method;
+			});
+			//add extra methods?
+			console.log(this_.options.access.exports.map(function(method){return method.id;}));
+			options.access.exports.forEach(function(toadd){
+				if(this_.options.access.exports.map(function(method){return method.id;}).indexOf(toadd.id) == -1){
+					this_.options.access.exports.push(toadd);
+				}
+			});			
+		}
 		
 		//main OFV instance object
 		window[this.config.OFV_ID] = this;
@@ -1797,19 +1884,8 @@ class OpenFairViewer {
 		
 		//add config filters?
 
-
-
-
-
-
 		if(typeof this.options.find.filter != 'undefined'){
-
-
-
-
 			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, this.options.find.filter]);
-
-
 		}
 		
 		//add free text filter?
@@ -2376,32 +2452,65 @@ class OpenFairViewer {
 	 */
 	handleQueryFormButtons(columnIdx){
 		var this_ = this;
+		
+		var layerName = this_.dataset_on_query.pid;
+		var layer = this_.getLayerByProperty(this_.dataset_on_query.pid, 'id');
+		
 		//Query and mapbutton
 		//------------------------------
 		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
 		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="'+this_.options.labels.dataset_query_map_title+'" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">'+this_.options.labels.dataset_query_map+'</button>');
 		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">'+this_.options.labels.nodata+'</span>');
 				
-		//download buttons
+		//main export methods
 		//------------------------------
-		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-buttons" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
-		if(this.dataset_on_query.entry.wfs){
-			//tabular viewer
-			var button_tabulardata = '<button type="button" id="dsd-ui-button-table" class="btn data-action-button data-table" title="'+this_.options.labels.tabulardata_title+'" onclick="'+this_.config.OFV_ID+'.displayTabularDataset()"></button>';
-			$("#dsd-ui-buttons").append(button_tabulardata);
-			//dashboard
-			if(this.options.access.dashboard.enabled) if(this.options.access.dashboard.handler){ 
-				console.log("dashboard");
-				var button_dashboard = '<button type="button" id="dsd-ui-button-dashboard" class="btn data-action-button data-dashboard" title="'+this_.options.labels.dashboard_title+'" onclick="'+this_.config.OFV_ID+'.accessDatasetDashboard()"></button>';
-				$("#dsd-ui-buttons").append(button_dashboard);
+		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-methods1" style="margin: 0 auto;width: 90%;text-align: center !important;"><p style="margin:0;"></div>');
+		this.options.access.exports.filter(function(item){if(item.main) return item;}).forEach(function(export_method){
+			var services_are_available = true;
+			if(export_method.services) if(export_method.services.length > 0){
+				services_are_available = export_method.services.filter(function(item){
+					return Object.keys(this_.dataset_on_query.entry).indexOf(item) == -1
+				}).length == 0
 			}
-			//data download
-			var button_csv_raw = '<button type="button" id="dsd-ui-button-csv2" class="btn data-action-button data-csv-raw" title="'+this_.options.labels.download_data+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetCSV()"></button>';
-			$("#dsd-ui-buttons").append(button_csv_raw);
-		}
-		var button_png_map = '<button type="button" id="dsd-ui-button-png" class="btn data-action-button data-png-map" title="'+this_.options.labels.download_map+'" onclick="'+this_.config.OFV_ID+'.downloadMapPNG()"></button>';
-		$("#dsd-ui-buttons").append(button_png_map);
+			var add = export_method.enabled && services_are_available;
+			if(export_method.id == "data-dashboard") add = add && this_.hasDashboard(layer);
+			if(add){
+				var button_id = "dsd-ui-button-"+export_method.id;
+				var button_class = "btn data-action-button "+export_method["class"];
+				var button_export_method = '<button type="button" id="'+button_id+'" class="'+button_class+'" title="'+export_method.title+'" onclick="'+this_.config.OFV_ID+'.triggerExport(\''+export_method.id+'\')"></button>';
+				$("#dsd-ui-export-methods1").append(button_export_method);
+			}
+		});
 		
+		//additional export buttons
+		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-methods2" style="padding:0px 15px;text-align: left !important;"></div>');
+		var export_more = '<a data-toggle="collapse" href="#dataset-export-methods2" role="button" aria-expanded="false" aria-controls="dataset-export-methods2">'+this_.options.labels.export_options_more+'</a><br>';
+		export_more += '<div class="collapse multi-collapse" id="dataset-export-methods2">';
+		export_more += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
+		export_more += '<div class="data-export-buttons">';
+		this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
+			console.log(export_method);
+			var services_are_available = true;
+			if(export_method.services) if(export_method.services.length > 0){
+				services_are_available = export_method.services.filter(function(item){
+					return Object.keys(this_.dataset_on_query.entry).indexOf(item) == -1
+				}).length == 0
+			}
+			var add = export_method.enabled && services_are_available;
+			if(export_method.id == "data-dashboard") add = add && this_.hasDashboard(layer);
+			if(add){
+				var button_id = "dsd-ui-button-"+export_method.id;
+				var button_class = "btn data-action-button "+export_method["class"];
+				var button_export_method = '<button type="button" id="'+button_id+'" class="'+button_class+'" title="'+export_method.title+'" onclick="'+this_.config.OFV_ID+'.triggerExport(\''+export_method.id+'\')"></button>';
+				export_more += button_export_method;
+			}
+		});
+		export_more += '</div>';
+		export_more += '</fieldset>';
+		export_more += '</div>';
+		$("#dsd-ui-export-methods2").append(export_more);
+		
+		//export options
 		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;display:none;"></div>');
 		var export_options = '<a data-toggle="collapse" href="#dataset-export-options" role="button" aria-expanded="false" aria-controls="dataset-export-options">'+this_.options.labels.export_options+'</a><br>';
 		export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
@@ -2410,37 +2519,31 @@ class OpenFairViewer {
 		export_options += '<div class="form-check" style="float:left;margin-right:20px;"><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_prettify+'</label></div>';
 		//option to enrich with data labels
 		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_labels+'</label></div>';
-		
-		export_options += '<span style="margin-top:10px;">'+this_.options.labels.export_options_more+'</span>';
-		export_options += '<div class="data-export-buttons">';
-		export_options += '<button type="button" id="dataset-export-option-wfs" class="btn data-action-button data-wfs" title="'+this_.options.labels.download_wfs+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetWFS()"></button>';
-		export_options += '<button type="button" id="dataset-export-option-rscript" class="btn data-action-button data-rscript" title="'+this_.options.labels.download_rscript+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetRScript()"></button>';
-		export_options += '<button type="button" id="dataset-export-option-jupyter-notebook" class="btn data-action-button data-jupyter-notebook" title="'+this_.options.labels.download_jupyter+'" onclick="'+this_.config.OFV_ID+'.downloadDatasetJupyterNotebook(\'R\')"></button>';
-		export_options += '</div>';
 		export_options += '</fieldset>';
 		export_options += '</div>';
 		$("#dsd-ui-export-options").append(export_options);
 		
-		var layerName = this_.dataset_on_query.pid;
-		var layer = this_.getLayerByProperty(this_.dataset_on_query.pid, 'id');
 		if(layer){
-			$('#dsd-ui-button-csv1').prop('disabled', false);
-			$('#dsd-ui-button-csv2').prop('disabled', false);
-			$('#dsd-ui-button-table').prop('disabled', false);
-			$('#dsd-ui-button-dashboard').prop('disabled', false);
-			this_.checkDatasetDashboardAvailability(layer);
-			$('#dsd-ui-button-png').prop('disabled', false);
+			this_.enableQueryFormButtons();
 			$("#dsd-ui-export-options").show();
 		}else{
-			$('#dsd-ui-button-csv1').prop('disabled', true);
-			$('#dsd-ui-button-csv2').prop('disabled', true);
-			$('#dsd-ui-button-table').prop('disabled', true);
-			$('#dsd-ui-button-dashboard').prop('disabled', true);
-			this_.checkDatasetDashboardAvailability(layer);
-			$('#dsd-ui-button-png').prop('disabled', true);
+			this_.disableQueryFormButtons();
 			$("#dsd-ui-export-options").hide();
-		}
-		
+		}	
+	}
+	
+	/**
+	 * disableQueryFormButtons
+	 */
+	disableQueryFormButtons(){
+		$(".data-action-button").each(function(i,item){$(item).prop('disabled', true);})
+	}
+	
+	/**
+	 * enableQueryFormButtons
+	 */
+	enableQueryFormButtons(){
+		$(".data-action-button").each(function(i,item){$(item).prop('disabled', false);})
 	}
 	
 	/**
@@ -3376,12 +3479,7 @@ class OpenFairViewer {
 							$("#datasetMapper").prop('disabled', false);
 								
 							//actions o download buttons
-							$('#dsd-ui-button-csv1').prop('disabled', false);
-							$('#dsd-ui-button-csv2').prop('disabled', false);
-							$('#dsd-ui-button-table').prop('disabled', false);
-							$('#dsd-ui-button-dashboard').prop('disabled', false);
-							this_.checkDatasetDashboardAvailability(layer);
-							$('#dsd-ui-button-png').prop('disabled', false);
+							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
 							
 							//action on no data
@@ -3391,12 +3489,7 @@ class OpenFairViewer {
 								$("#datasetMapper").prop('disabled', false);
 								$(".query-nodata").show();
 								//actions o download buttons
-								$('#dsd-ui-button-csv1').prop('disabled', true);
-								$('#dsd-ui-button-csv2').prop('disabled', true);
-								$('#dsd-ui-button-table').prop('disabled', true);
-								$('#dsd-ui-button-dashboard').prop('disabled', true);
-								this_.checkDatasetDashboardAvailability(layer);
-								$('#dsd-ui-button-png').prop('disabled', true);
+								this_.disableQueryFormButtons();
 								$("#dsd-ui-export-options").hide();
 							}
 							
@@ -3426,10 +3519,7 @@ class OpenFairViewer {
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 							//actions o download buttons
-							$('#dsd-ui-button-csv1').prop('disabled', false);
-							$('#dsd-ui-button-csv2').prop('disabled', false);
-							$('#dsd-ui-button-table').prop('disabled', false);
-							$('#dsd-ui-button-png').prop('disabled', false);
+							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
 						});
 								
@@ -3456,12 +3546,7 @@ class OpenFairViewer {
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', false);
-						$('#dsd-ui-button-csv2').prop('disabled', false);
-						$('#dsd-ui-button-table').prop('disabled', false);
-						$('#dsd-ui-button-dashboard').prop('disabled', false);
-						this_.checkDatasetDashboardAvailability(layer);
-						$('#dsd-ui-button-png').prop('disabled', false);
+						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
 
 					}
@@ -3488,12 +3573,7 @@ class OpenFairViewer {
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
-					$('#dsd-ui-button-csv1').prop('disabled', false);
-					$('#dsd-ui-button-csv2').prop('disabled', false);
-					$('#dsd-ui-button-table').prop('disabled', false);
-					$('#dsd-ui-button-dashboard').prop('disabled', false);
-					this_.checkDatasetDashboardAvailability(layer);
-					$('#dsd-ui-button-png').prop('disabled', false);
+					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
 					
 				}
@@ -3551,12 +3631,7 @@ class OpenFairViewer {
 						$("#datasetMapper").prop('disabled', false);
 							
 						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', false);
-						$('#dsd-ui-button-csv2').prop('disabled', false);
-						$('#dsd-ui-button-table').prop('disabled', false);
-						$('#dsd-ui-button-dashboard').prop('disabled', false);
-						this_.checkDatasetDashboardAvailability(layer);
-						$('#dsd-ui-button-png').prop('disabled', false);
+						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
 						
 						//action on no data
@@ -3566,12 +3641,7 @@ class OpenFairViewer {
 							$("#datasetMapper").prop('disabled', false);
 							$(".query-nodata").show();
 							//actions o download buttons
-							$('#dsd-ui-button-csv1').prop('disabled', true);
-							$('#dsd-ui-button-csv2').prop('disabled', true);
-							$('#dsd-ui-button-table').prop('disabled', true);
-							$('#dsd-ui-button-dashboard').prop('disabled', true);
-							this_.checkDatasetDashboardAvailability(layer);
-							$('#dsd-ui-button-png').prop('disabled', true);
+							this_.disableQueryFormButtons();
 							$("#dsd-ui-export-options").hide();
 						}
 					});
@@ -3601,10 +3671,7 @@ class OpenFairViewer {
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', false);
-						$('#dsd-ui-button-csv2').prop('disabled', false);
-						$('#dsd-ui-button-table').prop('disabled', false);
-						$('#dsd-ui-button-png').prop('disabled', false);
+						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
 					});
 					
@@ -3631,10 +3698,7 @@ class OpenFairViewer {
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
-					$('#dsd-ui-button-csv1').prop('disabled', false);
-					$('#dsd-ui-button-csv2').prop('disabled', false);
-					$('#dsd-ui-button-table').prop('disabled', false);
-					$('#dsd-ui-button-png').prop('disabled', false);
+					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
 					
 			    }
@@ -3700,12 +3764,7 @@ class OpenFairViewer {
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 							//actions o download buttons
-							$('#dsd-ui-button-csv1').prop('disabled', false);
-							$('#dsd-ui-button-csv2').prop('disabled', false);
-							$('#dsd-ui-button-table').prop('disabled', false);
-							$('#dsd-ui-button-dashboard').prop('disabled', false);
-							this_.checkDatasetDashboardAvailability(layer);
-							$('#dsd-ui-button-png').prop('disabled', false);
+							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
 							
 							//action on no data
@@ -3718,12 +3777,7 @@ class OpenFairViewer {
 								$("#datasetMapper").prop('disabled', false);
 								$(".query-nodata").show();
 								//actions o download buttons
-								$('#dsd-ui-button-csv1').prop('disabled', true);
-								$('#dsd-ui-button-csv2').prop('disabled', true);
-								$('#dsd-ui-button-table').prop('disabled', true);
-								$('#dsd-ui-button-dashboard').prop('disabled', true);
-								this_.checkDatasetDashboardAvailability(layer);
-								$('#dsd-ui-button-png').prop('disabled', true);
+								this_.disableQueryFormButtons();
 								$("#dsd-ui-export-options").hide();
 							}
 						});
@@ -3761,12 +3815,7 @@ class OpenFairViewer {
 							$("#datasetMapper").bootstrapBtn('reset');
 							$("#datasetMapper").prop('disabled', false);
 							//actions o download buttons
-							$('#dsd-ui-button-csv1').prop('disabled', false);
-							$('#dsd-ui-button-csv2').prop('disabled', false);
-							$('#dsd-ui-button-table').prop('disabled', false);
-							$('#dsd-ui-button-dashboard').prop('disabled', false);
-							this_.checkDatasetDashboardAvailability(layer);
-							$('#dsd-ui-button-png').prop('disabled', false);
+							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
 						});
 					}else{
@@ -3796,12 +3845,6 @@ class OpenFairViewer {
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', false);
-						$('#dsd-ui-button-csv2').prop('disabled', false);
-						$('#dsd-ui-button-table').prop('disabled', false);
-						$('#dsd-ui-button-dashboard').prop('disabled', false);
-						this_.checkDatasetDashboardAvailability(layer);
-						$('#dsd-ui-button-png').prop('disabled', false);
 						$("#dsd-ui-export-options").show();
 						
 					}
@@ -3825,12 +3868,7 @@ class OpenFairViewer {
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
-					$('#dsd-ui-button-csv1').prop('disabled', false);
-					$('#dsd-ui-button-csv2').prop('disabled', false);
-					$('#dsd-ui-button-table').prop('disabled', false);
-					$('#dsd-ui-button-dashboard').prop('disabled', false);
-					this_.checkDatasetDashboardAvailability(layer);
-					$('#dsd-ui-button-png').prop('disabled', false);
+					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
 				}
 			    break;
@@ -3890,12 +3928,7 @@ class OpenFairViewer {
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', false);
-						$('#dsd-ui-button-csv2').prop('disabled', false);
-						$('#dsd-ui-button-table').prop('disabled', false);
-						$('#dsd-ui-button-dashboard').prop('disabled', false);
-						this_.checkDatasetDashboardAvailability(layer);
-						$('#dsd-ui-button-png').prop('disabled', false);
+						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
 						
 						//action on no data
@@ -3908,12 +3941,7 @@ class OpenFairViewer {
 							$("#datasetMapper").prop('disabled', false);
 							$(".query-nodata").show();
 							//actions o download buttons
-							$('#dsd-ui-button-csv1').prop('disabled', true);
-							$('#dsd-ui-button-csv2').prop('disabled', true);
-							$('#dsd-ui-button-table').prop('disabled', true);
-							$('#dsd-ui-button-dashboard').prop('disabled', true);
-							this_.checkDatasetDashboardAvailability(layer);
-							$('#dsd-ui-button-png').prop('disabled', true);
+							this_.disableQueryFormButtons();
 							$("#dsd-ui-export-options").hide();
 						}
 					});
@@ -3942,12 +3970,7 @@ class OpenFairViewer {
 						$("#datasetMapper").bootstrapBtn('reset');
 						$("#datasetMapper").prop('disabled', false);
 						//actions o download buttons
-						$('#dsd-ui-button-csv1').prop('disabled', false);
-						$('#dsd-ui-button-csv2').prop('disabled', false);
-						$('#dsd-ui-button-table').prop('disabled', false);
-						$('#dsd-ui-button-dashboard').prop('disabled', false);
-						this_.checkDatasetDashboardAvailability(layer);
-						$('#dsd-ui-button-png').prop('disabled', false);
+						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
 					});
 			    }else{
@@ -3973,12 +3996,7 @@ class OpenFairViewer {
 					$("#datasetMapper").bootstrapBtn('reset');
 					$("#datasetMapper").prop('disabled', false);
 					//actions o download buttons
-					$('#dsd-ui-button-csv1').prop('disabled', false);
-					$('#dsd-ui-button-csv2').prop('disabled', false);
-					$('#dsd-ui-button-table').prop('disabled', false);
-					$('#dsd-ui-button-dashboard').prop('disabled', false);
-					this_.checkDatasetDashboardAvailability(layer);
-					$('#dsd-ui-button-png').prop('disabled', false);
+					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
 					
 			    }
@@ -3989,7 +4007,7 @@ class OpenFairViewer {
 		//if data dialog is opened then update tabular dataset
 		if($(".data-dialog").is(":visible")){
 			$('#data-table').DataTable().destroy();
-			this_.displayTabularDataset();
+			this_.displayDataTable();
 		}
 
 	}
@@ -4024,9 +4042,21 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * downloadDatasetWFS
+	 * triggerExport
+	 * @param id
+	 *
 	 */
-	 downloadDatasetWFS(){
+	triggerExport(id){
+		var export_method = this.options.access.exports.filter(function(item){if(item.id == id) return item;})[0];
+		this._triggerExporthHandler = export_method.handler;
+		this._triggerExporthHandler();
+		delete this._triggerExporthHandler;
+	}
+	
+	/**
+	 * exportToWFS
+	 */
+	 exportToWFS(){
 		console.log("Download dataset as OGC WFS");
 		var this_ = this;
 		var wfsResources = this.dataset_on_query.entry.wfs;
@@ -4148,10 +4178,10 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * downloadDatasetRScript
+	 * exportToRScript
 	 * @return 
 	 */
-	downloadDatasetRScript(){	
+	exportToRScript(){	
 		//rscript 
 		var script = this.prepareDatasetRScript(true);
 		//download
@@ -4162,6 +4192,7 @@ class OpenFairViewer {
 	
 	/**
 	 * prepareDatasetJupyterNotebook
+	 * @param language
 	 * @return the Jupyter notebook
 	 */
 	prepareDatasetJupyterNotebook(language){
@@ -4212,16 +4243,26 @@ class OpenFairViewer {
 	}
 		
 	/**
-	 * downloadDatasetJupyterNotebook
+	 * exportToJupyterNotebook
+	 * @param language
 	 * @return
 	 */
-	downloadDatasetJupyterNotebook(language){
+	exportToJupyterNotebook(language){
 		//Jupyter notebook 
 		var notebook = this.prepareDatasetJupyterNotebook(language);
 		//download
 		var fileName = this.dataset_on_query.pid + "_"+ this.getDateTimeString(new Date()) + ".ipynb";
 		this.download(JSON.stringify(notebook), fileName, '');
 	}
+	
+	/**
+	 * exportToRJupyterNotebook
+	 * @return
+	 */
+	exportToRJupyterNotebook(){
+		this.exportToJupyterNotebook("R");	
+	}
+	 
 	
 	getWFSSupportedFormats(layerUrl, serviceVersion){
 		var deferred = $.Deferred();
@@ -4364,9 +4405,9 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * OpenFairViewer.prototype.downloadDatasetCSV
+	 * OpenFairViewer.prototype.exportToCSV
 	 */
-	downloadDatasetCSV(){
+	exportToCSV(){
 		
 		//options
 		var add_colnames = $("#dataset-export-option-colnames").prop("checked");
@@ -4522,10 +4563,10 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * displayTabularDataset
+	 * displayDataTable
 	 *
 	 */
-	displayTabularDataset(){
+	displayDataTable(){
 				
 		var pageLength = 5;
 				
@@ -4669,28 +4710,30 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * checkDatasetDashboardAvailability
+	 * hasDashboard
 	 *
 	 */
-	checkDatasetDashboardAvailability(layer){
-		if(!layer) return;
+	hasDashboard(layer){
+		if(!layer) return false;
 		if(this.options.access.dashboard.enabled) if(this.options.access.dashboard.handler){
 			var dashboard_html = this.options.access.dashboard.handler(layer);
+			console.log("Dashboard");
+			console.log(dashboard_html);
 			if(dashboard_html){
-				$("#dsd-ui-button-dashboard").show();
+				return true;
 			}else{
-				$("#dsd-ui-button-dashboard").hide();
+				return false;
 			}
 		}else{
-			$("#dsd-ui-button-dashboard").hide();
+			return false;
 		}
 	}
 
 	/**
-	 * accessDatasetDashboard
+	 * displayDashboard
 	 *
 	 */
-	accessDatasetDashboard(){
+	displayDashboard(){
 		this.closeDataDialog();
 		this.openDashboardDialog();
 		var layer = this.getLayerByProperty(this.dataset_on_query.pid, "id");
@@ -4792,10 +4835,10 @@ class OpenFairViewer {
 
 	
 	/**
-	 * OpenFairViewer.prototype.downloadMapPNG
+	 * OpenFairViewer.prototype.exportToPNG
 	 *
 	 */
-	downloadMapPNG(){
+	exportToPNG(){
 		var this_ = this;
 		this.map.once('rendercomplete', function(event) {
 			var mapCanvas = document.createElement('canvas');
@@ -5638,15 +5681,15 @@ class OpenFairViewer {
 		if(params.dataset && !params.views){
 			var datasetDef = {pid: params.dataset};
 			this_.getCSWRecord(datasetDef.pid).then(function(md_entry){
-				if(this_.selection.map(function(i){return i.pid}).indexOf(pid) == -1){
-					console.log("we should add the dataset to the selection here");
-					console.log(md_entry);
-					datasetDef.entry = md_entry;
-					datasetDef.dsd = md_entry.dsd;
-					datasetDef.strategy = md_entry.metadata.contentInfo? "ogc_viewparams" : "ogc_filters";
-					this_.selection.push(datasetDef.entry);	
-					this_.resolveDatasetForQuery(datasetDef, false);		
-				}
+				console.log("we should add the dataset to the selection here");
+				console.log(md_entry);
+				datasetDef.entry = md_entry;
+				datasetDef.dsd = md_entry.dsd;
+				datasetDef.query = true;
+				datasetDef.strategy = md_entry.metadata.contentInfo? "ogc_viewparams" : "ogc_filters";
+				if(this_.selection.map(function(i){return i.pid}).indexOf(pid) == -1){ this_.selection.push(datasetDef.entry);};
+				this_.resolveDatasetForQuery(datasetDef, false);		
+				
 			});
 		}
 			
