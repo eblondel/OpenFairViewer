@@ -185,9 +185,32 @@ Name | Type | Description| Default value
 -----|------|------------|----------------
 columns | ``Integer``| Number of columns to use for displaying the dynamic query form. **_Experimental_** (to use cautiously) | 2 
 time | ``String``| Name of the widget to use for time selection. Default is 'datePicker'. Possible alternative value 'slider' for time slider. **_Experimental_** (to use cautiously) | 'datePicker'
+exports | `Array` | A array of export button definitions to add to the dataset access form, or overwrite default exports. The default exports are listed [here](https://github.com/eblondel/OpenFairViewer/blob/master/src/OpenFairViewer.js#L667). The definition of an export is done by adding an `object` containing the following properties (see below example): `id` (identifier of the export method), `enabled` (true/false to enable or disable the export method), `services`: an `Array` giving the services required for executing the export logic (eg. ["wfs"]), `main` (true/false) indicating if the export has to be added to the main exports or in the "additional export methods" panel, `title` (Text to display as button title), `class` (a CSS class to point to an image icon), `handler` (a function to execute on export button click event) | 
 dashboard | `Object` | An object to declare dashboards; See below sub-options. `handler` A function taking a single ``layer`` parameter that can be used to connect a dashboard The function should return an html markup (eg. IFrame embedding the link to a R Shiny app). The dashboard handler function can handle various content depending on the target layer, but |
  | ``boolean`` | ``enabled``: Activate the capacity to plug dashboards. |true
  | ``function`` | Sub options for dasbhoard. ``handler``: A function with arg ``layer`` to return dashboards as plain html. To use R shiny app dashboards, you can import the ``OpenFairShiny.js`` that provides utilities to load Shiny apps as iFrames. This handler allows to condition the plug of different dashboard handlers depending on the layers, ie adding conditions based on the ``layer.id`` (persistent identifier of each dataset).. By default, no dashboard will be associated to the layer. See below example. |null
+
+Example of export definitions, where we deactivate the map png export (provided by default), and add a custom export button:
+
+```r
+[
+ {
+     'id': 'data-map-png',
+     'enabled': false
+ },
+ {
+ 	'id': 'export-custom',
+    'main': false, 
+    'enabled': true,
+    'services': ['wfs'],
+    'title': 'Export data with custom method',
+    'class': 'export-custom-css-class',
+    'handler': function(){
+        //business logic to run on button click event
+    }
+ }
+]
+```
 
 Example of dashboard handler:
 
