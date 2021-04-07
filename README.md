@@ -194,7 +194,7 @@ time | ``String``| Name of the widget to use for time selection. Default is 'dat
 exports | `Array` | A array of export button definitions to add to the dataset access form, or overwrite default exports. The default exports are listed [here](https://github.com/eblondel/OpenFairViewer/blob/master/src/OpenFairViewer.js#L667). The definition of an export is done by adding an `object` containing the following properties (see below example): `id` (identifier of the export method), `enabled` (true/false to enable or disable the export method), `services`: an `Array` giving the services required for executing the export logic (eg. ["wfs"]), `main` (true/false) indicating if the export has to be added to the main exports or in the "additional export methods" panel, `title` (Text to display as button title), `class` (a CSS class to point to an image icon), `handler` (a function to execute on export button click event) | 
 dashboard | `Object` | An object to declare dashboards; See below sub-options. `handlers` A function taking a single ``layer`` parameter that can be used to connect a dashboard The function should return an html markup (eg. IFrame embedding the link to a R Shiny app). The dashboard handler function can handle various content depending on the target layer, but |
  | ``boolean`` | ``enabled``: Activate the capacity to plug dashboards. |true
- | ``Array`` | Sub options for dasbhoard ``handlers``:  One ore more objects that define dashboard handlers. Each object should contain a `name` (name of the dashboards), a `targets` (array of strings to be used as dataset pid matchers to indicate if the dashboard applies or not to the dataset), a `handler` function  with arg ``layer`` to return dashboards as plain html. To use R shiny app dashboards, you can import the ``OpenFairShiny.js`` that provides utilities to load Shiny apps as iFrames. By default, no dashboard will be associated to the layer. See below example of ``handler`` function. |null
+ | ``Array`` | Sub options for dasbhoard ``handlers``:  One ore more objects that define dashboard handlers. Each object should contain a `name` (name of the dashboards), a `targets` (array of strings to be used as dataset pid matchers to indicate if the dashboard applies or not to the dataset), a `handler` function  with arg ``dataset`` to return dashboards as plain html. To use R shiny app dashboards, you can import the ``OpenFairShiny.js`` that provides utilities to load Shiny apps as iFrames. By default, no dashboard will be associated to the layer. See below example of ``handler`` function. |null
 
 Example of export definitions, where we deactivate the map png export (provided by default), and add a custom export button:
 
@@ -221,7 +221,8 @@ Example of export definitions, where we deactivate the map png export (provided 
 Example of dashboard handler:
 
 ```javascript
-function(layer){
+function(dataset){
+    var layer = OFV.getLayerByProperty(dataset.pid, 'id');
 	OpenFairShiny.dashboardHandler("https://myshinyproxy.org/app_direct/myShinyApp/", layer, false);
 }
 ```
