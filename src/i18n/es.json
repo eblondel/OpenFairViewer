@@ -42,8 +42,6 @@
 	"export_options_more" : "Más métodos de exportación",
 	"tabulardata" : "Datos tabulados",
 	"tabulardata_title" : "Abrir datos tabulados",
-	"dashboard" : "Tablero",
-	"dashboard_title" : "Abrir tablero",
 	"legend_title_show" : "Mostrar leyenda",
 	"legend_title_hide" : "Esconder leyenda",
 	"fit_to_extent" : "Ajustar a la extensión espacial",
@@ -70,5 +68,8 @@
 	"colorscheme_selector_title" : "Seleccionar una paleta de colores para los intervalos de datos",
 	"colorscheme_sequential" : "Secuencial",
 	"colorscheme_diverging" : "Divergente",
-	"colorscheme_singlehue" : "Singlehue"	
+	"colorscheme_singlehue" : "Singlehue",
+	"dashboard_options": "Tableros analíticos",
+	"dashboard_selector": "Seleccionar un tablero",
+	"dashboard_selector_title": "Seleccionar un tablero disponible para este juego de datos"	
 }

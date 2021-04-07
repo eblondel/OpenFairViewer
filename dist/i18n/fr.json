@@ -70,5 +70,8 @@
 	"colorscheme_selector_title" : "Sélectionner une palette de couleurs à appliquer aux intervalles de données",
 	"colorscheme_sequential" : "Séquentiel",
 	"colorscheme_diverging" : "Divergent",
-	"colorscheme_singlehue" : "Teinte unique"
+	"colorscheme_singlehue" : "Teinte unique",
+	"dashboard_options": "Tableaux de bord analytiques",
+	"dashboard_selector": "Sélectionner un tableau de bord",
+	"dashboard_selector_title": "Sélectionner un tableau de bord pour le jeu de données"
 }

@@ -133,7 +133,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.5.0", DATE: new Date(2021,2,12)}
+		this.versioning = {VERSION: "2.5.0", DATE: new Date(2021,4,7)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -265,8 +265,6 @@ class OpenFairViewer {
 				}else{
 					this.options.find.filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [this.options.find.filter, wmsFilter]);
 				}
-
-
 			}
 		}
 		
@@ -301,13 +299,12 @@ class OpenFairViewer {
 		//dashboard
 		this.options.access.dashboard = {};
 		this.options.access.dashboard.enabled = true;
-		this.options.access.dashboard.DEFAULT_HANDLER = undefined;
-		//Set default handler
-		this.options.access.dashboard.handler = this.options.access.dashboard.DEFAULT_HANDLER;
+		//Set default handlers
+		this.options.access.dashboard.handlers = new Array();
 		//handler option
 		if(options.access) if(options.access.dashboard) {
 			if(options.access.dashboard.enabled) this.options.access.dashboard.enabled = options.access.dashboard.enabled;
-			if(options.access.dashboard.handler) this.options.access.dashboard.handler = options.access.dashboard.handler;
+			if(options.access.dashboard.handlers) this.options.access.dashboard.handlers = options.access.dashboard.handlers;
 		}
 		
 
@@ -674,15 +671,15 @@ class OpenFairViewer {
 				'handler': this.displayDataTable,
 				'class': 'data-table'
 			},
-			{
+			/*{
 				'id': 'data-dashboard',
 				'main': true,
-				'enabled': (this.options.access.dashboard.enabled && this.options.access.dashboard.handler),
+				'enabled': (this.options.access.dashboard.enabled && this.options.access.dashboard.handlers.length > 0),
 				'services': ['wms', 'wfs'],
 				'title': this.options.labels.dashboard_title,
 				'handler': this.displayDashboard,
 				'class': 'data-dashboard'
-			},
+			},*/
 			{
 				'id': 'data-csv-raw',
 				'main': true,
@@ -1681,6 +1678,7 @@ class OpenFairViewer {
 			md_entry.dsd = this_.rewriteURL(fc_url);
 		}
 		//distribution information
+		md_entry.csw = [{url: this.csw.url, version: this.csw.version}];
 		md_entry.wms = this.getDataProtocolsFromMetadataEntry(md_entry, "WMS");
 		md_entry.wfs = this.getDataProtocolsFromMetadataEntry(md_entry, "WFS");
 		md_entry.queryable = md_entry.wms.length > 0;
@@ -2473,7 +2471,7 @@ class OpenFairViewer {
 				}).length == 0
 			}
 			var add = export_method.enabled && services_are_available;
-			if(export_method.id == "data-dashboard") add = add && this_.hasDashboard(layer);
+			if(export_method.id == "data-dashboard") add = add && this_.hasDashboards(this_.dataset_on_query);
 			if(add){
 				var button_id = "dsd-ui-button-"+export_method.id;
 				var button_class = "btn data-action-button "+export_method["class"];
@@ -2497,7 +2495,7 @@ class OpenFairViewer {
 				}).length == 0
 			}
 			var add = export_method.enabled && services_are_available;
-			if(export_method.id == "data-dashboard") add = add && this_.hasDashboard(layer);
+			//if(export_method.id == "data-dashboard") add = add && this_.hasDashboards(this_.dataset_on_query);
 			if(add){
 				var button_id = "dsd-ui-button-"+export_method.id;
 				var button_class = "btn data-action-button "+export_method["class"];
@@ -2526,9 +2524,11 @@ class OpenFairViewer {
 		if(layer){
 			this_.enableQueryFormButtons();
 			$("#dsd-ui-export-options").show();
+			this_.enableDashboardOptions();
 		}else{
 			this_.disableQueryFormButtons();
 			$("#dsd-ui-export-options").hide();
+			this_.disableDashboardOptions();
 		}	
 	}
 	
@@ -2678,6 +2678,59 @@ class OpenFairViewer {
 			}
 		});
 	}
+	
+	/**
+	 * handleDashboardOptions
+	 * @param {Integer} columnIdx
+	 */
+	handleDashboardOptions(columnIdx){		
+		var this_ = this;
+		//id
+		var dashboard_id = "dashboard-selector";
+		//header
+		var html = $('<div id="dashboard-options" style="display:none;">');
+		html.append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><span class="glyphicon glyphicon-blackboard"></span><label style="margin-left:4px;">'+ this_.options.labels.dashboard_options+'</label></p><hr style="margin:0px;"></div>');
+		
+		//html
+		html.append('<select id = "'+dashboard_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.dashboard_selector_title+'"><option></option></select>');
+		$("#dsd-ui-col-"+columnIdx).append(html);
+		//jquery widget
+		var formatDashboard = function(item) {
+			if (!item.id) { return item.text; }
+			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+			return $item;
+		};
+		var dashboard_placeholder = this_.options.labels.dashboard_selector;
+		$("#" + dashboard_id).select2({
+			theme: 'classic',
+			allowClear: true,
+			placeholder: dashboard_placeholder,
+			data: this_.getDashboards(this_.dataset_on_query).map(function(item){return {id: item.name, text: item.name}}),
+			templateResult: formatDashboard,
+			templateSelection: formatDashboard
+		});
+
+		//event related to selection
+		$("#" + dashboard_id).on('select2:select', function(e) {
+			console.log("Open dashboard for");
+			console.log(e.target.value);
+			this_.displayDashboard(e.target.value);
+		});
+	}
+	
+	/**
+	 * enableDashboardOptions
+	 */
+	enableDashboardOptions(){
+		$("#dashboard-options").show();
+	}
+	
+	/**
+	 * disableDashboardOptions
+	 */
+	disableDashboardOptions(){
+		$("#dashboard-options").hide();
+	}
 
 	/**
 	 * handleFilter
@@ -2717,7 +2770,7 @@ class OpenFairViewer {
 		//id
 		var ogcfilter_component_id = "ui-ogc_filter";
 		//html
-		$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>Filter</label></p></div>');
+		$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><span class="glyphicon glyphicon-filter"></span><label style="margin-left:4px;">Filter</label></p></div>');
 		$("#dsd-ui-col-1").append('<input type="text" id = "'+ogcfilter_component_id+'" class="dsd-ui-dimension" title="Filter data with CQL" autofocus="true" ></select>');
 		
 		//query form buttons
@@ -2801,7 +2854,7 @@ class OpenFairViewer {
 					//-------------------------------------------
 					var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "attribute") return item});
 					if(attributes.length > 0){
-						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.labels.filtering+'</label></p><hr style="margin:0px;"></div>');
+						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><span class="glyphicon glyphicon-filter"></span><label>'+ this_.options.labels.filtering+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
 						var attributeMatcher = function(params, data){
 							params.term = params.term || '';
 							if ($.trim(params.term) === '') {
@@ -3107,7 +3160,7 @@ class OpenFairViewer {
 							return variableItem(item, true);
 						}
 						
-						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><label>'+ this_.options.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
+						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><span class="glyphicon glyphicon-globe"></span><label style="margin-left:4px;">'+ this_.options.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
 						
 						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_variable+'</label></p></div>');
 						
@@ -3146,6 +3199,11 @@ class OpenFairViewer {
 					//query form buttons
 					if(variables.length == 0) $("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
 					this_.handleQueryFormButtons(2);
+					
+					//ANALYTICS (if any dashboard associated to the dataset)
+					if(this_.hasDashboards(this_.dataset_on_query)){
+						this_.handleDashboardOptions(2);
+					}
 				}
 				
 				deferred.resolve(this_.dataset_on_query);
@@ -3482,6 +3540,9 @@ class OpenFairViewer {
 							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
 							
+							//action on dashboard options
+							this_.enableDashboardOptions();
+							
 							//action on no data
 							if(values) if(values.length == 0){
 								console.log("Actions on no data");
@@ -3491,6 +3552,7 @@ class OpenFairViewer {
 								//actions o download buttons
 								this_.disableQueryFormButtons();
 								$("#dsd-ui-export-options").hide();
+								this_.disableDashboardOptions();
 							}
 							
 						});
@@ -3521,6 +3583,8 @@ class OpenFairViewer {
 							//actions o download buttons
 							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
+							//action on dashboard options
+							this_.enableDashboardOptions();
 						});
 								
 					}else{
@@ -3548,6 +3612,8 @@ class OpenFairViewer {
 						//actions o download buttons
 						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
+						//action on dashboard options
+						this_.enableDashboardOptions();
 
 					}
 				}else{
@@ -3575,6 +3641,8 @@ class OpenFairViewer {
 					//actions o download buttons
 					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
+					//action on dashboard options
+					this_.enableDashboardOptions();
 					
 				}
 				break;
@@ -3634,6 +3702,9 @@ class OpenFairViewer {
 						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
 						
+						//action on dashboard options
+						this_.enableDashboardOptions();
+						
 						//action on no data
 						if(values) if(values.length == 0){
 							console.log("Actions on no data");
@@ -3643,6 +3714,7 @@ class OpenFairViewer {
 							//actions o download buttons
 							this_.disableQueryFormButtons();
 							$("#dsd-ui-export-options").hide();
+							this_.disableDashboardOptions();
 						}
 					});
 				}else if(dataset.point_vectorizing){
@@ -3673,6 +3745,8 @@ class OpenFairViewer {
 						//actions o download buttons
 						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
+						//action on dashboard options
+						this_.enableDashboardOptions();
 					});
 					
 			    }else{
@@ -3700,6 +3774,8 @@ class OpenFairViewer {
 					//actions o download buttons
 					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
+					//action on dashboard options
+					this_.enableDashboardOptions();
 					
 			    }
 			    break;
@@ -3767,6 +3843,9 @@ class OpenFairViewer {
 							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
 							
+							//action on dashboard options
+							this_.enableDashboardOptions();
+							
 							//action on no data
 							if(values) if(values.length==0){
 								this_.removeLayerByProperty(pid, "id");
@@ -3779,6 +3858,7 @@ class OpenFairViewer {
 								//actions o download buttons
 								this_.disableQueryFormButtons();
 								$("#dsd-ui-export-options").hide();
+								this_.disableDashboardOptions();
 							}
 						});
 					}else if(dataset.point_vectorizing){
@@ -3817,6 +3897,9 @@ class OpenFairViewer {
 							//actions o download buttons
 							this_.enableQueryFormButtons();
 							$("#dsd-ui-export-options").show();
+							
+							//action on dashboard options
+							this_.enableDashboardOptions();
 						});
 					}else{
 						console.log("Update layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
@@ -3870,6 +3953,8 @@ class OpenFairViewer {
 					//actions o download buttons
 					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
+					//action on dashboard options
+					this_.enableDashboardOptions();
 				}
 			    break;
 			case "ogc_dimensions":
@@ -3931,6 +4016,9 @@ class OpenFairViewer {
 						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
 						
+						//action on dashboard options
+						this_.enableDashboardOptions();
+						
 						//action on no data
 						if(values) if(values.length == 0){
 							this_.removeLayerByProperty(pid, "id");
@@ -3943,6 +4031,7 @@ class OpenFairViewer {
 							//actions o download buttons
 							this_.disableQueryFormButtons();
 							$("#dsd-ui-export-options").hide();
+							this_.disableDashboardOptions();
 						}
 					});
 				}else if(dataset.point_vectorizing){
@@ -3972,6 +4061,8 @@ class OpenFairViewer {
 						//actions o download buttons
 						this_.enableQueryFormButtons();
 						$("#dsd-ui-export-options").show();
+						//action on dashboard options
+						this_.enableDashboardOptions();
 					});
 			    }else{
 					console.log("Update layer with strategy 'ogc_viewparams' (static styling)");
@@ -3998,6 +4089,8 @@ class OpenFairViewer {
 					//actions o download buttons
 					this_.enableQueryFormButtons();
 					$("#dsd-ui-export-options").show();
+					//action on dashboard options
+					this_.enableDashboardOptions();
 					
 			    }
 			    break;
@@ -4710,34 +4803,43 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * hasDashboard
+	 * getDashboards
+	 */
+	getDashboards(dataset){
+		if(!dataset) return new Array();
+		if(this.options.access.dashboard.enabled) if(this.options.access.dashboard.handlers.length > 0){
+			var eligible_dashboards = this.options.access.dashboard.handlers.filter(function(item){
+				if(item.targets.filter(function(target){if(dataset.pid.indexOf(target)>=0) return target}).length > 0) return item;
+			})
+			return eligible_dashboards;
+		}else{
+			return new Array();
+		}
+	}
+	
+	/**
+	 * hasDashboards
 	 *
 	 */
-	hasDashboard(layer){
-		if(!layer) return false;
-		if(this.options.access.dashboard.enabled) if(this.options.access.dashboard.handler){
-			var dashboard_html = this.options.access.dashboard.handler(layer);
-			console.log("Dashboard");
-			console.log(dashboard_html);
-			if(dashboard_html){
-				return true;
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}
+	hasDashboards(dataset){
+		return this.getDashboards(dataset).length > 0;
 	}
 
 	/**
 	 * displayDashboard
 	 *
 	 */
-	displayDashboard(){
+	displayDashboard(name){
 		this.closeDataDialog();
+		this.closeDashboardDialog();
 		this.openDashboardDialog();
-		var layer = this.getLayerByProperty(this.dataset_on_query.pid, "id");
-		var dashboard_html = this.options.access.dashboard.handler(layer);
+		var dashboard = null;
+		if(name){
+			dashboard = this.options.access.dashboard.handlers.filter(function(item){if(item.name == name) return item;})[0];
+		}else{
+			dashboard = this.getDashboards(this.dataset_on_query)[0];
+		}
+		var dashboard_html = dashboard.handler(this.dataset_on_query);
 		if(dashboard_html){
 			$("#datasetDashboard").html(dashboard_html);
 		}else{

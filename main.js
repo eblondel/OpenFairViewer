@@ -40,9 +40,15 @@ $(document).ready(function(){
 			time: 'slider',
 			dashboard: {
 				enabled: true,
-				handler: function(layer){
-					return;
-				}
+				handlers: [
+					{
+						targets: ['mypid'],
+						name: 'My dashboard',
+						handler: function(layer){
+							return;
+						}
+					}
+				]
 			}
 		},
 		map : {

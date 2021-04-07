@@ -42,8 +42,6 @@
 	"export_options_more" : "More export methods?",
 	"tabulardata" : "Tabular data",
 	"tabulardata_title" : "Open tabular data",
-	"dashboard" : "Dashboard",
-	"dashboard_title" : "Open dashboard",
 	"legend_title_show" : "Show legend",
 	"legend_title_hide" : "Hide legend",
 	"fit_to_extent" : "Fit to extent",
@@ -70,5 +68,8 @@
 	"colorscheme_selector_title" : "Select a color palette to apply to data intervals",
 	"colorscheme_sequential" : "Sequential",
 	"colorscheme_diverging" : "Diverging",
-	"colorscheme_singlehue" : "Singlehue"	
+	"colorscheme_singlehue" : "Singlehue",
+	"dashboard_options": "Analytical Dashboards",
+	"dashboard_selector": "Select a dashboard",
+	"dashboard_selector_title": "Select a dashboard available for this dataset"
 }
