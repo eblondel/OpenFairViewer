@@ -802,7 +802,9 @@ class OpenFairViewer {
 			this_.initDialog("accessDialog", this_.options.labels.access, {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
 			this_.initDialog("infoDialog", this_.options.labels.info, {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 			this_.initDialog("dataDialog", this_.options.labels.tabulardata, {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
-			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
+			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4,  function(){}, function(){
+				$("#dashboard-selector").val("").trigger("change");
+			});
 
 			this_.closeAccessDialog();
 			this_.closeDataDialog();
@@ -2712,9 +2714,10 @@ class OpenFairViewer {
 
 		//event related to selection
 		$("#" + dashboard_id).on('select2:select', function(e) {
-			console.log("Open dashboard for");
-			console.log(e.target.value);
 			this_.displayDashboard(e.target.value);
+		});
+		$("#" + dashboard_id).on('select2:clear', function(e) {
+			this_.closeDashboardDialog();
 		});
 	}
 	
@@ -4831,7 +4834,6 @@ class OpenFairViewer {
 	 */
 	displayDashboard(name){
 		this.closeDataDialog();
-		this.closeDashboardDialog();
 		this.openDashboardDialog();
 		var dashboard = null;
 		if(name){
