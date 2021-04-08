@@ -802,7 +802,9 @@ class OpenFairViewer {
 			this_.initDialog("accessDialog", this_.options.labels.access, {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
 			this_.initDialog("infoDialog", this_.options.labels.info, {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 			this_.initDialog("dataDialog", this_.options.labels.tabulardata, {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
-			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
+			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4,  function(){}, function(){
+				$("#dashboard-selector").val("").trigger("change");
+			});
 
 			this_.closeAccessDialog();
 			this_.closeDataDialog();
@@ -2443,6 +2445,16 @@ class OpenFairViewer {
 			return this.handleFilter(dataset);
 		};		
 	}
+	
+	/**
+	 * Enable the query and map button
+	 * @param columnIdx
+	 */
+	handleQueryAndMapButton(columnIdx){
+		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
+		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="'+this.options.labels.dataset_query_map_title+'" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">'+this.options.labels.dataset_query_map+'</button>');
+		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">'+this.options.labels.nodata+'</span>');
+	}
 
 	/**
 	 * handleQueryFormButtons
@@ -2453,12 +2465,6 @@ class OpenFairViewer {
 		
 		var layerName = this_.dataset_on_query.pid;
 		var layer = this_.getLayerByProperty(this_.dataset_on_query.pid, 'id');
-		
-		//Query and mapbutton
-		//------------------------------
-		$("#dsd-ui-col-"+columnIdx).append('<br><br>');
-		$("#dsd-ui-col-"+columnIdx).append('<button type="submit" id="datasetMapper" style="width:90%;" title="'+this_.options.labels.dataset_query_map_title+'" data-loading-text="<span class=\'query-loader\'></span>" class="btn btn-primary">'+this_.options.labels.dataset_query_map+'</button>');
-		$("#dsd-ui-col-"+columnIdx).append('<br><span class="query-nodata" style="display:none;">'+this_.options.labels.nodata+'</span>');
 				
 		//main export methods
 		//------------------------------
@@ -2689,7 +2695,7 @@ class OpenFairViewer {
 		var dashboard_id = "dashboard-selector";
 		//header
 		var html = $('<div id="dashboard-options" style="display:none;">');
-		html.append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><span class="glyphicon glyphicon-blackboard"></span><label style="margin-left:4px;">'+ this_.options.labels.dashboard_options+'</label></p><hr style="margin:0px;"></div>');
+		html.append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-blackboard"></span><label style="margin-left:4px;">'+ this_.options.labels.dashboard_options+'</label></p><hr style="margin:0px;"></div>');
 		
 		//html
 		html.append('<select id = "'+dashboard_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.dashboard_selector_title+'"><option></option></select>');
@@ -2712,9 +2718,10 @@ class OpenFairViewer {
 
 		//event related to selection
 		$("#" + dashboard_id).on('select2:select', function(e) {
-			console.log("Open dashboard for");
-			console.log(e.target.value);
 			this_.displayDashboard(e.target.value);
+		});
+		$("#" + dashboard_id).on('select2:clear', function(e) {
+			this_.closeDashboardDialog();
 		});
 	}
 	
@@ -2774,6 +2781,7 @@ class OpenFairViewer {
 		$("#dsd-ui-col-1").append('<input type="text" id = "'+ogcfilter_component_id+'" class="dsd-ui-dimension" title="Filter data with CQL" autofocus="true" ></select>');
 		
 		//query form buttons
+		this.handleQueryAndMapButton(1);
 		this.handleQueryFormButtons(1);
 		
 		deferred.resolve(dataset);
@@ -2854,7 +2862,7 @@ class OpenFairViewer {
 					//-------------------------------------------
 					var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "attribute") return item});
 					if(attributes.length > 0){
-						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><span class="glyphicon glyphicon-filter"></span><label>'+ this_.options.labels.filtering+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
+						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-filter"></span><label>'+ this_.options.labels.filtering+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
 						var attributeMatcher = function(params, data){
 							params.term = params.term || '';
 							if ($.trim(params.term) === '') {
@@ -3160,7 +3168,7 @@ class OpenFairViewer {
 							return variableItem(item, true);
 						}
 						
-						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;"><span class="glyphicon glyphicon-globe"></span><label style="margin-left:4px;">'+ this_.options.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
+						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant:petite-caps;font-size:110%;"><span class="glyphicon glyphicon-globe"></span><label style="margin-left:4px;">'+ this_.options.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
 						
 						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_variable+'</label></p></div>');
 						
@@ -3196,8 +3204,11 @@ class OpenFairViewer {
 						this_.handleQueryMapOptions(2);
 					}
 					
+					//query & map button
+					this_.handleQueryAndMapButton(2);
+					
 					//query form buttons
-					if(variables.length == 0) $("#dsd-ui-body").append('<div id="dsd-ui-col-2" class="'+bootstrapClass+'"></div>');
+					$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-download-alt"></span><label style="margin-left:4px;">'+this_.options.labels.download_options+'</label></p><hr style="margin:0px;"></div>');
 					this_.handleQueryFormButtons(2);
 					
 					//ANALYTICS (if any dashboard associated to the dataset)
@@ -4831,7 +4842,6 @@ class OpenFairViewer {
 	 */
 	displayDashboard(name){
 		this.closeDataDialog();
-		this.closeDashboardDialog();
 		this.openDashboardDialog();
 		var dashboard = null;
 		if(name){

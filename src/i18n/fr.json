@@ -48,6 +48,7 @@
 	"legend_title_hide" : "Masquer la légende",
 	"fit_to_extent" : "Zoom sur la région",
 	"nodata" : "Ups! Pas de données pour cette requête...",
+	"download_options": "Téléchargement",
 	"download_data" : "Télécharger les données (CSV)",
 	"download_map" : "Télécharger la carte (PNG)",
 	"download_rscript" : "Télécharger le script R d'accès aux données",

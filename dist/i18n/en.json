@@ -46,6 +46,7 @@
 	"legend_title_hide" : "Hide legend",
 	"fit_to_extent" : "Fit to extent",
 	"nodata" : "Ups! There is no data for this query...",
+	"download_options": "Download",
 	"download_data" : "Download data (CSV)",
 	"download_map" : "Download map (PNG)",
 	"download_rscript" : "Download R Script",

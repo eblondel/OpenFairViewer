@@ -46,6 +46,7 @@
 	"legend_title_hide" : "Esconder leyenda",
 	"fit_to_extent" : "Ajustar a la extensión espacial",
 	"nodata" : "Ups! No existe dato para esta solicitud...",
+	"download_options": "Descarga",
 	"download_data" : "Descargar datos (CSV)",
 	"download_map" : "Descargar mapa (PNG)",
 	"download_rscript" : "Descargar script R",
