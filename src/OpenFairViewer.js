@@ -3538,7 +3538,7 @@ class OpenFairViewer {
 							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
-							layer.geomtype = geomType;
+							layer.geomtype = geomtype;
 							this_.addWMSLayerPopup(layer);
 							this_.setLegendGraphic(layer, breaks, colors);	
 							this_.map.changed();
