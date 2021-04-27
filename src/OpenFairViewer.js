@@ -88,7 +88,6 @@ import * as olCoordinate from 'ol/coordinate';
 import * as olGeom from 'ol/geom';
 import {fromExtent} from 'ol/geom/Polygon'
 import * as olFormat from 'ol/format';
-import GML32 from 'ol/format/GML32';
 import Feature from 'ol/Feature';
 import * as olInteraction from 'ol/interaction';
 import {altKeyOnly, click, pointerMove} from 'ol/events/condition';
@@ -133,7 +132,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.5.0", DATE: new Date(2021,4,26)}
+		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,4,27)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -2493,7 +2492,6 @@ class OpenFairViewer {
 		export_more += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
 		export_more += '<div class="data-export-buttons">';
 		this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
-			console.log(export_method);
 			var services_are_available = true;
 			if(export_method.services) if(export_method.services.length > 0){
 				services_are_available = export_method.services.filter(function(item){
@@ -4712,7 +4710,8 @@ class OpenFairViewer {
 				serviceVersion: '2.0.0',
 				request: 'GetFeature',
 				typeName: layerName,
-				outputFormat: encodeURIComponent("application/json"),
+				outputFormat: encodeURIComponent("application/gml+xml; version=3.2"),
+				//outputFormat: encodeURIComponent("application/json"),
 				sortBy: sortByPropertyName
 			}
 			if(this_.dataset_on_query.strategy == "ogc_filters")  wfsParams.cql_filter = cql_filter;
@@ -4748,12 +4747,10 @@ class OpenFairViewer {
 					if(wfsParams.outputFormat) ajaxUrl += "&outputFormat=" + wfsParams.outputFormat;
 					$.get(ajaxUrl, function(response) {
 						console.log($(response));
-						var format = new GML32();
-						if(wfsParams.outputFormat) format = (wfsParams.outputFormat.indexOf("gml")>0)? new GML32() : new olFormat.GeoJSON();
+						var format = new olFormat.WFS({version: '2.0.0'})
+						if(wfsParams.outputFormat) format = (wfsParams.outputFormat.indexOf("gml")>0)? new olFormat.WFS({version: '2.0.0'}) : new olFormat.GeoJSON();
 						var features = format.readFeatures(response);
 						console.log(features);
-						var test = $(response);
-						console.log(test);
 						var data_export = this_.formatTabularDataset(features);
 						console.log(data_export);
 						callback({
@@ -4770,7 +4767,6 @@ class OpenFairViewer {
 				columnDefs : [ {
 					targets : columnsToExport.map(function(item,idx){return idx;}),
 					render : function(data, type, row, meta) {
-						console.log(row);
 						if(data == null || typeof data == "undefined") data = "-";
 						//generic renderer
 						//case of http(s) links
