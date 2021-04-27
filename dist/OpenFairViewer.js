@@ -2472,8 +2472,10 @@ class OpenFairViewer {
 			var services_are_available = true;
 			if(export_method.services) if(export_method.services.length > 0){
 				services_are_available = export_method.services.filter(function(item){
-					return Object.keys(this_.dataset_on_query.entry).indexOf(item) == -1
-				}).length == 0
+					var service_is_available = false;
+					if(this_.dataset_on_query.entry[item]) if(this_.dataset_on_query.entry[item].length > 0) service_is_available = true;
+					return service_is_available;
+				}).length == export_method.services.length;
 			}
 			var add = export_method.enabled && services_are_available;
 			if(export_method.id == "data-dashboard") add = add && this_.hasDashboards(this_.dataset_on_query);
@@ -2491,12 +2493,14 @@ class OpenFairViewer {
 		export_more += '<div class="collapse multi-collapse" id="dataset-export-methods2">';
 		export_more += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
 		export_more += '<div class="data-export-buttons">';
-		this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
+		var exports_added = this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
 			var services_are_available = true;
 			if(export_method.services) if(export_method.services.length > 0){
 				services_are_available = export_method.services.filter(function(item){
-					return Object.keys(this_.dataset_on_query.entry).indexOf(item) == -1
-				}).length == 0
+					var service_is_available = false;
+					if(this_.dataset_on_query.entry[item]) if(this_.dataset_on_query.entry[item].length > 0) service_is_available = true;
+					return service_is_available;
+				}).length == export_method.services.length;
 			}
 			var add = export_method.enabled && services_are_available;
 			//if(export_method.id == "data-dashboard") add = add && this_.hasDashboards(this_.dataset_on_query);
@@ -2506,11 +2510,12 @@ class OpenFairViewer {
 				var button_export_method = '<button type="button" id="'+button_id+'" class="'+button_class+'" title="'+export_method.title+'" onclick="'+this_.config.OFV_ID+'.triggerExport(\''+export_method.id+'\')"></button>';
 				export_more += button_export_method;
 			}
+			return(add)
 		});
 		export_more += '</div>';
 		export_more += '</fieldset>';
 		export_more += '</div>';
-		$("#dsd-ui-export-methods2").append(export_more);
+		if(exports_added.length > 0) $("#dsd-ui-export-methods2").append(export_more);
 		
 		//export options
 		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;display:none;"></div>');
