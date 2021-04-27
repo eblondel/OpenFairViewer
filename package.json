@@ -53,7 +53,7 @@
     "ol": "^6.5.0",
     "ol-ext": "^3.1.17",
     "ol-layerswitcher": "^3.7.0",
-    "ol-loadingpanel": "github:eblondel/ol-loadingpanel#2.0.0",
+    "ol-loadingpanel": "github:eblondel/ol-loadingpanel#2.0.1",
     "ol-popup": "^4.0.0",
     "olcs": "^2.11.3",
     "proj4": "^2.6.2",
