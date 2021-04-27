@@ -5268,8 +5268,9 @@ class OpenFairViewer {
 			var request = '';
 			var wmsUrl = (source instanceof TileWMS? source.getUrls()[0] : source.getUrl());
 			var serviceSeparator = (wmsUrl.indexOf("wms?") > 0 || wmsUrl.indexOf("ows?") > 0)? "&" : "?";
-			request += wmsUrl + serviceSeparator;
-			request += 'VERSION=1.0.0';
+			request += wmsUrl + (wmsUrl.endsWith('?')? '' : serviceSeparator);
+			request += 'SERVICE=WMS';
+			request += '&VERSION=1.0.0';
 			request += '&REQUEST=GetLegendGraphic';
 			request += '&LAYER=' + params.LAYERS.split(",")[0];
 			request += '&STYLE=' + ( (params.STYLES)? params.STYLES : '');
@@ -5278,6 +5279,7 @@ class OpenFairViewer {
 			request += '&FORMAT=image/png';
 			request += '&TRANSPARENT=true';
 			request += '&WIDTH=30';
+			request += '&SLD_VERSION=1.1.0';
 			
 			if(colors){
 				request += '&env=';
