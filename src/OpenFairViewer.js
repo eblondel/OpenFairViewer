@@ -1141,7 +1141,7 @@ class OpenFairViewer {
 			var url = item.ciOnlineResource.linkage.url; if(!url) return;
 			var protocol = item.ciOnlineResource.protocol; if(!protocol) return;
 			var urlFilter = url.indexOf(service)!=-1 | url.indexOf(service.toLowerCase())!=-1;
-			var protocolFilter = protocol.startsWith("OGC:"+service.toUpperCase());  
+			var protocolFilter = (service == "wms")? protocol.startsWith("OGC:"+service.toUpperCase()) : true;  
 			var layerFilter = layerSuffix? item.ciOnlineResource.name.endsWith(layerSuffix) : true;
 			var filter = urlFilter && protocolFilter && layerFilter;
 			if(filter) return item;
