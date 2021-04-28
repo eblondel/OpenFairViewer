@@ -2510,7 +2510,8 @@ class OpenFairViewer {
 		export_more += '<div class="collapse multi-collapse" id="dataset-export-methods2">';
 		export_more += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
 		export_more += '<div class="data-export-buttons">';
-		var exports_added = this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
+		var exports_added = new Array();
+		this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
 			var services_are_available = true;
 			if(export_method.services) if(export_method.services.length > 0){
 				services_are_available = export_method.services.filter(function(item){
@@ -2527,12 +2528,12 @@ class OpenFairViewer {
 				var button_export_method = '<button type="button" id="'+button_id+'" class="'+button_class+'" title="'+export_method.title+'" onclick="'+this_.config.OFV_ID+'.triggerExport(\''+export_method.id+'\')"></button>';
 				export_more += button_export_method;
 			}
-			return(add)
+			if(add) exports_added.push(export_method);
 		});
 		export_more += '</div>';
 		export_more += '</fieldset>';
 		export_more += '</div>';
-		if(exports_added) if(exports_added.length > 0) $("#dsd-ui-export-methods2").append(export_more);
+		if(exports_added.length > 0) $("#dsd-ui-export-methods2").append(export_more);
 		
 		//export options
 		if(this_.dataset_on_query.entry.wfs.length > 0){
