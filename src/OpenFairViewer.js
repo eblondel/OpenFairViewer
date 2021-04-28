@@ -2918,7 +2918,7 @@ class OpenFairViewer {
 					//ogc layer id
 					var ogclayer_id = "ui-ogc_layer";
 					//html
-					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-th-list"></span><label style="margin-left:4px;">'+ this_.options.labels.layer+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
+					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-th-list"></span><label style="margin-left:4px;">'+ this_.options.labels.layer_selection+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
 					$("#dsd-ui-col-1").append('<select id = "'+ogclayer_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.layer_title+'" required></select><span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>');
 					//jquery widget
 					var formatLayer = function(item) {
