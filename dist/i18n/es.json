@@ -27,6 +27,8 @@
 	"dsd_loader" : "Recuperación de la estrúctura del juego de datos...",
 	"listedvalue_href_placeholder" : "Más información...",
 	"filtering" : "Filtros",
+	"filtering_on": "Filtro sobre",
+	"filtering_title": "Filtrar datos con lenguaje CQL",
 	"attributes" : "Atributos",
 	"variable" : "Variable",
 	"variables" : "Variables",
@@ -72,5 +74,9 @@
 	"colorscheme_singlehue" : "Singlehue",
 	"dashboard_options": "Tableros analíticos",
 	"dashboard_selector": "Seleccionar un tablero",
-	"dashboard_selector_title": "Seleccionar un tablero disponible para este juego de datos"	
+	"dashboard_selector_title": "Seleccionar un tablero disponible para este juego de datos",
+	"layer": "Capa",
+	"layer_selection": "Selección de capa",
+	"layer_selection_title": "Seleccionar una capa a visualizar",
+	"layer_selection_placeholder": "Seleccionar una capa"	
 }

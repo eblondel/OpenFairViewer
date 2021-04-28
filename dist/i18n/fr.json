@@ -26,7 +26,9 @@
 	"dataset_query_map_title" : "Requêter et ajouter à la carte",
 	"dsd_loader" : "Récupération de la structure du jeu de données...",
 	"listedvalue_href_placeholder" : "Plus d'infos...",
-	"filtering" : "Filtrage",
+	"filtering" : "Filtres",
+	"filtering_on": "Filtre sur",
+	"filtering_title": "Filtrer les données en langage CQL",
 	"attributes" : "Attributs",
 	"variable" : "Variable",
 	"variables" : "Variables",
@@ -74,5 +76,9 @@
 	"colorscheme_singlehue" : "Teinte unique",
 	"dashboard_options": "Tableaux de bord analytiques",
 	"dashboard_selector": "Sélectionner un tableau de bord",
-	"dashboard_selector_title": "Sélectionner un tableau de bord pour le jeu de données"
+	"dashboard_selector_title": "Sélectionner un tableau de bord pour le jeu de données",
+	"layer": "Couche",
+	"layer_selection": "Sélection de couche",
+	"layer_selection_title": "Sélectionner une couche à visualiser",
+	"layer_selection_placeholder": "Sélectionner une couche"
 }

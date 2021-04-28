@@ -132,7 +132,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,4,27)}
+		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,4,28)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -913,9 +913,11 @@ class OpenFairViewer {
 			var viewlayer = viewlayers[i];
 			//if(!viewlayer.getSource().getParams) continue;
 			var params = viewlayer.params;
-			var pid = viewlayer.id;
+			var pid = viewlayer.pid;
+			var lyr = viewlayer.id;
 			var strategy = viewlayer.strategy;
 			encoded_view += 'pid=' + pid + ',';
+			encoded_view += 'lyr=' + lyr + ',';
 			encoded_view += 'strategy=' + strategy + ',';
 			
 			switch(strategy){
@@ -1126,21 +1128,22 @@ class OpenFairViewer {
 	/**
 	 * getDataProtocolsFromMetadataEntry
 	 * @param md_entry
-	 * @param protocol
+	 * @param service
 	 * @param layerSuffix
 	 * @returns a WFS base URL
 	 */
-	getDataProtocolsFromMetadataEntry(md_entry, protocol, layerSuffix){
+	getDataProtocolsFromMetadataEntry(md_entry, service, layerSuffix){
 		var out = new Array();
 		if(!md_entry.metadata.distributionInfo.mdDistribution.transferOptions) return out;
 		if(!md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine) return out;
 		var onLines = md_entry.metadata.distributionInfo.mdDistribution.transferOptions[0].mdDigitalTransferOptions.onLine.filter(
 		   function(item){
-			var url = item.ciOnlineResource.linkage.url;
-			if(!url) return;
-			var protocolFilter = url.indexOf(protocol)!=-1 | url.indexOf(protocol.toLowerCase())!=-1;
+			var url = item.ciOnlineResource.linkage.url; if(!url) return;
+			var protocol = item.ciOnlineResource.protocol; if(!protocol) return;
+			var urlFilter = url.indexOf(service)!=-1 | url.indexOf(service.toLowerCase())!=-1;
+			var protocolFilter = (service == "wms")? protocol.startsWith("OGC:"+service.toUpperCase()) : true;  
 			var layerFilter = layerSuffix? item.ciOnlineResource.name.endsWith(layerSuffix) : true;
-			var filter = protocolFilter && layerFilter;
+			var filter = urlFilter && protocolFilter && layerFilter;
 			if(filter) return item;
 		   }
 		);
@@ -1149,20 +1152,20 @@ class OpenFairViewer {
 			console.log(onLines);
 			for(var i=0;i<onLines.length;i++){
 				//layerUrl
-
-
 				var layerUrl = onLines[i].ciOnlineResource.linkage.url;
-				if(layerUrl.indexOf("ows?")>0) layerUrl = layerUrl.split("ows?")[0] + "ows?service="+ protocol;
-				if(layerUrl.indexOf(protocol.toLowerCase()+"?")>0) layerUrl = layerUrl.split(protocol.toLowerCase()+"?")[0] + "ows?service=" + protocol;
+				if(layerUrl.indexOf("ows?")>0) layerUrl = layerUrl.split("ows?")[0] + "ows?service="+ service;
+				if(layerUrl.indexOf(service.toLowerCase()+"?")>0) layerUrl = layerUrl.split(service.toLowerCase()+"?")[0] + "ows?service=" + service;
 				//layerName
 				var layerName = onLines[i].ciOnlineResource.name;
 				if(layerSuffix) layerName = layerName + layerSuffix;
+				//layerDescription
+				var layerDescription = onLines[i].ciOnlineResource.description;
 				//serviceVersion
 				var serviceVersion = null;
 				var url = onLines[i].ciOnlineResource.linkage.url;
 				if(url.indexOf("&version=") > 0) serviceVersion = url.split("&version=")[1].split("&")[0];
 				if(url.indexOf("&VERSION=") > 0) serviceVersion = url.split("&VERSION=")[1].split("&")[0];
-				out.push({url : layerUrl, version: serviceVersion, name: layerName});
+				out.push({url : layerUrl, version: serviceVersion, name: layerName, description: layerDescription});
 			}
 		}
 		return out;
@@ -1574,14 +1577,27 @@ class OpenFairViewer {
 
 	/**
 	 * OpenFairViewer.prototype.getDatasetViewTitle
+	 * @param uuid
 	 * @param dataset
 	 * @param strategyparams
+	 * @param from_query_form
 	 */
-	getDatasetViewTitle(dataset, strategyparams){
+	getDatasetViewTitle(dataset, strategyparams, from_query_form){
 		var this_ = this;
-		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" title="'+this_.options.labels.dataset_remove+'" onclick="'+this_.config.OFV_ID+'.unselectDataset(this)"> X </button>';
+		
+		var layer = undefined;
+		if(from_query_form){
+			layer = this_.getStrategyLayer();
+		}else{
+			layer = dataset.lyr? dataset.lyr : dataset.entry.wms[0].name;
+		}
+		console.log(layer);
+		var lyr = dataset.entry.wms.filter(function(item){return item.name == layer})[0];
+		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+dataset.pid+'" data-lyr="'+lyr.name+'" title="'+this_.options.labels.dataset_remove+'" onclick="'+this_.config.OFV_ID+'.unselectDatasetView(this)"> X </button>';
 		layerTitle += '<span>'+dataset.entry.title+'</span>';
-
+		layerTitle += '</br>';
+		layerTitle += '<p style="font-weight:normal !important;font-size:90%;"><span class="glyphicon glyphicon-pushpin"></span><b style="margin-left:4px;">'+this_.options.labels.layer+'</b>: '+lyr.description+ ' ['+lyr.name+']';
+		
 		if(strategyparams) if(strategyparams instanceof Array) if(strategyparams.length > 0){
 			var strategyName;
 			switch(dataset.strategy){
@@ -1590,7 +1606,7 @@ class OpenFairViewer {
 				case "ogc_viewparams": strategyName = this.options.labels.ogc_viewparams; break;
 			}
 			layerTitle += '</br>';
-			layerTitle += '<p style="font-weight:normal !important;font-size:90%;overflow-wrap:break-word;"><b>'+strategyName+':</b></br>';
+			layerTitle += '<p style="font-weight:normal !important;font-size:90%;overflow-wrap:break-word;"><span class="glyphicon glyphicon-pushpin"></span><b style="margin-left:4px;">'+strategyName+':</b></br>';
 			if(dataset.strategy == "ogc_filters"){
 				if(strategyparams[0].CQL_FILTER){
 					layerTitle += strategyparams[0].CQL_FILTER;
@@ -2212,16 +2228,17 @@ class OpenFairViewer {
 	}	  
 	  
 	/**
-	 * selectDataset
+	 * selectDatasetView
 	 * Selects a dataset
-	 * @param pid
+	 * @param dataset
+	 * @param lyr
 	 *
 	 **/
-	selectDataset(pid){
-		console.log("Select dataset with pid = " + pid);
+	selectDatasetView(dataset, lyr){
+		console.log("Select dataset with pid = " + dataset.pid + ", lyr = "+lyr);
 		var out =false;
-		if(this.selection.map(function(i){return i.pid}).indexOf(pid) == -1){
-			var dataset = this.datasets.filter(function(data){if(data.pid == pid){return data}})[0];
+		if(this.selection.map(function(i){return i.lyr}).indexOf(lyr) == -1){
+			dataset.lyr = lyr;
 			this.selection.push(dataset);
 			out = true;   
 		}
@@ -2229,32 +2246,32 @@ class OpenFairViewer {
 	}
          
 	/**
-	 * unselectDataset
+	 * unselectDatasetView
 	 * Unselects a dataset
 	 * @param elm
 	**/
-	unselectDataset(elm){
+	unselectDatasetView(elm){
 		var this_ = this;
-		var pid = elm.getAttribute('data-pid');
-		console.log("Unselect dataset with pid = " + pid);
-		var thepid = null;
-		if(this.dataset_on_query) thepid = this.dataset_on_query.pid;
+		var lyr = elm.getAttribute('data-lyr');
+		console.log("Unselect dataset view with lyr = " + lyr);
+		//var thepid = null;
+		//if(this.dataset_on_query) thepid = this.dataset_on_query.pid;
 		var out = false;
 		var len1 = this.selection.length;
-		this.selection = this.selection.filter(function(i,data){if(data.pid != pid){return data}});
+		this.selection = this.selection.filter(function(i,data){if(data.lyr != lyr){return data}});
 		var len2 =  this.selection.length;
 		out = len2<len1;
 
 		//clear dsd interface in case selected dataset
-		if(this.dataset_on_query) if(this.dataset_on_query.pid == pid){
-			$("#dsd-ui").empty();
-			this.dataset_on_query = null;
-		}
+		//if(this.dataset_on_query) if(this.dataset_on_query.pid == pid){
+		//	$("#dsd-ui").empty();
+		//	this.dataset_on_query = null;
+		//}
 		
-		this.removeLayerByProperty(pid, "id");
+		this.removeLayerByProperty(lyr, "id");
 		this.map.changed();
 		this_.renderMapLegend();
-		if(pid == thepid) this.openFindDialog();
+		//if(pid == thepid) this.openFindDialog();
 
 		return out;
 	}
@@ -2515,20 +2532,22 @@ class OpenFairViewer {
 		export_more += '</div>';
 		export_more += '</fieldset>';
 		export_more += '</div>';
-		if(exports_added.length > 0) $("#dsd-ui-export-methods2").append(export_more);
+		if(exports_added) if(exports_added.length > 0) $("#dsd-ui-export-methods2").append(export_more);
 		
 		//export options
-		$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;display:none;"></div>');
-		var export_options = '<a data-toggle="collapse" href="#dataset-export-options" role="button" aria-expanded="false" aria-controls="dataset-export-options">'+this_.options.labels.export_options+'</a><br>';
-		export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
-		export_options += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
-		//option to prettify column names
-		export_options += '<div class="form-check" style="float:left;margin-right:20px;"><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_prettify+'</label></div>';
-		//option to enrich with data labels
-		export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_labels+'</label></div>';
-		export_options += '</fieldset>';
-		export_options += '</div>';
-		$("#dsd-ui-export-options").append(export_options);
+		if(this_.dataset_on_query.entry.wfs.length > 0){
+			$("#dsd-ui-col-"+columnIdx).append('<div id="dsd-ui-export-options" style="padding:0px 15px;text-align: left !important;display:none;"></div>');
+			var export_options = '<a data-toggle="collapse" href="#dataset-export-options" role="button" aria-expanded="false" aria-controls="dataset-export-options">'+this_.options.labels.export_options+'</a><br>';
+			export_options += '<div class="collapse multi-collapse" id="dataset-export-options">';
+			export_options += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
+			//option to prettify column names
+			export_options += '<div class="form-check" style="float:left;margin-right:20px;"><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-colnames" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_prettify+'</label></div>';
+			//option to enrich with data labels
+			export_options += '<div class="form-check" ><label class="form-check-label" style="font-weight:100"><input id ="dataset-export-option-labels" type="checkbox" class="form-check-input">'+this_.options.labels.export_options_labels+'</label></div>';
+			export_options += '</fieldset>';
+			export_options += '</div>';
+			$("#dsd-ui-export-options").append(export_options);
+		}
 		
 		if(layer){
 			this_.enableQueryFormButtons();
@@ -2754,7 +2773,8 @@ class OpenFairViewer {
 		var pid = dataset.pid;
 		var entry = dataset.entry? dataset.entry : dataset;
 		this.dataset_on_query = {
-			pid: pid, 
+			pid: pid,
+			layer: dataset.layer,
 			entry: entry, 
 			strategy: "ogc_filters",
 			dsd: null, 
@@ -2769,7 +2789,7 @@ class OpenFairViewer {
 		$("#dsd-ui").append('<div id="dsd-ui-header"></div>');
 		$("#dsd-ui-header").append('<div class="alert alert-info" style="padding:6px;margin:6px;text-align:left;"><h5><b>'+entry.title+' <small><em>['+entry.pid+']</em></small></b></h5></div>');
 
-		$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDataset('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
+		$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDatasetView('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
 		$(document).on('submit', '#dsd-ui-body', function(event) {
 			event.preventDefault();
 		});
@@ -2777,11 +2797,38 @@ class OpenFairViewer {
 		$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
 		$("#dsd-ui-body").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 
-		//id
-		var ogcfilter_component_id = "ui-ogc_filter";
+		//ogc layer
+		var ogclayers = entry.wms.map(function(item){return {id: item.name, text: (item.description? item.description : item.name), url: item.url}});
+		//ogc layer id
+		var ogclayer_id = "ui-ogc_layer";
 		//html
-		$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><span class="glyphicon glyphicon-filter"></span><label style="margin-left:4px;">Filter</label></p></div>');
-		$("#dsd-ui-col-1").append('<input type="text" id = "'+ogcfilter_component_id+'" class="dsd-ui-dimension" title="Filter data with CQL" autofocus="true" ></select>');
+		$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-th-list"></span><label style="margin-left:4px;">'+ this_.options.labels.layer_selection+'</label></p><hr style="margin:0px;"></div>');
+		$("#dsd-ui-col-1").append('<select id = "'+ogclayer_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.layer_selection_title+'" required></select><span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>');
+		//jquery widget
+		var formatLayer = function(item) {
+			if (!item.id) { return item.text; }
+			var txt = item.text;
+			var $item = $('<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>');
+			return $item;
+		};
+		var ogclayer_placeholder = this_.options.labels.layer_selection_placeholder;
+		$("#" + ogclayer_id).select2({
+			theme: 'classic',
+			allowClear: false,
+			placeholder: ogclayer_placeholder,
+			data: ogclayers,
+			templateResult: formatLayer,
+			templateSelection: formatLayer
+		});
+		if(ogclayers.length == 1){
+			$("#" + ogclayer_id).val(ogclayers[0].id).trigger("change");
+		}
+		
+		//ogc filter id
+		var ogcfilter_component_id = "ui-ogc_filter";
+		//ogc filter html
+		$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-filter"></span><label style="margin-left:4px;">'+ this_.options.labels.filtering+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
+		$("#dsd-ui-col-1").append('<input type="text" id="'+ogcfilter_component_id+'" class="dsd-ui-dimension" style="margin-left:10px;" title="'+this_.options.labels.filtering_title+'" autofocus="true" ></select>');
 		
 		//query form buttons
 		this.handleQueryAndMapButton(1);
@@ -2804,6 +2851,7 @@ class OpenFairViewer {
 	  
 		var this_ = this;
 		var pid = dataset.pid;
+		var lyr = dataset.lyr;
 		var entry = dataset.entry? dataset.entry : dataset;
 		$.ajax({
 			url: dataset.dsd,
@@ -2821,7 +2869,8 @@ class OpenFairViewer {
 					return;
 				}
 				this_.dataset_on_query = { 
-					pid: pid, 
+					pid: pid,
+					lyr: lyr,
 					entry: entry, 
 					strategy: dsd.strategy, 
 					dsd: dsd.components, 
@@ -2853,7 +2902,7 @@ class OpenFairViewer {
 		
 					//access dataset query form
 
-					$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDataset('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
+					$("#dsd-ui").append('<form id="dsd-ui-body" onsubmit="'+this_.config.OFV_ID+'.mapDatasetView('+this_.config.OFV_ID+'.dataset_on_query, true);return false"></form>');
 					$(document).on('submit', '#dsd-ui-body', function(event) {
 						event.preventDefault();
 					});
@@ -2861,11 +2910,42 @@ class OpenFairViewer {
 					$("#dsd-ui").append('<input type="text" autofocus="autofocus" style="display:none" />'); //Avoid autofocus on query inputs
 					$("#dsd-ui-body").append('<div id="dsd-ui-col-1" class="'+bootstrapClass+'"></div>');
 					
+					//0. Add layer selection (required for multi-layer metadata)
+					//-------------------------------------------
+					//ogc layer
+					var ogclayers = entry.wms.map(function(item){return {id: item.name, text: (item.description? item.description : item.name), url: item.url}});
+					//ogc layer id
+					var ogclayer_id = "ui-ogc_layer";
+					//html
+					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-th-list"></span><label style="margin-left:4px;">'+ this_.options.labels.layer+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
+					$("#dsd-ui-col-1").append('<select id = "'+ogclayer_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.layer_title+'" required></select><span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>');
+					//jquery widget
+					var formatLayer = function(item) {
+						if (!item.id) { return item.text; }
+						var txt = item.text;
+						var $item = $('<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>');
+						return $item;
+					};
+					var ogclayer_placeholder = this_.options.labels.layer_placeholder;
+					$("#" + ogclayer_id).select2({
+						theme: 'classic',
+						allowClear: false,
+						placeholder: ogclayer_placeholder,
+						data: ogclayers,
+						templateResult: formatLayer,
+						templateSelection: formatLayer
+					});
+					if(ogclayers.length == 1){
+						$("#" + ogclayer_id).val(ogclayers[0].id).trigger("change");
+					}else{
+						$("#" + ogclayer_id).val("").trigger("change");
+					}
+					
 					//1. Build UI from ATTRIBUTES filtering
 					//-------------------------------------------
 					var attributes = this_.dataset_on_query.dsd.filter(function(item){if(item.columnType == "attribute") return item});
 					if(attributes.length > 0){
-						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-filter"></span><label>'+ this_.options.labels.filtering+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
+						$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-filter"></span><label style="margin-left:4px;">'+ this_.options.labels.filtering+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
 						var attributeMatcher = function(params, data){
 							params.term = params.term || '';
 							if ($.trim(params.term) === '') {
@@ -2904,7 +2984,7 @@ class OpenFairViewer {
 										$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '
 											+ (isMultiple? 'multiple="multiple"' : '')
 											+ (isRequired? 'required' : '')
-											+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="Filter on '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>'
+											+' class="dsd-ui-dimension dsd-ui-dimension-attribute" title="'+this_.options.labels.filtering_on+' '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>'
 											+ (isRequired? '<span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>' : ''));
 										
 										//jquery widget
@@ -3291,6 +3371,13 @@ class OpenFairViewer {
 	};
 	
 	/**
+	 * getStrategyLayer
+	 */
+	getStrategyLayer(){
+		return $("#ui-ogc_layer").val();
+	}
+	
+	/**
 	 * getStrategyParams
 	 * @param {Object} dataset
 	 * @param {Boolean} stringify
@@ -3442,11 +3529,11 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * OpenFairViewer.prototype.mapDataset
+	 * OpenFairViewer.prototype.mapDatasetView
 	 * @param dataset
 	 * @param from_query_form
 	 */
-	mapDataset(dataset, from_query_form){
+	mapDatasetView(dataset, from_query_form){
 		var this_ = this;
 
 		var opacity = this_.options.map.layer_options.opacity;
@@ -3462,6 +3549,7 @@ class OpenFairViewer {
 		var baseWfsUrl = undefined;
 		var baseWmsUrl = undefined;
 		var layerName = undefined;
+		var layerDescription = undefined;
 		var wfsVersion = undefined;
 		var wmsVersion = undefined;
 		if(dataset.entry.wfs.length > 0){
@@ -3472,21 +3560,36 @@ class OpenFairViewer {
 			wfsVersion = baseWFS.version;
 		}
 		if(dataset.entry.wms.length > 0){
-			var baseWMS = dataset.entry.wms;
-			if(baseWMS.length>0){ baseWMS = dataset.entry.wms[0] };
+			//var baseWMS = dataset.entry.wms;
+			//if(baseWMS.length>0){ baseWMS = dataset.entry.wms[0] };
+			var layerid = undefined;
+			if(from_query_form){
+				var layerid = this_.getStrategyLayer();
+			}else{
+				var layerid = dataset.lyr? dataset.lyr : dataset.entry.wms[0].name; 
+			}
+			var baseWMS = dataset.entry.wms.filter(function(item){return item.name == layerid})[0];
+			console.log(baseWMS);
 			baseWmsUrl = baseWMS.url;
 			layerName = baseWMS.name;
+			layerDescription = baseWMS.description;
 			wmsVersion = baseWMS.version;
+			console.log("Selection of layer '"+layerName+"'")
 		}
 		
-	    var layer = this_.getLayerByProperty(dataset.entry.pid, 'id');
+		//layerid
+		var lyr = layerName;
+		console.log(lyr);
+		
+	    //var layer = this_.getLayerByProperty(dataset.entry.pid, 'id');
+		var layer = this_.getLayerByProperty(lyr, 'id');
 		var strategyparams = from_query_form? this_.getStrategyParams(dataset, false, false) : dataset.queryparams;
 		console.log(strategyparams);
 		var strategyparams_str = from_query_form? this_.getStrategyParams(dataset, true) : this_.stringifyStrategyParams(dataset, dataset.queryparams);
 		console.log("Strategy params = " + strategyparams_str);
 		var strategyvariable = from_query_form? this_.getStrategyVariable(dataset): dataset.variable;
 		console.log("Strategy variable = " + strategyvariable);
-	    	var layerTitle = this_.getDatasetViewTitle(dataset, strategyparams);
+	    var layerTitle = this_.getDatasetViewTitle(dataset, strategyparams, from_query_form);
 		
 		//thematic mapping properties
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
@@ -3530,8 +3633,8 @@ class OpenFairViewer {
 								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
 							
-							this_.selectDataset(pid);
-							var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
+							this_.selectDatasetView(dataset, lyr);
+							var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -3572,10 +3675,10 @@ class OpenFairViewer {
 						});
 					}else if(dataset.point_vectorizing){
 						console.log("Add layer with strategy 'ogc_filters' (vector)");
-						this_.selectDataset(pid);
+						this_.selectDatasetView(dataset, lyr);
 						var projection = this_.map.getView().getProjection().getCode();
 						var layer = undefined;
-						this_.addWFSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWfsUrl, wfsVersion, layerName, dataset.strategy, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null, projection, dataset.point_clustering).then(function(response){ 
+						this_.addWFSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWfsUrl, wfsVersion, layerName, dataset.strategy, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null, projection, dataset.point_clustering).then(function(response){ 
 							layer = response;
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
@@ -3604,8 +3707,8 @@ class OpenFairViewer {
 					}else{
 						//static styling
 						console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue (static styling)");
-						this_.selectDataset(pid);
-						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
+						this_.selectDatasetView(dataset, lyr);
+						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), null,null);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -3634,8 +3737,8 @@ class OpenFairViewer {
 					console.log("Add layer with strategy 'ogc_filters' with simple CQL filter");
 					var cql_filter = null;
 					if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
-					this_.selectDataset(pid);
-					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, null, null, null, null, null);
+					this_.selectDatasetView(dataset, lyr);
+					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, null, null, null, null, null);
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -3692,8 +3795,8 @@ class OpenFairViewer {
 							if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
-						this_.selectDataset(pid);
-						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
+						this_.selectDatasetView(dataset, lyr);
+						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, classType, envparams, (values? values.length : 0));
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -3733,10 +3836,10 @@ class OpenFairViewer {
 					});
 				}else if(dataset.point_vectorizing){
 					console.log("Add layer with strategy 'ogc_viewparams' (vector)");
-					this_.selectDataset(pid);
+					this_.selectDatasetView(dataset, lyr);
 					var projection = this_.map.getView().getProjection().getCode();
 					var layer = undefined;
-					this_.addWFSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWfsUrl, wfsVersion, layerName, strategyparams_str, null, projection, dataset.point_clustering).then(function(layer){ 
+					this_.addWFSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWfsUrl, wfsVersion, layerName, strategyparams_str, null, projection, dataset.point_clustering).then(function(layer){ 
 						layer = response;
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
@@ -3766,8 +3869,8 @@ class OpenFairViewer {
 			    }else{
 					console.log("Add layer with strategy 'ogc_viewparams' (static styling)");
 					//static styling
-					this_.selectDataset(pid);
-					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
+					this_.selectDatasetView(dataset, lyr);
+					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -5030,7 +5133,7 @@ class OpenFairViewer {
 				var layerDef = this.options.map.overlays[i];
 				var wmsVersion = layerDef.wmsVersion? layerDef.wmsVersion : "1.1.0";
 				this_.addWMSLayer(
-					layerDef.group, layerDef.id, layerDef.title, layerDef.wmsUrl, wmsVersion, layerDef.layer, layerDef.hidden,
+					layerDef.group, layerDef.pid, layerDef.id, layerDef.title, layerDef.wmsUrl, wmsVersion, layerDef.layer, layerDef.hidden,
 					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter, layerDef.style
 				);
 			}
@@ -5268,8 +5371,9 @@ class OpenFairViewer {
 			var request = '';
 			var wmsUrl = (source instanceof TileWMS? source.getUrls()[0] : source.getUrl());
 			var serviceSeparator = (wmsUrl.indexOf("wms?") > 0 || wmsUrl.indexOf("ows?") > 0)? "&" : "?";
-			request += wmsUrl + serviceSeparator;
-			request += 'VERSION=1.0.0';
+			request += wmsUrl + (wmsUrl.endsWith('?')? '' : serviceSeparator);
+			request += 'SERVICE=WMS';
+			request += '&VERSION=1.0.0';
 			request += '&REQUEST=GetLegendGraphic';
 			request += '&LAYER=' + params.LAYERS.split(",")[0];
 			request += '&STYLE=' + ( (params.STYLES)? params.STYLES : '');
@@ -5278,6 +5382,7 @@ class OpenFairViewer {
 			request += '&FORMAT=image/png';
 			request += '&TRANSPARENT=true';
 			request += '&WIDTH=30';
+			request += '&SLD_VERSION=1.1.0';
 			
 			if(colors){
 				request += '&env=';
@@ -5365,6 +5470,7 @@ class OpenFairViewer {
 	/**
 	 * addWMSLayer Adds layer
 	 * @param {Integer} mainOverlayGroup
+	 * @param {String} pid
 	 * @param {String} id
 	 * @param {String} title
 	 * @param {String} wmsUrl
@@ -5379,7 +5485,7 @@ class OpenFairViewer {
 	 */
 	addWMSLayer(
 
-		mainOverlayGroup, id, title, wmsUrl, wmsVersion, layer,
+		mainOverlayGroup, pid, id, title, wmsUrl, wmsVersion, layer,
 		hidden, visible, showLegend, opacity, tiled, cql_filter, style, 
 		viewparams, envfun, envparams, count){
 			
@@ -5418,6 +5524,8 @@ class OpenFairViewer {
 	    });
             
 	    this.setLegendGraphic(layer);
+		if(!pid) pid = id;
+		layer.pid =  pid;
 		layer.id = id;
 	    layer.envfun = envfun;
 	    layer.count = count;
@@ -5442,6 +5550,7 @@ class OpenFairViewer {
 	/**
 	 * addWMSLayer Adds layer
 	 * @param {Integer} mainOverlayGroup
+	 * @param {String} pid
 	 * @param {String} id
 	 * @param {String} title
 	 * @param {String} wfsUrl
@@ -5452,7 +5561,7 @@ class OpenFairViewer {
 	 * @param {String} viewparams
 	 * @param {Boolean} clustering
 	 */
-	addWFSLayer(mainOverlayGroup, id, title, wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, projection, clustering){
+	addWFSLayer(mainOverlayGroup, pid, id, title, wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, projection, clustering){
 		var this_ = this;
 		var deferred = $.Deferred();
 		this_.getDatasetFeatures(wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, null, 'json', projection).then(function(response){
@@ -5460,6 +5569,7 @@ class OpenFairViewer {
 			var format = new olFormat.GeoJSON();
 			var features = response.map(function(item){
 				var feature = format.readFeature(item);
+				feature.pid = pid;
 				feature.layerid = id; //hack required to control layer-specific SelectCluster interaction
 				return feature;
 			})
@@ -5473,6 +5583,7 @@ class OpenFairViewer {
 					source: source,
 					visible: true
 				});
+				layer.pid = pid;
 				layer.id = id;
 				layer.showLegendGraphic = true;
 				layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
@@ -5617,6 +5728,10 @@ class OpenFairViewer {
 			datasetDef.dsd = dataset.dsd;
 			if(datasetDef.query){
 				
+				//Layer
+				$("#ui-ogc_layer").val(datasetDef.lyr).trigger('change');
+				
+				//Filters
 				switch(datasetDef.strategy){
 					case "ogc_filters":
 						console.log("Resolve query for dataset '"+datasetDef.pid+"' using 'ogc_filters' strategy");
@@ -5756,7 +5871,7 @@ class OpenFairViewer {
 	resolveDatasetForMap(dataset){
 		console.log("Resolving map for pid = '"+dataset.pid+"'");
 		console.log(dataset);
-		this.mapDataset(dataset, false);		
+		this.mapDatasetView(dataset, false);		
 	}
 
 	/**
@@ -5821,6 +5936,7 @@ class OpenFairViewer {
 					encoded_view_obj[setting_key] = setting[setting_key] != "undefined"? setting[setting_key] :  null;
 				}
 				var pid = encoded_view_obj.pid;
+				var lyr = encoded_view_obj.lyr;
 				var strategy = encoded_view_obj.strategy;
 				var queryparams = encoded_view_obj.par;
 				if(queryparams){
@@ -5883,7 +5999,7 @@ class OpenFairViewer {
 				var pt = "false";
 				if(encoded_view_obj.geomtype) if(encoded_view_obj.geomtype == "gml:PointPropertyType") pt = "true";
 				encoded_datasets.push({
-					pid: pid, strategy: strategy, queryparams : queryparams, 
+					pid: pid, lyr : lyr, strategy: strategy, queryparams : queryparams, 
 					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, envcolscheme: envcolscheme, 
 					count : count, breaks: breaks, style: style, query: query, 
 					thematicmapping: (variable? true : false),
@@ -5902,7 +6018,8 @@ class OpenFairViewer {
 				$.when(promise).then(function(md_entry) {
 					var encoded_dataset = encoded_datasets[i];
 					encoded_dataset.entry = md_entry;
-					encoded_dataset.title = this_.getDatasetViewTitle(encoded_dataset, encoded_dataset.queryparams);
+					if(!encoded_dataset.lyr) encoded_dataset.lyr = encoded_dataset.entry.wms[0].name; //set for backward-compatibility in case no lyr in url
+					encoded_dataset.title = this_.getDatasetViewTitle(encoded_dataset, encoded_dataset.queryparams, false);
 					encoded_dataset.dsd = encoded_dataset.entry.dsd;
 					console.log(encoded_dataset);
 					this_.selection.push(encoded_dataset);	
