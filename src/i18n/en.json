@@ -27,6 +27,8 @@
 	"dsd_loader" : "Fetching data structure definition...",
 	"listedvalue_href_placeholder" : "More info...",
 	"filtering" : "Filtering",
+	"filtering_on": "Filter on",
+	"filtering_title": "Filter data with CQL",
 	"attributes" : "Attributes",
 	"variable" : "Variable",
 	"variables" : "Variables",
@@ -72,5 +74,9 @@
 	"colorscheme_singlehue" : "Singlehue",
 	"dashboard_options": "Analytical Dashboards",
 	"dashboard_selector": "Select a dashboard",
-	"dashboard_selector_title": "Select a dashboard available for this dataset"
+	"dashboard_selector_title": "Select a dashboard available for this dataset",
+	"layer": "Layer",
+	"layer_selection": "Layer selection",
+	"layer_selection_title": "Select a layer to query",
+	"layer_selection_placeholder": "Select a layer"
 }
