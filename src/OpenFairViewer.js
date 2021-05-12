@@ -132,7 +132,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,4,28)}
+		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,5,12)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3602,6 +3602,7 @@ class OpenFairViewer {
 
 		var geom = from_query_form? this_.getGeometryColumn(dataset.dsd) : dataset.geom;
 		var geomtype = from_query_form? this_.getGeometryType(dataset.dsd) : dataset.geomtype;
+		console.log("Geometry information: "+geom+" ["+geomtype+"]");
 		
 		if(!layer){
 			console.log("Adding new layer");
@@ -3611,7 +3612,7 @@ class OpenFairViewer {
 			 case "ogc_filters":
 				if(dataset.dsd){
 					console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue");
-					if(dataset.thematicmapping && strategyvariable){
+					if(dataset.thematicmapping && typeof strategyvariable != "undefined"){
 						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series with "+features.length+" features");
@@ -3619,7 +3620,6 @@ class OpenFairViewer {
 							var breaks = undefined;
 							var envparams = undefined;
 							var colors = undefined;
-							var geom = geom;
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -3645,6 +3645,7 @@ class OpenFairViewer {
 							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
+							layer.geom = geom;
 							layer.geomtype = geomtype;
 							this_.addWMSLayerPopup(layer);
 							this_.setLegendGraphic(layer, breaks, colors);	
@@ -3691,7 +3692,8 @@ class OpenFairViewer {
 							layer.envcolscheme = null;
 							layer.count = null;
 							layer.params = {CQL_FILTER: (strategyparams == null)? null : decodeURIComponent(strategyparams_str)};
-							layer.geomtype = geomtype
+							layer.geom = geom;
+							layer.geomtype = geomtype;
 							this_.setLegendGraphic(layer);
 							this_.map.changed();
 							this_.getMapLoadingPanel().hide();
@@ -3720,6 +3722,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -3781,7 +3784,6 @@ class OpenFairViewer {
 						var breaks = undefined;
 						var envparams = undefined;
 						var colors = undefined;
-						var geom = geom;
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -3807,6 +3809,7 @@ class OpenFairViewer {
 						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length: null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.addWMSLayerPopup(layer);
 						this_.setLegendGraphic(layer, breaks, colors);	
@@ -3852,6 +3855,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = {'VIEWPARAMS': strategyparams_str};
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -3882,6 +3886,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
+					layer.geom = geom;
 					layer.geomtype = geomtype;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
@@ -3916,7 +3921,6 @@ class OpenFairViewer {
 							var breaks = undefined;
 							var envparams = undefined;
 							var colors = undefined;
-							var geom = geom;
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -3950,6 +3954,7 @@ class OpenFairViewer {
 							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
+							layer.geom = geom;
 							layer.geomtype = geomtype;
 							this_.setLegendGraphic(layer, breaks, colors);
 							this_.map.changed();
@@ -4002,6 +4007,7 @@ class OpenFairViewer {
 								layer.setSource(source);
 							}
 							layer.params = {CQL_FILTER: ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))};
+							layer.geom = geom;
 							layer.geomtype = geomtype;
 							var selectCluster = this_.getSelectCluster();
 							if(selectCluster) this_.map.removeInteraction(selectCluster);
@@ -4038,6 +4044,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -4061,6 +4068,7 @@ class OpenFairViewer {
 						layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 					}
 					layer.params = layer.getSource().getParams();
+					layer.geom = geom;
 					layer.geomtype = geomtype;
 					this_.map.changed();
 					this_.getMapLoadingPanel().hide();
@@ -4090,7 +4098,6 @@ class OpenFairViewer {
 						var breaks = undefined;
 						var envparams = undefined;
 						var colors = undefined;
-						var geom = geom;
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -4123,6 +4130,7 @@ class OpenFairViewer {
 						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length : null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer, breaks, colors);
 						this_.map.changed();
@@ -4170,6 +4178,7 @@ class OpenFairViewer {
 							layer.setSource(source);
 						}
 						layer.params = {'VIEWPARAMS' : strategyparams_str};
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -4197,6 +4206,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
+					layer.geom = geom;
 					layer.geomtype = geomtype;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
