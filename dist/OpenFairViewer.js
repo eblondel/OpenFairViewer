@@ -132,7 +132,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,4,28)}
+		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,5,12)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -2510,7 +2510,8 @@ class OpenFairViewer {
 		export_more += '<div class="collapse multi-collapse" id="dataset-export-methods2">';
 		export_more += '<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">';
 		export_more += '<div class="data-export-buttons">';
-		var exports_added = this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
+		var exports_added = new Array();
+		this.options.access.exports.filter(function(item){if(!item.main) return item;}).forEach(function(export_method){
 			var services_are_available = true;
 			if(export_method.services) if(export_method.services.length > 0){
 				services_are_available = export_method.services.filter(function(item){
@@ -2527,12 +2528,12 @@ class OpenFairViewer {
 				var button_export_method = '<button type="button" id="'+button_id+'" class="'+button_class+'" title="'+export_method.title+'" onclick="'+this_.config.OFV_ID+'.triggerExport(\''+export_method.id+'\')"></button>';
 				export_more += button_export_method;
 			}
-			return(add)
+			if(add) exports_added.push(export_method);
 		});
 		export_more += '</div>';
 		export_more += '</fieldset>';
 		export_more += '</div>';
-		if(exports_added) if(exports_added.length > 0) $("#dsd-ui-export-methods2").append(export_more);
+		if(exports_added.length > 0) $("#dsd-ui-export-methods2").append(export_more);
 		
 		//export options
 		if(this_.dataset_on_query.entry.wfs.length > 0){
@@ -2576,9 +2577,10 @@ class OpenFairViewer {
 	
 	/**
 	 * handleQueryMapOptions
+	 * @param {String} geomtype
 	 * @param {Integer} columnIdx
 	 */
-	handleQueryMapOptions(columnIdx){		
+	handleQueryMapOptions(geomtype, columnIdx){		
 		var this_ = this;
 		//id
 		var map_type_id = "map-type-selector";
@@ -2591,15 +2593,23 @@ class OpenFairViewer {
 			return $item;
 		};
 		var map_type_placeholder = this_.options.labels.maptype_selector;
+		
+		//map types
+		var choropleth = {id:'choropleth', text: this_.options.labels.maptype_choropleth};
+		var graduated = {id:'graduated', text: this_.options.labels.maptype_graduated};
+		var has_choropleth = ['gml:PolygonPropertyType','gml:MultiPolygonPropertyType'].indexOf(geomtype) != -1
+		var map_types = [choropleth, graduated];
+		if(!has_choropleth) map_types = [graduated];
+		
 		$("#" + map_type_id).select2({
 			theme: 'classic',
 			allowClear: false,
 			placeholder: map_type_placeholder,
-			data: [{id:'choropleth', text: this_.options.labels.maptype_choropleth},{id:'graduated', text: this_.options.labels.maptype_graduated}],
+			data: map_types,
 			templateResult: formatMaptype,
 			templateSelection: formatMaptype
 		});
-		$("#" + map_type_id).val("choropleth").trigger("change");
+		$("#" + map_type_id).val(map_types[0].id).trigger("change");
 
 		//6. Map classifications
 		//Classification type
@@ -2653,7 +2663,7 @@ class OpenFairViewer {
 		//id
 		var map_colorscheme_id = "map-colorscheme-selector";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select>');
+		if(has_choropleth) $("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select>');
 		//jquery widget
 		var formatColorscheme = function(item){
 			if(!item.id) { return item.text; };
@@ -2692,19 +2702,21 @@ class OpenFairViewer {
 				templateSelection: formatColorscheme
 			});
 		}
-		initColorschemeSelector();
-		$("#" + map_colorscheme_id).val("Reds").trigger("change");
-		//events related to colorscheme selection
-		$("#" + map_classnb_id).on('select2:select', function (e) { 
+		if(has_choropleth){
 			initColorschemeSelector();
-		});
-		$("#" + map_type_id).on('select2:select', function(e) {
-			if(e.target.value == 'choropleth'){
-				$("#" + map_colorscheme_id).next(".select2-container").show();
-			}else{
-				$("#" + map_colorscheme_id).next(".select2-container").hide();
-			}
-		});
+			$("#" + map_colorscheme_id).val("Reds").trigger("change");
+			//events related to colorscheme selection
+			$("#" + map_classnb_id).on('select2:select', function (e) { 
+				initColorschemeSelector();
+			});
+			$("#" + map_type_id).on('select2:select', function(e) {
+				if(e.target.value == 'choropleth'){
+					$("#" + map_colorscheme_id).next(".select2-container").show();
+				}else{
+					$("#" + map_colorscheme_id).next(".select2-container").hide();
+				}
+			});
+		}
 	}
 	
 	/**
@@ -2917,7 +2929,7 @@ class OpenFairViewer {
 					//ogc layer id
 					var ogclayer_id = "ui-ogc_layer";
 					//html
-					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-th-list"></span><label style="margin-left:4px;">'+ this_.options.labels.layer+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
+					$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant: petite-caps;font-size:110%;"><span class="glyphicon glyphicon-th-list"></span><label style="margin-left:4px;">'+ this_.options.labels.layer_selection+'</label style="margin-left:4px;"></p><hr style="margin:0px;"></div>');
 					$("#dsd-ui-col-1").append('<select id = "'+ogclayer_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.layer_title+'" required></select><span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>');
 					//jquery widget
 					var formatLayer = function(item) {
@@ -3284,7 +3296,8 @@ class OpenFairViewer {
 						//VARIABLES OPTIONS
 						//------------------------------------
 						$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_options+'</label></p></div>');
-						this_.handleQueryMapOptions(2);
+						var geomtype = this_.getGeometryType(this_.dataset_on_query.dsd);
+						this_.handleQueryMapOptions(geomtype, 2);
 					}
 					
 					//query & map button
@@ -3601,6 +3614,7 @@ class OpenFairViewer {
 
 		var geom = from_query_form? this_.getGeometryColumn(dataset.dsd) : dataset.geom;
 		var geomtype = from_query_form? this_.getGeometryType(dataset.dsd) : dataset.geomtype;
+		console.log("Geometry information: "+geom+" ["+geomtype+"]");
 		
 		if(!layer){
 			console.log("Adding new layer");
@@ -3610,15 +3624,14 @@ class OpenFairViewer {
 			 case "ogc_filters":
 				if(dataset.dsd){
 					console.log("Add layer with strategy 'ogc_filters' based on Feature Catalogue");
-					if(dataset.thematicmapping && strategyvariable){
+					if(dataset.thematicmapping && typeof strategyvariable != "undefined"){
 						//thematic mapping
 						this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 							console.log("Data series with "+features.length+" features");
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
-							var colors = undefined;
-							var geom = geom;
+							var colors = [];
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -3628,8 +3641,10 @@ class OpenFairViewer {
 								breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								colors = colorbrewer[colorScheme][classNb];
-								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								if(colorScheme){
+									colors = colorbrewer[colorScheme][classNb];
+									if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								}
 								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
 							
@@ -3644,6 +3659,7 @@ class OpenFairViewer {
 							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
+							layer.geom = geom;
 							layer.geomtype = geomtype;
 							this_.addWMSLayerPopup(layer);
 							this_.setLegendGraphic(layer, breaks, colors);	
@@ -3690,7 +3706,8 @@ class OpenFairViewer {
 							layer.envcolscheme = null;
 							layer.count = null;
 							layer.params = {CQL_FILTER: (strategyparams == null)? null : decodeURIComponent(strategyparams_str)};
-							layer.geomtype = geomtype
+							layer.geom = geom;
+							layer.geomtype = geomtype;
 							this_.setLegendGraphic(layer);
 							this_.map.changed();
 							this_.getMapLoadingPanel().hide();
@@ -3719,6 +3736,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -3779,8 +3797,7 @@ class OpenFairViewer {
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
-						var colors = undefined;
-						var geom = geom;
+						var colors = [];
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -3790,9 +3807,10 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							console.log(classNb);
-							colors = colorbrewer[colorScheme][classNb];
-							if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							if(colorScheme){
+								colors = colorbrewer[colorScheme][classNb];
+								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							}
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
 						this_.selectDatasetView(dataset, lyr);
@@ -3806,6 +3824,7 @@ class OpenFairViewer {
 						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length: null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.addWMSLayerPopup(layer);
 						this_.setLegendGraphic(layer, breaks, colors);	
@@ -3851,6 +3870,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = {'VIEWPARAMS': strategyparams_str};
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -3881,6 +3901,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
+					layer.geom = geom;
 					layer.geomtype = geomtype;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
@@ -3914,8 +3935,7 @@ class OpenFairViewer {
 							var values = undefined;
 							var breaks = undefined;
 							var envparams = undefined;
-							var colors = undefined;
-							var geom = geom;
+							var colors = [];
 							if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 							if(values) if(values.length > 0){
 								if(values.length < classNb){
@@ -3926,8 +3946,10 @@ class OpenFairViewer {
 								var breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								colors = colorbrewer[colorScheme][classNb];
-								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								if(colorScheme){
+									colors = colorbrewer[colorScheme][classNb];
+									if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								}
 								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
 							
@@ -3949,6 +3971,7 @@ class OpenFairViewer {
 							layer.envcolscheme = colorScheme;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
+							layer.geom = geom;
 							layer.geomtype = geomtype;
 							this_.setLegendGraphic(layer, breaks, colors);
 							this_.map.changed();
@@ -4001,6 +4024,7 @@ class OpenFairViewer {
 								layer.setSource(source);
 							}
 							layer.params = {CQL_FILTER: ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))};
+							layer.geom = geom;
 							layer.geomtype = geomtype;
 							var selectCluster = this_.getSelectCluster();
 							if(selectCluster) this_.map.removeInteraction(selectCluster);
@@ -4037,6 +4061,7 @@ class OpenFairViewer {
 						layer.envcolscheme = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
@@ -4060,6 +4085,7 @@ class OpenFairViewer {
 						layer.getSource().updateParams({'CQL_FILTER' : 'INCLUDE'});
 					}
 					layer.params = layer.getSource().getParams();
+					layer.geom = geom;
 					layer.geomtype = geomtype;
 					this_.map.changed();
 					this_.getMapLoadingPanel().hide();
@@ -4088,8 +4114,7 @@ class OpenFairViewer {
 						var values = undefined;
 						var breaks = undefined;
 						var envparams = undefined;
-						var colors = undefined;
-						var geom = geom;
+						var colors = [];
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
@@ -4100,8 +4125,10 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							var colors = colorbrewer[colorScheme][classNb];
-							if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							if(colorScheme){
+								var colors = colorbrewer[colorScheme][classNb];
+								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							}
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
 						//update viewparams, envparams & legend
@@ -4122,6 +4149,7 @@ class OpenFairViewer {
 						layer.envcolscheme = colorScheme;
 						layer.count = values? values.length : null;
 						layer.params = layer.getSource().getParams();
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.setLegendGraphic(layer, breaks, colors);
 						this_.map.changed();
@@ -4169,6 +4197,7 @@ class OpenFairViewer {
 							layer.setSource(source);
 						}
 						layer.params = {'VIEWPARAMS' : strategyparams_str};
+						layer.geom = geom;
 						layer.geomtype = geomtype;
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -4196,6 +4225,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
+					layer.geom = geom;
 					layer.geomtype = geomtype;
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
