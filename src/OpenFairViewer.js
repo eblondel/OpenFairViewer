@@ -132,7 +132,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,5,12)}
+		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,5,24)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1574,7 +1574,7 @@ class OpenFairViewer {
 		}
 	    return envparams;
 	}
-
+	
 	/**
 	 * OpenFairViewer.prototype.getDatasetViewTitle
 	 * @param uuid
@@ -1607,7 +1607,8 @@ class OpenFairViewer {
 			}
 			layerTitle += '</br>';
 			layerTitle += '<p style="font-weight:normal !important;font-size:90%;overflow-wrap:break-word;"><span class="glyphicon glyphicon-pushpin"></span><b style="margin-left:4px;">'+strategyName+':</b></br>';
-			if(dataset.strategy == "ogc_filters"){
+			switch(dataset.strategy){
+			  case "ogc_filters":
 				if(strategyparams[0].CQL_FILTER){
 					layerTitle += strategyparams[0].CQL_FILTER;
 				}else{
@@ -1616,18 +1617,37 @@ class OpenFairViewer {
 						var key = Object.keys(strategyparam)[0];
 						var component = strategyparam[key];
 						if(!(component.content instanceof Array)) component.content = [component.content];
-						layerTitle += '&#8226; ' + key + ': '+ (component.type=="list"? component.content.join(',') : component.content.join('/') ) + '</br>';
+						var component_info;
+						switch(component.type){
+							case "list": component_info = component.content.join(','); break;
+							case "range": component_info = component.content[0]; if(component.content.length>1) component_info += " – " + component.content[component.content.length-1]; break;
+							case "timeperiod": component_info = component.content.join('/'); break;
+							default: component.content.join('/'); break;
+						}
+						layerTitle += '&#8226; ' + key + ': '+ component_info + '</br>';
 					}
 				}
-				
-			}else{
+				break;
+			  case "ogc_dimensions":
+				console.warn("No dataset view title implementation for strategy 'ogc_dimensions'");
+				//TODO
+				break;
+			  case "ogc_viewparams":
 				for(var i=0;i<strategyparams.length;i++){
 					var strategyparam = strategyparams[i];
 					var key = Object.keys(strategyparam)[0];
 					var component = strategyparam[key];
 					if(!(component.content instanceof Array)) component.content = [component.content];
-					layerTitle += '&#8226; ' + key + ': '+ component.content.join(',') + '</br>';
+					var component_info;
+					switch(component.type){
+						case "list": component_info = component.content.join(','); break;
+						case "range": component_info = component.content[0]; if(component.content.length>1) component_info += " – " + component.content[component.content.length-1]; break;
+						case "timeperiod": component_info = component.content.join('/'); break;
+						default: component.content.join('/'); break;
+					}
+					layerTitle += '&#8226; ' + key + ': '+ component_info + '</br>';
 				}
+				break;
 			}
 			layerTitle += '</p>';
 		}
@@ -1961,8 +1981,6 @@ class OpenFairViewer {
 		
 		var thefilter = this_.createFilter(thebbox);
 		console.log("OGC Filter:");
-
-
 		console.log(thefilter);
 		
 		//display based on templates
@@ -3344,6 +3362,11 @@ class OpenFairViewer {
 								var item_values_str = item_values.map(function(item){return encodeURIComponent(item)}).join(',');
 								filter = '(' + fieldname + ' IN(' + item_values_str + '))';
 								break;
+							case "range":
+								if(!(item_values instanceof Array)) item_values = [item_values];
+								var item_values_str = item_values.map(function(item){return encodeURIComponent(item)}).join(',');
+								filter = '(' + fieldname + ' IN(' + item_values_str + '))';
+								break;
 							case "timeperiod":
 								filter = '(' + fieldname +' AFTER '+ item_values[0] + ' AND ' + fieldname + ' BEFORE ' + item_values[1] +')';
 								break;
@@ -3369,6 +3392,10 @@ class OpenFairViewer {
 					var viewparam = null;
 					switch(item_component.type){
 						case "list":
+							if(!(item_values instanceof Array)) item_values = [item_values];
+							viewparam = Object.keys(item) + ':' + item_values.join('+');
+							break;
+						case "range":
 							if(!(item_values instanceof Array)) item_values = [item_values];
 							viewparam = Object.keys(item) + ':' + item_values.join('+');
 							break;
@@ -3411,12 +3438,15 @@ class OpenFairViewer {
 						var widget = null;
 						if(clazz.indexOf("select2")>0) widget = "select2";
 						if(clazz.indexOf("slider")>0) widget = "slider";
+						var type = null;
 						var values = null;
 						switch(widget){
 							case "select2": 
+								type = "list";
 								values = $("#"+item.id).val(); 
 								break;
 							case "slider": 
+								type = "range";
 								var slide = $($("#"+item.id).find(".ui-slider")[0]);
 								if(slide.slider('values').length > 0){
 									//multiple values
@@ -3441,7 +3471,10 @@ class OpenFairViewer {
 									values = "'"+values.replace(/[\']/g, "''")+"'";
 								}
 							}
-							data_component_query[attribute] = {type: 'list', content: values};
+							data_component_query[attribute] = {
+								type: type, 
+								content: values
+							};
 							data_query.push(data_component_query);
 						}
 					});
@@ -3457,7 +3490,10 @@ class OpenFairViewer {
 							var date_start = new Date(Date.parse(val_start+ (attributeDef.primitiveType == "xsd:datetime"? 'Z' : '')));
 							var date_end = new Date(Date.parse(val_end+ (attributeDef.primitiveType == "xsd:datetime"? 'Z' : '')));
 							var data_component_query = new Object();
-							data_component_query[attribute] = {type: 'timeperiod', content: [date_start.toISOString().split(attributeDef.primitiveType == "xsd:datetime"? ".000Z" : "T")[0], date_end.toISOString().split(attributeDef.primitiveType == "xsd:datetime"? ".000Z" : "T")[0]]};
+							data_component_query[attribute] = {
+								type: "timeperiod", 
+								content: [date_start.toISOString().split(attributeDef.primitiveType == "xsd:datetime"? ".000Z" : "T")[0], date_end.toISOString().split(attributeDef.primitiveType == "xsd:datetime"? ".000Z" : "T")[0]]
+							};
 							data_query.push(data_component_query);
 						}
 					});
@@ -3480,12 +3516,15 @@ class OpenFairViewer {
 					var widget = null;
 					if(clazz.indexOf("select2")>0) widget = "select2";
 					if(clazz.indexOf("slider")>0) widget = "slider";
+					var type = null;
 					var values = null;
 					switch(widget){
-						case "select2": 
+						case "select2":
+							type = "list";
 							values = $("#"+item.id).val(); 
 							break;
 						case "slider": 
+							type = "range";
 							var slide = $($("#"+item.id).find(".ui-slider")[0]);
 							if(slide.slider('values').length > 0){
 								//multiple values
@@ -3502,7 +3541,10 @@ class OpenFairViewer {
 					if(values) if(values.length > 0){
 						var data_component_query = new Object();
 						var attribute = item.id.split('dsd-ui-dimension-attribute-')[1];
-						data_component_query[attribute] = {type: 'list', content: values};
+						data_component_query[attribute] = {
+							type: type, 
+							content: values
+						};
 						data_query.push(data_component_query);
 					}
 				});
@@ -3516,7 +3558,10 @@ class OpenFairViewer {
 								
 							var date_start = new Date(Date.parse(val_start+ (attributeDef.primitiveType == "xsd:datetime"? 'Z' : '')));
 							var data_component_query = new Object();
-							data_component_query[attribute] = {type: 'timeinstant', content: [date_start.toISOString().split(attributeDef.primitiveType == "xsd:datetime"? ".000Z" : "T")[0]]};
+							data_component_query[attribute] = {
+								type: "timeinstant", 
+								content: [date_start.toISOString().split(attributeDef.primitiveType == "xsd:datetime"? ".000Z" : "T")[0]]
+							};
 							data_query.push(data_component_query);
 						}
 					});
@@ -5765,11 +5810,22 @@ class OpenFairViewer {
 				switch(datasetDef.strategy){
 					case "ogc_filters":
 						console.log("Resolve query for dataset '"+datasetDef.pid+"' using 'ogc_filters' strategy");
-						var queryparams = datasetDef.queryparams;
-						console.log(queryparams);
-						if(queryparams) for(var i=0;i<queryparams.length;i++){
-							var queryparam = queryparams[i];
-							var key = Object.keys(queryparam)[0];
+						if(datasetDef.queryparams) for(var i=0;i<datasetDef.queryparams.length;i++){
+							var key = Object.keys(datasetDef.queryparams[i])[0];
+							
+							//controller over type "list" or "range"
+							var clazz = $("#dsd-ui-dimension-attribute-"+key).attr('class');
+							if(clazz){
+								var widget = null;
+								if(clazz.indexOf("select2")>0) widget = "select2";
+								if(clazz.indexOf("slider")>0) widget = "slider";
+								switch(widget){
+									case "select2": datasetDef.queryparams[i][key].type = "list"; break;
+									case "slider":  datasetDef.queryparams[i][key].type = "range"; break;
+								}
+							}
+							
+							var queryparam = datasetDef.queryparams[i];
 							var component = queryparam[key];
 							var values = component.content;
 							values = values.map(function(item){
@@ -5779,27 +5835,30 @@ class OpenFairViewer {
 								item = item.replace("''", "'") //need to replace double single quote (in case of cql filter strings containing single quote)
 								return item;
 							});
+							
+							//fill values depending on component type
 							if(component.type == "list"){
 								var clazz = $("#dsd-ui-dimension-attribute-"+key).attr('class');
-								var widget = null;
-								if(clazz.indexOf("select2")>0) widget = "select2";
-								if(clazz.indexOf("slider")>0) widget = "slider";
-								switch(widget){
-									case "select2": 
-										$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
-										break;
-									case "slider": 
-										var slide = $($("#dsd-ui-dimension-attribute-"+key).find(".ui-slider")[0]);
-										values = values.map(function(item){return parseInt(item)});
-										if(values.length > 1){
-											var min = Math.min.apply(Math, values);
-											var max = Math.max.apply(Math, values);
-											slide.slider("values", 0, min);
-											slide.slider("values", 1, max);
-										}else{
-											slide.slider("value", values[0]);
-										}
-										break;
+								if(clazz.indexOf("select2")>0){
+									$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
+								}else{
+									console.warn("Component with type 'list' and no 'select2' widget!")
+								}
+							}else if(component.type == "range"){
+								var clazz = $("#dsd-ui-dimension-attribute-"+key).attr('class');
+								if(clazz.indexOf("slider")>0){
+									var slide = $($("#dsd-ui-dimension-attribute-"+key).find(".ui-slider")[0]);
+									values = values.map(function(item){return parseInt(item)});
+									if(values.length > 1){
+										var min = Math.min.apply(Math, values);
+										var max = Math.max.apply(Math, values);
+										slide.slider("values", 0, min);
+										slide.slider("values", 1, max);
+									}else{
+										slide.slider("value", values[0]);
+									}
+								}else{
+									console.warn("Component with type 'slider' and no 'slider' widget!");
 								}
 							}else if(component.type == "timeinstant"){
 								$("#dsd-ui-dimension-time-start-"+key).val(component.content[0].replace("T", " ")).trigger('change');
@@ -5808,6 +5867,7 @@ class OpenFairViewer {
 								$("#dsd-ui-dimension-time-end-"+key).val(component.content[1].replace("T"," ")).trigger('change');
 							}
 						}
+						
 						//variable
 						$("#dsd-ui-dimension-variable").val(datasetDef.variable).trigger('change');
 						//map options
@@ -5842,25 +5902,26 @@ class OpenFairViewer {
 								var values = component.content;
 								if(component.type == "list"){
 									var clazz = $("#dsd-ui-dimension-attribute-"+key).attr('class');
-									var widget = null;
-									if(clazz.indexOf("select2")>0) widget = "select2";
-									if(clazz.indexOf("slider")>0) widget = "slider";
-									switch(widget){
-										case "select2": 
-											$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
-											break;
-										case "slider": 
-											var slide = $($("#dsd-ui-dimension-attribute-"+key).find(".ui-slider")[0]);
-											values = values.map(function(item){return parseInt(item)});
-											if(values.length > 1){
-												var min = Math.min.apply(Math, values);
-												var max = Math.max.apply(Math, values);
-												slide.slider("values", 0, min);
-												slide.slider("values", 1, max);
-											}else{
-												slide.slider("value", values[0]);
-											}
-											break;
+									if(clazz.indexOf("select2")>0){
+										$("#dsd-ui-dimension-attribute-"+key).val(values).trigger('change');
+									}else{
+										console.warn("Component with type 'list' and no 'select2' widget!")
+									}
+								}else if(component.type=="range"){
+									var clazz = $("#dsd-ui-dimension-attribute-"+key).attr('class');
+									if(clazz.indexOf("slider")>0){
+										var slide = $($("#dsd-ui-dimension-attribute-"+key).find(".ui-slider")[0]);
+										values = values.map(function(item){return parseInt(item)});
+										if(values.length > 1){
+											var min = Math.min.apply(Math, values);
+											var max = Math.max.apply(Math, values);
+											slide.slider("values", 0, min);
+											slide.slider("values", 1, max);
+										}else{
+											slide.slider("value", values[0]);
+										}
+									}else{
+										console.warn("Component with type 'slider' and no 'slider' widget!");
 									}
 								}else if(component.type=="timeinstant"){
 									$("#dsd-ui-dimension-time-start-"+key).val(component.content[0]).trigger('change');
@@ -5887,6 +5948,9 @@ class OpenFairViewer {
 						break;
 				}
 			}
+			
+			//update
+			datasetDef.title = this_.getDatasetViewTitle(datasetDef, datasetDef.queryparams, false);
 			
 			//resolve map
 			if(resolveMap) this_.resolveDatasetForMap(datasetDef);
@@ -5979,10 +6043,14 @@ class OpenFairViewer {
 									var elems = item.split(" IN(");
 									var attribute = elems[0];
 									var values = elems[1].split(")")[0].split(/(?!'),(?![^'])/g);
+									if(values.length=1) values = values[0].split(",");
 									values = values.map(function(item){return item}); //replace double single quote for cql filter text with single quote
 									values = values.map(function(item){return decodeURIComponent(item)});
 									out = new Object();
-									out[attribute] = {type: 'list', content: values};
+									out[attribute] = {
+										type: "list", 
+										content: values
+									};
 								}else if(item.indexOf('BEFORE')>0 && item.indexOf('AFTER')){
 									var elems = item.split(" AND ");
 									var time_filter_start = elems[0].split(" AFTER ");
@@ -5990,7 +6058,10 @@ class OpenFairViewer {
 									var attribute = time_filter_start[0];
 									var values = [time_filter_start[1], time_filter_end[1]];
 									out = new Object();
-									out[attribute] = {type: 'timeperiod', content: values};
+									out[attribute] = {
+										type: "timeperiod",
+										content: values
+									};
 								}
 								return out;
 							});
@@ -6006,7 +6077,10 @@ class OpenFairViewer {
 								var values = elems[1].split('+');
 								values = values.map(function(item){return decodeURIComponent(item)});
 								var out = new Object(); 
-								out[attribute] = {type: ( (!isNaN(Date.parse(values[0])) & values[0].length >= 10)? "timeinstant" : "list"), content: values};
+								out[attribute] = {
+									type: ( (!isNaN(Date.parse(values[0])) & values[0].length >= 10)? "timeinstant" : "list"), //list by default for arrays then resolved to 'slider' eventually with UI
+									content: values
+								};
 								return out;
 							});
 							break;
@@ -6039,6 +6113,7 @@ class OpenFairViewer {
 			}
 
 			var metadata_promises = new Array();
+			console.log(encoded_datasets);
 			for(var i=0;i<encoded_datasets.length;i++){
 				metadata_promises.push( this_.getCSWRecord(encoded_datasets[i].pid) );
 			}
@@ -6049,7 +6124,7 @@ class OpenFairViewer {
 					var encoded_dataset = encoded_datasets[i];
 					encoded_dataset.entry = md_entry;
 					if(!encoded_dataset.lyr) encoded_dataset.lyr = encoded_dataset.entry.wms[0].name; //set for backward-compatibility in case no lyr in url
-					encoded_dataset.title = this_.getDatasetViewTitle(encoded_dataset, encoded_dataset.queryparams, false);
+					//encoded_dataset.title = this_.getDatasetViewTitle(encoded_dataset, encoded_dataset.queryparams, false);
 					encoded_dataset.dsd = encoded_dataset.entry.dsd;
 					console.log(encoded_dataset);
 					this_.selection.push(encoded_dataset);	
