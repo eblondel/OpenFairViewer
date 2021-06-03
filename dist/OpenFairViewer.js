@@ -132,7 +132,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,5,24)}
+		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,6,3)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1165,6 +1165,21 @@ class OpenFairViewer {
 				var url = onLines[i].ciOnlineResource.linkage.url;
 				if(url.indexOf("&version=") > 0) serviceVersion = url.split("&version=")[1].split("&")[0];
 				if(url.indexOf("&VERSION=") > 0) serviceVersion = url.split("&VERSION=")[1].split("&")[0];
+				//protocol
+				var protocol = onLines[i].ciOnlineResource.protocol;
+				switch(protocol){
+					case "OGC:WMS-1.1.0-http-get-map": serviceVersion = "1.1.0"; break;
+					case "OGC:WMS-1.1.1-http-get-map": serviceVersion = "1.1.1"; break;
+					case "OGC:WMS-1.3.0-http-get-map": serviceVersion = "1.3.0"; break;
+					case "OGC:WFS-1.0.0-http-get-feature": serviceVersion = "1.0.0"; break;
+					case "OGC:WFS-1.1.0-http-get-feature": serviceVersion = "1.1.0"; break;
+					case "OGC:WFS-2.0.0-http-get-feature": serviceVersion = "2.0.0"; break;
+					case "OGC:WCS-1.0.0-http-get-coverage": serviceVersion = "1.0.0"; break;
+					case "OGC:WCS-1.1-http-get-coverage": serviceVersion = "1.1"; break;
+					case "OGC:WCS-1.1.0-http-get-coverage": serviceVersion = "1.1.0"; break;
+					case "OGC:WCS-1.1.1-http-get-coverage": serviceVersion = "1.1.1"; break;
+					case "OGC:WCS-2.0.1-http-get-coverage": serviceVersion = "2.0.1"; break;					
+				}				
 				out.push({url : layerUrl, version: serviceVersion, name: layerName, description: layerDescription});
 			}
 		}
@@ -2828,6 +2843,7 @@ class OpenFairViewer {
 
 		//ogc layer
 		var ogclayers = entry.wms.map(function(item){return {id: item.name, text: (item.description? item.description : item.name), url: item.url}});
+		console.log(ogclayers);
 		//ogc layer id
 		var ogclayer_id = "ui-ogc_layer";
 		//html
@@ -2943,6 +2959,7 @@ class OpenFairViewer {
 					//-------------------------------------------
 					//ogc layer
 					var ogclayers = entry.wms.map(function(item){return {id: item.name, text: (item.description? item.description : item.name), url: item.url}});
+					console.log(ogclayers);
 					//ogc layer id
 					var ogclayer_id = "ui-ogc_layer";
 					//html
@@ -5566,7 +5583,7 @@ class OpenFairViewer {
 		var this_ = this;
 		var layerParams = {
 				'LAYERS' : layer,
-				'VERSION': '1.3.0', //TODO support wmsVersion for 1.3.0,
+				'VERSION': wmsVersion,
 				'FORMAT' : 'image/png'
 		}
 		var olLayerClass = ImageLayer;
