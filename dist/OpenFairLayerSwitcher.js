@@ -53,6 +53,49 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		legend.style.display = (lyr.getVisible()? "block" : "none");
 	}	
 	
+	/**
+	 * Render a layer opacity slider for an extended OFV OL layer object
+	 * @private
+	 * @param {Layer} lyr Layer for which the opacity should be changed
+	 */
+	static renderOpacitySlider_(lyr, li) {
+		if(lyr.get('type') != 'base'){
+			console.log(lyr);
+			var layer_id = lyr.id + "_op";
+			var layer_slider = lyr.id + "_opslider";
+			var layer_slider_html = document.createElement('p');
+			layer_slider_html.id = layer_id;
+			layer_slider_html.className = "not-draggable";
+			layer_slider_html.style = "margin-left:32px;height:40px;font-weight:normal !important;font-size:90%;overflow-wrap:break-word;";
+			layer_slider_html.style.display = lyr.getVisible()? "table" : "none";
+			layer_slider_html.innerHTML = '<span class="glyphicon glyphicon-eye-close"></span>';
+			//input
+			var layer_slider_input = document.createElement('input');
+			layer_slider_input.id = layer_slider;
+			layer_slider_input.name = layer_slider;
+			layer_slider_input.type = "range";
+			layer_slider_input.step = "0.1";
+			layer_slider_input.min = "0";
+			layer_slider_input.max = "1";
+			layer_slider_input.style = "width:75%;margin-left:20px;margin-bottom:10px;";
+			layer_slider_input.value = lyr.getOpacity();
+			layer_slider_input.className = "not-draggable";
+			layer_slider_html.append(layer_slider_input);
+			li.append(layer_slider_html);
+		}
+	}
+
+	/**
+	 * Toggles a layer opacity slider (hide/show opacity slider)
+	 * @private
+	 * @param {ol.layer.Base} lyr Layer for which the legend should be rendered
+	 */	
+	static toggleOpacitySlider_(lyr) {
+		var layerOpId = lyr.id + "_op";
+		var layerOp = document.getElementById(layerOpId);
+		layerOp.style.display = (lyr.getVisible()? "block" : "none");
+	}
+	
 	
 	/** LayerSwitcher Overwritten methods  **/
 	 
@@ -231,6 +274,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			  options.groupSelectStyle
 			);
 			OpenFairLayerSwitcher.toggleLegendGraphic_(lyr);
+			OpenFairLayerSwitcher.toggleOpacitySlider_(lyr);
 			render(lyr);
 		  };
 		  li.setAttribute("data-pid", lyr.id);
@@ -246,6 +290,9 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		  }
 
 		  li.appendChild(label);
+		  
+		  //handling layer opacity slider for overlays
+		  OpenFairLayerSwitcher.renderOpacitySlider_(lyr, li);
 		  
 		  //handling legend graphic for overlays
 		  OpenFairLayerSwitcher.renderLegendGraphic_(lyr, li);
@@ -296,58 +343,78 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	 */
 	static refreshLayerTree_(map, panel, options, render){
 		var this_ = this;
-		var dragLayerStart = function(e) {
-		  //this.style.opacity = '0.4';
-		  this_.dragSrcEl = this;
-		  e.dataTransfer.effectAllowed = 'move';
-		  e.dataTransfer.setData('text/html', this.outerHTML);
-		};
 
-		var dragLayerEnter = function(e) {
-		  this.classList.add('draggable-layer-over');
-		}
-
-		var dragLayerLeave = function(e) {
-		  this.style.backgroundColor = "transparent";
-		  e.stopPropagation();
-		  this.classList.remove('draggable-layer-over');
-		}
-
-		var dragLayerOver = function(e) {
-		  this.style.backgroundColor = "#DCDCDC";
-		  e.preventDefault();
-		  e.dataTransfer.dropEffect = 'move';
-		  return false;
-		}
-
-		var dragLayerDrop = function(e) {
-			this.style.backgroundColor = "transparent";
-		  //this.style.opacity = '1';
-		  if (this_.dragSrcEl != this) {
-			this_.dragSrcEl.outerHTML = this.outerHTML;
-			this.outerHTML = e.dataTransfer.getData('text/html');
-			this_.refreshLayerTree_(map, panel, options, render);
-			this_.renderPanel(map, panel, options);
-		  }
-		  return false;
-		}
-
-		var dragLayerEnd = function(e) {
-		  var listItens = document.querySelectorAll('.draggable-layer');
-		  [].forEach.call(listItens, function(item) {
-			item.childNodes[0].checked = item.getAttribute('data-checked') === "true";
-			item.classList.remove('draggable-layer-over');
-		  });
-		  this.style.opacity = '1';
-		}
+		
 
 		var addDragAndDropLayerEvents = function(el) {
-		  el.addEventListener('dragstart', dragLayerStart, false);
-		  el.addEventListener('dragenter', dragLayerEnter, false);
-		  el.addEventListener('dragover', dragLayerOver, false);
-		  el.addEventListener('dragleave', dragLayerLeave, false);
-		  el.addEventListener('drop', dragLayerDrop, false);
-		  el.addEventListener('dragend', dragLayerEnd, false);
+			
+			var dragAuth = function (target) {
+				return target.className !== "not-draggable";
+			};
+			 
+			var dragLayerStart = function(e) {
+				//this.style.opacity = '0.4';
+				var draggable = dragAuth(e.target);
+				this_.dragSrcEl = this;
+				if(draggable){
+					e.dataTransfer.effectAllowed = 'move';
+					e.dataTransfer.setData('text/html', this.outerHTML);
+				}
+			};
+			 
+			var dragLayerEnter = function(e) {
+				var draggable = dragAuth(e.target);
+				console.log(e);
+				console.log(e.target);
+				console.log(draggable);
+				if(draggable) this.classList.add('draggable-layer-over');
+				return false;
+			}
+
+			var dragLayerLeave = function(e) {
+			  this.style.backgroundColor = "transparent";
+			  e.stopPropagation();
+			  this.classList.remove('draggable-layer-over');
+			}
+
+			var dragLayerOver = function(e) {
+				var draggable = dragAuth(e.srcElement);
+				if(draggable){
+					this.style.backgroundColor = "#DCDCDC";
+					e.preventDefault();
+					e.dataTransfer.dropEffect = 'move';
+				}
+				return false;
+			}
+
+			var dragLayerDrop = function(e) {
+				this.style.backgroundColor = "transparent";
+			  //this.style.opacity = '1';
+			  var draggable = dragAuth(e.srcElement);
+			  if(draggable) if(this_.dragSrcEl) if (this_.dragSrcEl != this) {
+				this_.dragSrcEl.outerHTML = this.outerHTML;
+				this.outerHTML = e.dataTransfer.getData('text/html');
+				this_.refreshLayerTree_(map, panel, options, render);
+				this_.renderPanel(map, panel, options);
+			  }
+			  return false;
+			}
+
+			var dragLayerEnd = function(e) {
+			  var listItens = document.querySelectorAll('.draggable-layer');
+			  [].forEach.call(listItens, function(item) {
+				item.childNodes[0].checked = item.getAttribute('data-checked') === "true";
+				item.classList.remove('draggable-layer-over');
+			  });
+			  this.style.opacity = '1';
+			}
+		
+			el.addEventListener('dragstart', dragLayerStart, false);
+			el.addEventListener('dragenter', dragLayerEnter, false);
+			el.addEventListener('dragover', dragLayerOver, false);
+			el.addEventListener('dragleave', dragLayerLeave, false);
+			el.addEventListener('drop', dragLayerDrop, false);
+			el.addEventListener('dragend', dragLayerEnd, false);
 		}
 		
 		var mapLayerGroups = new Array();
@@ -381,6 +448,17 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 				$(layers).each(function(j,item){
 					var mapLayer = OpenFairLayerSwitcher.getLayerByProperty(map, $(item).attr("data-pid"), 'id');
 					mapLayer.setZIndex(parseInt($(item).attr("data-order")));
+					
+					//activate opacity slider for each layer
+					var layer_slider = mapLayer.id + "_opslider";
+					var slider = document.getElementById(layer_slider);
+					slider.draggable = "true";
+					slider.oninput = function(e) {
+					  this.title = this.value;
+					  mapLayer.setOpacity(Number(this.value));
+					  //e.preventDefault();
+                      //e.stopPropagation();
+					};	
 				});
 			});
 	}

@@ -1649,7 +1649,6 @@ class OpenFairViewer {
 				}
 				break;
 			}
-			layerTitle += '</p>';
 		}
 		return layerTitle;
 	}
@@ -5567,7 +5566,7 @@ class OpenFairViewer {
 		var this_ = this;
 		var layerParams = {
 				'LAYERS' : layer,
-				'VERSION': '1.1.0', //TODO support wmsVersion for 1.3.0,
+				'VERSION': '1.3.0', //TODO support wmsVersion for 1.3.0,
 				'FORMAT' : 'image/png'
 		}
 		var olLayerClass = ImageLayer;
