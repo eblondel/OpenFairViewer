@@ -5583,7 +5583,7 @@ class OpenFairViewer {
 		var this_ = this;
 		var layerParams = {
 				'LAYERS' : layer,
-				'VERSION': wmsVersion,
+				'VERSION': (wmsVersion? wmsVersion : '1.1.1'),
 				'FORMAT' : 'image/png'
 		}
 		var olLayerClass = ImageLayer;
