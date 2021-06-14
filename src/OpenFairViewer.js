@@ -4506,9 +4506,7 @@ class OpenFairViewer {
 			 "cells": [
 			  {
 			   "cell_type": "markdown",
-			   "execution_count": null,
 			   "metadata": {},
-			   "outputs": [],
 			   "source": header.split("\n").map(function(item){return item + "\n"})
 			  },
 			  {
