@@ -132,7 +132,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,6,14)}
+		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,6,15)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1015,7 +1015,8 @@ class OpenFairViewer {
 				ISO19139_GSS_20070417,
 				ISO19139_GSR_20070417,
 				ISO19139_GMX_20070417,
-				ISO19139_SRV_20060504
+				ISO19139_SRV_20060504,
+				ISO19139_2_GMI_1_0
 			],
 			{
 				namespacePrefixes: {
@@ -1025,6 +1026,7 @@ class OpenFairViewer {
 					"http://purl.org/dc/elements/1.1/":"dc",
 					"http://purl.org/dc/terms/":"dct",
 					"http://www.isotc211.org/2005/gmd" : "gmd",
+					"http://www.isotc211.org/2005/gmi" : "gmi",
 					"http://www.isotc211.org/2005/gco" : "gco",
 				},
 				mappingStyle : 'standard'
