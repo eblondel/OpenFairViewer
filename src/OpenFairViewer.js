@@ -66,6 +66,7 @@ import And from './vendor/ows/And';
 import Or from './vendor/ows/Or';
 import Not from './vendor/ows/Not';
 import CSW from './vendor/ows/CSW';
+import WMS from './vendor/ows/WMS';
 //bootpag
 import bootpag from 'bootpag/lib/jquery.bootpag';
 //mustache
@@ -2561,7 +2562,6 @@ class OpenFairViewer {
 					
 					var name = item.mdRangeDimension.sequenceIdentifier.memberName.aName;
 					var primitiveType = item.mdRangeDimension.sequenceIdentifier.memberName.attributeType.typeName.aName;
-					if(primitiveType == "float") primitiveType = "xsd:datetime";
 					
 					var dimensionModel = {
 						name : name, definition : null, 
@@ -2592,6 +2592,52 @@ class OpenFairViewer {
 			}
 		}
 		
+		return dsd;
+	}
+	
+	
+	/**
+	 * parseLayerDescription
+	 * @param dataset
+	 * @param ogclayer
+	 * @returns {Object} a DSD json object
+	 */
+	parseLayerDescription(dataset, ogclayer){
+		var this_ = this;
+		var pid = dataset.pid;
+		var lyr = dataset.lyr;
+		var entry = dataset.entry? dataset.entry : dataset;
+		var dsd = { strategy: this.getStrategy(dataset), components: new Array() };
+		var ogc_layers = dataset.capabilities.capability.layer.layer[0].layer.filter(function(item){if(item.name == ogclayer) return ogclayer;});
+		if(ogc_layers.length > 0){
+			var ogc_layer = ogc_layers[0];
+			var ogc_dims = ogc_layer.dimension;
+			if(ogc_dims.length > 0){
+				dsd.components = ogc_dims.map(function(item){
+					var primitiveType = null;
+					var name = item.name.toUpperCase();
+					switch(name){
+						case "TIME": primitiveType = "xsd:datetime"; break;
+						case "ELEVATION": primitiveType = "xsd:decimal"; break;
+					}
+					var dimensionModel = {
+						name : name, definition : null, 
+						primitiveCode: name, primitiveType: primitiveType, 
+						columnType: "attribute", minOccurs: null, maxOccurs: null,
+						uom : null, uomLabel: null,
+						values: null
+					};
+					var dimension_values = item.value.replaceAll(' ','').replace('\n', '').split(',');
+					dimensionModel.values = dimension_values.map(function(value){
+						return {id: value, text: "", alternateText: null, codelist: name, href: null};
+					});;
+					dimensionModel.minOccurs = dimension_values[0];
+					dimensionModel.maxOccurs = dimension_values[dimension_values.length-1];
+					return dimensionModel;
+				})
+			}
+		}
+		console.log(dsd);
 		return dsd;
 	}
 	
@@ -2730,11 +2776,11 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * handleQueryMapOptions
+	 * handleQueryThematicMappingOptions
 	 * @param {String} geomtype
 	 * @param {Integer} columnIdx
 	 */
-	handleQueryMapOptions(geomtype, columnIdx){		
+	handleQueryThematicMappingOptions(geomtype, columnIdx){		
 		var this_ = this;
 		//id
 		var map_type_id = "map-type-selector";
@@ -2963,7 +3009,94 @@ class OpenFairViewer {
 		}
 		return strategy;
 	}
+	
+	/**
+	 * getDatasetServiceCouplingType
+	 * @param dataset
+	 */
+	getDatasetServiceCouplingType(dataset){
+		var couplingType = "loose";
+		var entry = dataset.entry? dataset.entry : dataset;
+		var idents = entry.metadata.identificationInfo;
+		if(idents.length > 0){
+			var srv_idents = idents.filter(function(item){
+				if(item.containsOperations) return(item);
+			});
+			if(srv_idents.length > 0){
+				var srv_ident = srv_idents[0];
+				if(srv_ident.couplingType) couplingType = srv_ident.couplingType.svCouplingType.value;
+			}
+		}
+		return couplingType;
+	}
 
+	/**
+	 * handleDatasetServiceCapabilities
+	 * @param dataset
+	 */
+	handleDatasetServiceCapabilities(dataset){
+		var deferred = $.Deferred();
+		var this_ = this;
+		var pid = dataset.pid;
+		var entry = dataset.entry? dataset.entry : dataset;
+		
+		var wmsConfig = [
+			[
+				DC_1_1,
+				DCT,
+				XLink_1_0,
+				SMIL_2_0,
+				SMIL_2_0_Language,
+				OWS_1_0_0,
+				OWS_1_1_0,
+				WMS_1_1_1,
+				WMS_1_3_0
+			],
+			{
+				namespacePrefixes : {
+					"http://www.opengis.net/wms": "wms",
+					"http://www.w3.org/2001/XMLSchema-instance": "xsi"
+				}
+			}
+		];
+		
+		//find wms caps url
+		var wms_caps_url = null;
+		//first look at service Identification
+		var idents = entry.metadata.identificationInfo;
+		if(idents.length > 0){
+			var srv_idents = idents.filter(function(item){
+				if(item.containsOperations) return(item);
+			});
+			if(srv_idents.length > 0){
+				for(var j=0;j<srv_idents.length;j++){
+					var item = srv_idents[j];
+					if(item.containsOperations) if(item.containsOperations.length > 0){
+						for(var i=0;i<item.containsOperations.length;i++){
+							var op = item.containsOperations[i];
+							if(op.svOperationMetadata.operationName == "GetCapabilities"){
+								if(op.svOperationMetadata.connectPoint) if(op.svOperationMetadata.connectPoint.length > 0){
+									wms_caps_url = op.svOperationMetadata.connectPoint[0].ciOnlineResource.linkage.url.split('?')[0];
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if(!wms_caps_url){
+			//if null then look at online resources
+			wms_caps_url = entry.wms[0].url.split('?')[0];
+		}
+		
+		var wms_service = new WMS(wms_caps_url, entry.wms[0].version, wmsConfig);
+		wms_service.GetCapabilities().then(function(capabilities){
+			deferred.resolve(this_.lightenMetadata(capabilities));
+		});
+		return deferred.promise();
+	}
+	
 	/**
 	 * handleFilter
 	 * @param {String} pid
@@ -3038,7 +3171,12 @@ class OpenFairViewer {
 		this.handleQueryAndMapButton(1);
 		this.handleQueryFormButtons(1);
 		
-		deferred.resolve(dataset);
+		//query service capabilities
+		if(this.getDatasetServiceCouplingType(dataset) == "tight") this.handleDatasetServiceCapabilities(dataset).then(function(capabilities){
+			dataset.capabilities = capabilities;
+			deferred.resolve(dataset);
+		});
+		
 		return deferred.promise();
 	}
 
@@ -3054,6 +3192,7 @@ class OpenFairViewer {
 		var this_ = this;
 		var pid = dataset.pid;
 		var lyr = dataset.lyr;
+		var strategy = this.getStrategy(dataset);
 		var entry = dataset.entry? dataset.entry : dataset;
 		
 		var bootstrapClass = "col-md-" + 12/this_.options.access.columns;
@@ -3135,6 +3274,7 @@ class OpenFairViewer {
 			}
 
 			$("#dsd-ui-col-1").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label>'+ this_.options.labels.attributes+'</label></p></div>');
+			var dsd = this_.dataset_on_query.dsd;
 			for(var i=0;i<this_.dataset_on_query.dsd.length;i++){
 				var dsd_component = this_.dataset_on_query.dsd[i];
 				if(dsd_component.columnType == "attribute"){
@@ -3266,8 +3406,8 @@ class OpenFairViewer {
 							  min: values_min, 
 							  max: values_max,
 							  value: (isMultiple? [ values_min, values_max ] : values_max),
-							  ticks: dsd_component.values.map(function(instant){return parseFloat(instant.id)})
-							  //lock_to_ticks: true
+							  ticks: dsd_component.values.map(function(instant){return parseFloat(instant.id)}),
+							  lock_to_ticks: true
 							});
 							$("#"+dsd_component_id_slider).on("slide", function(event) {
 								console.log(event);
@@ -3306,7 +3446,7 @@ class OpenFairViewer {
 							//html
 							var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:0px;margin-bottom:5px;">';
 							dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label><br> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" autocomplete="off" >'
-							if(dsd.strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" autocomplete="off">'
+							if(strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" autocomplete="off">'
 							$("#dsd-ui-col-1").append(dsd_component_time_html);
 							
 							var startRange = $("#"+dsd_component_id_start);
@@ -3314,7 +3454,7 @@ class OpenFairViewer {
 							
 							//jquery widget
 							if(dsd_component.primitiveType == "xsd:date"){
-								switch(dsd.strategy){
+								switch(strategy){
 									case "ogc_filters":
 										startRange.datetimepicker({
 											minDate: time_start, maxDate: time_end,
@@ -3350,7 +3490,7 @@ class OpenFairViewer {
 										//startRange.val(time_start.toISOString().split('T')[0]); break;
 								}
 							}else if(dsd_component.primitiveType == "xsd:datetime"){
-								switch(dsd.strategy){
+								switch(strategy){
 									case "ogc_filters":
 										startRange.datetimepicker({
 											minDate: time_start, maxDate: time_end,
@@ -3388,6 +3528,78 @@ class OpenFairViewer {
 							$("#dsd-ui-col-1").append('</div>');
 						}else{
 							
+							//html
+							/*$("#dsd-ui-col-1").append('<select id = "'+dsd_component_id+'" '
+								+ (isMultiple? 'multiple="multiple"' : '')
+								+ (isRequired? 'required' : '')
+								+' class="dsd-ui-dimension dsd-ui-dimension-attribute" data-dimension-code="'+dsd_component.primitiveCode+'" title="'+this_.options.labels.filtering_on+' '+dsd_component.name+'">'+(isMultiple? '' : '<option></option>')+'</select>'
+								+ (isRequired? '<span style="color:red;font-weight:bold;margin-left:2px;font-size:14px;">*</span>' : ''));
+							
+							//jquery widget
+							var attributeItemSelection = function(item) {
+							  if (!item.id) { return item.text; }
+							  //TODO vocabulary stuff for countries
+							  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
+								  var $item = $(
+									'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
+									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+								  );
+							  }else{
+								  if(item.alternateText){
+									  var $item = $(
+										'<span class="dsd-ui-item-label" >' + 
+											item.text + 
+											' <span class="dsd-ui-item-code">['+item.id+']</span>' + 	
+										'</span>'+
+										'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>' +
+										(item.href? ' <a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.labels.listedvalue_href_placeholder+'</a>' : '' )
+									  );
+								  }else{
+									  var $item = $(
+										'<span class="dsd-ui-item-label" >' + 
+											item.text + 
+											' <span class="dsd-ui-item-code">['+item.id+']</span>' + 
+										'</span>' +
+										(item.href? '<br><a href="'+item.href+'" target="_blank" style="color:blue;">'+this_.options.labels.listedvalue_href_placeholder+'</a>' : '' )
+									  );
+								  }
+							  }
+							  return $item;
+							};
+							var attributeItemResult = function(item) {
+							  if (!item.id) { return item.text; }
+							  //TODO vocabulary stuff for countries
+							  if(["flag", "flagstate", "country"].filter(function(el){return item.codelist.toLowerCase().match(el)}).length > 0){
+								  var $item = $(
+									'<img src="img/flags/' + item.id.toLowerCase() + '.gif" class="img-flag" />' +
+									'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+								  );
+							  }else{
+								  if(item.alternateText){
+									  var $item = $(
+										'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'+
+										'<br><span class="dsd-ui-item-sublabel"> ' + item.alternateText + '</span>'
+									  );
+								  }else{
+									  var $item = $(
+										'<span class="dsd-ui-item-label" >' + item.text + ' <span class="dsd-ui-item-code">['+item.id+']</span>' + '</span>'
+									  );
+								  }
+							  }
+							  return $item;
+							};
+							var dsd_component_placeholder = dsd_component.name;
+
+							$("#" + dsd_component_id).select2({
+								theme: 'classic',
+								allowClear: true,
+								placeholder: dsd_component_placeholder,
+								data: dsd_component.values,
+								templateResult: attributeItemResult,
+								templateSelection: attributeItemSelection,
+								matcher: attributeMatcher
+							});*/
+							
 							//slider when they are listed values
 							var values_min = new Date(dsd_component.minOccurs).getTime() / 1000;
 							var values_max = new Date(dsd_component.maxOccurs).getTime() / 1000;
@@ -3413,21 +3625,7 @@ class OpenFairViewer {
 							  max: values_max,
 							  value: (isMultiple? [ values_min, values_max ] : values_max),
 							  ticks: dsd_component.values.map(function(instant){return new Date(instant.id).getTime()/1000;}),
-							  //ticks_labels: dsd_component.values,
-							  lock_to_ticks: true,
-							  formatter: function(value) {
-								return 'Current value: ' + value;
-							  }
-							  /*slide: function(event, ui){
-								  console.log("sliding");
-								var value = ui.values? new Date(ui.values[ 0 ]*1000).toISOString() + " - " + new Date(ui.values[ 1 ]*1000).toISOString() : new Date(ui.value*1000).toISOString();
-								$("#"+event.target.id.split("-slider")[0]+"-range").val(value);
-							  },
-							  change: function(event, ui){
-								  console.log("changing");
-								var value = ui.values? new Date(ui.values[ 0 ]*1000).toISOString() + " - " + new Date(ui.values[ 1 ]*1000).toISOString() : new Date(ui.value*1000).toISOString();
-								$("#"+event.target.id.split("-slider")[0]+"-range").val(value); 
-							  }*/
+							  lock_to_ticks: true
 							});
 							$("#"+dsd_component_id_slider).on("slide", function(event) {
 								console.log(event)
@@ -3537,7 +3735,7 @@ class OpenFairViewer {
 			//------------------------------------
 			$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.thematicmapping_options+'</label></p></div>');
 			var geomtype = this_.getGeometryType(this_.dataset_on_query.dsd);
-			this_.handleQueryMapOptions(geomtype, 2);
+			this_.handleQueryThematicMappingOptions(geomtype, 2);
 		}
 		
 		//query & map button
@@ -3575,17 +3773,16 @@ class OpenFairViewer {
 			contentType: 'application/xml',
 			type: 'GET',
 			success: function(response){
-				$("#dsd-loader").hide();
 				
 				//parse DSD
 				var dsd = this_.parseFeatureCatalogue(response);
 				console.log(dsd);
-				if(!dsd){
+				/*if(!dsd){
 					console.warn("No feature catalogue available although referenced in metadata. Delegate to simple filter form");
 					this_.handleFilter(dataset);
 					$("#dsd-loader").hide();
 					return;
-				}
+				}*/
 				if(dsd.strategy) strategy = dsd.strategy; //Backward compatibility for datasets having their OFV strategy set-up in feature catalogues
 				this_.dataset_on_query = { 
 					pid: pid,
@@ -3602,10 +3799,31 @@ class OpenFairViewer {
 				if(this_.dataset_on_query.point_vectorizing) this_.dataset_on_query.thematicmapping = false;
 				if(this_.dataset_on_query.point_clustering) this_.dataset_on_query.thematicmapping = false;
 				
-				//build UI
-				if(!dsdOnly) this_.handleDSDUserInterface(dataset);
 				
-				deferred.resolve(this_.dataset_on_query);
+				
+				//query service capabilities
+				console.log(this_.getDatasetServiceCouplingType(this_.dataset_on_query));
+				if(this_.getDatasetServiceCouplingType(this_.dataset_on_query) == "tight"){
+					this_.handleDatasetServiceCapabilities(this_.dataset_on_query).then(function(capabilities){
+						console.log(strategy);
+						if(strategy == "ogc_dimensions") {
+							this_.dataset_on_query.capabilities = capabilities;
+							var ogc_dsd = this_.parseLayerDescription(this_.dataset_on_query, entry.wms[0].name);
+							console.log(ogc_dsd);
+							this_.dataset_on_query.dsd = ogc_dsd.components;
+						}
+						
+						//build UI
+						$("#dsd-loader").hide();
+						if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);
+						
+						deferred.resolve(strategy);
+					});
+				}else{
+					$("#dsd-loader").hide();
+					if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);	
+				}
+					
 			}
 		});
 	
@@ -3633,30 +3851,48 @@ class OpenFairViewer {
 		var strategy = this.getStrategy(dataset);
 		var dsd = this_.parseCoverageDescription(dataset);
 		console.log(dsd);
-		if(!dsd){
+		/*if(!dsd){
 			console.warn("No coverage description available. Delegate to simple filter form");
 			this_.handleFilter(dataset);
 			$("#dsd-loader").hide();
 			return;
-		}
+		}*/
 		if(dsd.strategy) strategy = dsd.strategy;
 		this_.dataset_on_query = { 
 			pid: pid,
 			lyr: lyr,
 			entry: entry, 
 			strategy: strategy, 
-			dsd: dsd.components, 
+			dsd: (dsd.components? dsd.components : null), 
 			query: null, 
 			thematicmapping: false,
 			point_vectorizing: false,
 			point_clustering: false
 		};
 		
-		//build UI
-		$("#dsd-loader").hide();
-		if(!dsdOnly) this_.handleDSDUserInterface(dataset);
+		//query service capabilities
+		console.log(this_.getDatasetServiceCouplingType(this_.dataset_on_query));
+		if(this_.getDatasetServiceCouplingType(this_.dataset_on_query) == "tight"){
+			this_.handleDatasetServiceCapabilities(this_.dataset_on_query).then(function(capabilities){
+				console.log(strategy);
+				if(strategy == "ogc_dimensions") {
+					this_.dataset_on_query.capabilities = capabilities;
+					var ogc_dsd = this_.parseLayerDescription(this_.dataset_on_query, entry.wms[0].name);
+					console.log(ogc_dsd);
+					this_.dataset_on_query.dsd = ogc_dsd.components;
+				}
+				
+				//build UI
+				$("#dsd-loader").hide();
+				if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);	
+			
+				deferred.resolve(dataset);
+			});
+		}else{
+			$("#dsd-loader").hide();
+			if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);	
+		}
 		
-		deferred.resolve(this_.dataset_on_query);
 		return deferred.promise();
 		
 	}
