@@ -2919,6 +2919,66 @@ class OpenFairViewer {
 		}
 	}
 	
+	
+	/**
+	 * handleQueryStylingOptions
+	 * @param {Integer} columnIdx
+	 */
+	handleQueryStylingOptions(columnIdx){
+		
+		var this_ = this;
+		//id
+		var map_style_id = "map-style-selector";
+		//html
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_style_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.styling_selector_title+'"></select>');
+		//jquery widget
+		var formatMapstyle = function(item) {
+			if (!item.id) { return item.text; }
+			var $item = $('<span class="dsd-ui-item-label" >' + item.text + '</span>');
+			return $item;
+		};
+		var map_style_placeholder = this_.options.labels.styling_selector;
+		
+		//map styles
+		var map_layers = this.dataset_on_query.capabilities.capability.layer.layer[0].layer;
+		var map_styles = new Array();
+		var map_ogclayer = null;
+		var map_ogclayer_filter = map_layers.filter(function(layer){if(layer.name == this_.dataset_on_query.lyr) return layer});
+		if(map_ogclayer_filter.length > 0) map_ogclayer = map_ogclayer_filter[0];
+		if(map_ogclayer){
+			map_styles = map_ogclayer.style.map(function(style){
+				return {id: style.name, text: style.title, alternateText: style._abstract, href: style.legendURL[0].onlineResource.href};
+			});
+		}
+		
+		$("#" + map_style_id).select2({
+			theme: 'classic',
+			allowClear: true,
+			placeholder: map_style_placeholder,
+			data: map_styles,
+			templateResult: formatMapstyle,
+			templateSelection: formatMapstyle
+		});
+		$("#ui-ogc_layer").trigger("change");
+		if(map_styles.length > 0) $("#" + map_style_id).val(map_styles[0].id).trigger("change");
+		$("#ui-ogc_layer").on('select2:select', function(e){
+				
+			var map_ogclayer = null;
+			var map_ogclayer_filter = map_layers.filter(function(layer){if(layer.name == e.target.value) return layer});
+			if(map_ogclayer_filter.length > 0) map_ogclayer = map_ogclayer_filter[0];
+			if(map_ogclayer){
+				var styles = map_ogclayer.style.map(function(style){
+					return {id: style.name, text: style.title, alternateText: style._abstract, href: style.legendURL[0].onlineResource.href};
+				});
+				$("#" + map_style_id).select2().empty();
+				$("#" + map_style_id).select2({data: styles});
+				$("#" + map_style_id).val(styles[0].id).trigger("change");
+			}
+		
+		});
+	
+	}
+	
 	/**
 	 * handleDashboardOptions
 	 * @param {Integer} columnIdx
@@ -3738,6 +3798,14 @@ class OpenFairViewer {
 			this_.handleQueryThematicMappingOptions(geomtype, 2);
 		}
 		
+		//4. Build UI for styling options (if service capabilities available with dataset)
+		//--------------------------------------------------------------------------------
+		if(this_.dataset_on_query.capabilities) {
+			$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;font-variant:petite-caps;font-size:110%;"><span class="glyphicon glyphicon-globe"></span><label style="margin-left:4px;">'+ this_.options.labels.thematicmapping+'</label></p><hr style="margin:0px;"></div>');
+			$("#dsd-ui-col-2").append('<div style="margin: 0px;margin-top: 10px;width: 90%;text-align: left !important;"><p style="margin:0;"><label style="font-weight:normal;">'+ this_.options.labels.styling_options+'</label></p></div>');
+			this_.handleQueryStylingOptions(2);
+		}
+		
 		//query & map button
 		this_.handleQueryAndMapButton(2);
 		
@@ -3816,12 +3884,12 @@ class OpenFairViewer {
 						//build UI
 						$("#dsd-loader").hide();
 						if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);
-						
-						deferred.resolve(strategy);
+						deferred.resolve(this_.dataset_on_query);
 					});
 				}else{
 					$("#dsd-loader").hide();
-					if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);	
+					if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);
+					deferred.resolve(this_.dataset_on_query);
 				}
 					
 			}
@@ -3885,12 +3953,12 @@ class OpenFairViewer {
 				//build UI
 				$("#dsd-loader").hide();
 				if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);	
-			
-				deferred.resolve(dataset);
+				deferred.resolve(this_.dataset_on_query);
 			});
 		}else{
 			$("#dsd-loader").hide();
-			if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);	
+			if(!dsdOnly) this_.handleDSDUserInterface(this_.dataset_on_query);
+			deferred.resolve(this_.dataset_on_query);
 		}
 		
 		return deferred.promise();
@@ -4337,9 +4405,8 @@ class OpenFairViewer {
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
 		var colorScheme = from_query_form? $("#map-colorscheme-selector").select2('val') : dataset.envcolscheme;
-		
 		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="" && item.startsWith("v")) return item}).length-2 : null);
-		var layerStyle =  from_query_form? this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb) : dataset.style;
+		var layerStyle =  from_query_form? ($("#map-style-selector").select2('val')? $("#map-style-selector").select2('val') : this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb)) : dataset.style;
 
 		var geom = from_query_form? this_.getGeometryColumn(dataset.dsd) : dataset.geom;
 		var geomtype = from_query_form? this_.getGeometryType(dataset.dsd) : dataset.geomtype;
@@ -4453,7 +4520,7 @@ class OpenFairViewer {
 						//static styling
 						console.log("Add "+dataset.entry.dataModel+" layer with strategy 'ogc_filters' (static styling)");
 						this_.selectDatasetView(dataset, lyr);
-						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str));
+						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -4484,7 +4551,7 @@ class OpenFairViewer {
 					var cql_filter = null;
 					if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 					this_.selectDatasetView(dataset, lyr);
-					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter);
+					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, layerStyle);
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -4536,7 +4603,7 @@ class OpenFairViewer {
 						console.log("Add grid layer with strategy 'ogc_dimensions' (static styling)");
 						//static styling
 						this_.selectDatasetView(dataset, lyr);
-						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,null, ogc_time_dimension, ogc_elevation_dimension);
+						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle,null, ogc_time_dimension, ogc_elevation_dimension);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -4823,7 +4890,11 @@ class OpenFairViewer {
 						console.log("Update "+dataset.entry.dataModel+" layer with strategy 'ogc_filters' (static styling)");
 						//static styling
 						layer.setProperties({title: layerTitle});
-						layer.getSource().updateParams({'STYLES' : ''});
+						if(layerStyle){
+							layer.getSource().updateParams({'STYLES' : layerStyle});
+						}else{
+							layer.getSource().updateParams({'STYLES' : ''});
+						}
 						if(strategyparams_str != ""){
 							layer.getSource().updateParams({'CQL_FILTER' : ((strategyparams == null)? null : decodeURIComponent(strategyparams_str))});
 						}else{
@@ -4902,7 +4973,11 @@ class OpenFairViewer {
 						console.log("Update grid layer with strategy 'ogc_dimensions' (static styling)");
 						//static styling
 						layer.setProperties({title: layerTitle});
-						layer.getSource().updateParams({'STYLES' : ''});
+						if(layerStyle){
+							layer.getSource().updateParams({'STYLES' : layerStyle});
+						}else{
+							layer.getSource().updateParams({'STYLES' : ''});
+						}
 						if(ogc_time_dimension) layer.getSource().updateParams({'TIME' : ogc_time_dimension});
 						if(ogc_elevation_dimension) layer.getSource().updateParams({'ELEVATION' : ogc_elevation_dimension});
 						layer.strategy = dataset.strategy;
@@ -5041,7 +5116,11 @@ class OpenFairViewer {
 					console.log("Update vector layer with strategy 'ogc_viewparams' (static styling)");
 					//static styling
 					layer.setProperties({title: layerTitle});
-					layer.getSource().updateParams({'STYLES' : ''});
+					if(layerStyle){
+						layer.getSource().updateParams({'STYLES' : layerStyle});
+					}else{
+						layer.getSource().updateParams({'STYLES' : ''});
+					}
 					layer.getSource().updateParams({'VIEWPARAMS' : strategyparams_str});
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
@@ -6240,6 +6319,13 @@ class OpenFairViewer {
 			request += '&TRANSPARENT=true';
 			request += '&WIDTH=30';
 			request += '&SLD_VERSION=1.1.0';
+			if(params.STYLES){
+				var style_splits = params.STYLES.split('/');
+				if(style_splits.length > 1){
+					//detect presence of palette
+					request += '&PALETTE='+style_splits[1];
+				}
+			}
 			
 			if(colors){
 				request += '&env=';

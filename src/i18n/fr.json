@@ -80,5 +80,8 @@
 	"layer": "Couche",
 	"layer_selection": "Sélection de couche",
 	"layer_selection_title": "Sélectionner une couche à visualiser",
-	"layer_selection_placeholder": "Sélectionner une couche"
+	"layer_selection_placeholder": "Sélectionner une couche",
+	"styling_options": "Options de carte",
+	"styling_selector": "Sélectionner un style",
+	"styling_selector_title": "Sélectionner un style à appliquer à la carte"
 }
