@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,6,21)}
+		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,6,25)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3084,7 +3084,7 @@ class OpenFairViewer {
 			});
 			if(srv_idents.length > 0){
 				var srv_ident = srv_idents[0];
-				if(srv_ident.couplingType) couplingType = srv_ident.couplingType.svCouplingType.value;
+				if(srv_ident.couplingType) couplingType = srv_ident.couplingType.svCouplingType.codeListValue;
 			}
 		}
 		return couplingType;
