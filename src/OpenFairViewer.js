@@ -6745,7 +6745,11 @@ class OpenFairViewer {
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change'); 
+						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						var style = datasetDef.style;
+						if(style) if($("#map-style-selector").length > 0){
+							$("#map-style-selector").val(style).trigger('change');
+						}
 						break;
 					
 					case "ogc_dimensions":
@@ -6807,7 +6811,11 @@ class OpenFairViewer {
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change'); 
+						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						var style = datasetDef.style;
+						if(style) if($("#map-style-selector").length > 0){
+							$("#map-style-selector").val(style).trigger('change');
+						}
 						break;
 					case "ogc_viewparams":
 						console.log("Resolve query for dataset '"+datasetDef.pid+"' using 'ogc_viewparams' strategy");
@@ -6865,6 +6873,10 @@ class OpenFairViewer {
 						}
 						var envcolscheme = datasetDef.envcolscheme;
 						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change'); 
+						var style = datasetDef.style;
+						if(style) if($("#map-style-selector").length > 0){
+							$("#map-style-selector").val(style).trigger('change');
+						}
 						break;
 				}
 			}
