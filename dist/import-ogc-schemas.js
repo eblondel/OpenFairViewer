@@ -4,6 +4,8 @@ import {OWS_2_0} from 'ogc-schemas/lib/OWS_2_0'; window.OWS_2_0 = OWS_2_0;
 import {DC_1_1} from 'ogc-schemas/lib/DC_1_1'; window.DC_1_1 = DC_1_1;
 import {DCT} from 'ogc-schemas/lib/DCT'; window.DCT = DCT;
 import {CSW_2_0_2} from 'ogc-schemas/lib/CSW_2_0_2_Full'; window.CSW_2_0_2 = CSW_2_0_2;
+import {WMS_1_1_1} from 'ogc-schemas/lib/WMS_1_1_1'; window.WMS_1_1_1 = WMS_1_1_1;
+import {WMS_1_3_0} from 'ogc-schemas/lib/WMS_1_3_0'; window.WMS_1_3_0 = WMS_1_3_0;
 import {Filter_1_1_0} from 'ogc-schemas/lib/Filter_1_1_0'; window.Filter_1_1_0 = Filter_1_1_0;
 import {GML_3_1_1} from 'ogc-schemas/lib/GML_3_1_1'; window.GML_3_1_1 = GML_3_1_1;
 import {GML_3_2_0} from 'ogc-schemas/lib/GML_3_2_0'; window.GML_3_2_0 = GML_3_2_0;
@@ -23,3 +25,4 @@ import {ISO19139_GTS_20070417} from 'ogc-schemas/lib/ISO19139_GTS_20070417'; win
 import {ISO19139_GSS_20070417} from 'ogc-schemas/lib/ISO19139_GSS_20070417'; window.ISO19139_GSS_20070417 = ISO19139_GSS_20070417;
 import {ISO19139_GSR_20070417} from 'ogc-schemas/lib/ISO19139_GSR_20070417'; window.ISO19139_GSR_20070417 = ISO19139_GSR_20070417;
 import {ISO19139_GMX_20070417} from 'ogc-schemas/lib/ISO19139_GMX_20070417'; window.ISO19139_GMX_20070417 = ISO19139_GMX_20070417;
+import {ISO19139_2_GMI_1_0} from 'ogc-schemas/lib/ISO19139_2_GMI_1_0'; window.ISO19139_2_GMI_1_0 = ISO19139_2_GMI_1_0; 

@@ -24,7 +24,6 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	static renderLegendGraphic_(lyr, li) {
 		if(lyr.get('type') != 'base' && lyr.showLegendGraphic){
 			var imgSrc = (lyr.legendGraphic)? lyr.legendGraphic : false;
-			console.log(imgSrc);
 			if(imgSrc){
 				var legend = document.createElement('div');
 				var legendId = lyr.get('title').replace(' ', '-') + "_legend";
@@ -60,7 +59,6 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 	 */
 	static renderOpacitySlider_(lyr, li) {
 		if(lyr.get('type') != 'base'){
-			console.log(lyr);
 			var layer_id = lyr.id + "_op";
 			var layer_slider = lyr.id + "_opslider";
 			var layer_slider_html = document.createElement('p');
@@ -68,7 +66,6 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			layer_slider_html.className = "not-draggable";
 			layer_slider_html.style = "margin-left:32px;height:40px;font-weight:normal !important;font-size:90%;overflow-wrap:break-word;";
 			layer_slider_html.style.display = lyr.getVisible()? "table" : "none";
-			layer_slider_html.innerHTML = '<span class="glyphicon glyphicon-eye-close"></span>';
 			//input
 			var layer_slider_input = document.createElement('input');
 			layer_slider_input.id = layer_slider;
@@ -77,10 +74,11 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			layer_slider_input.step = "0.1";
 			layer_slider_input.min = "0";
 			layer_slider_input.max = "1";
-			layer_slider_input.style = "width:75%;margin-left:20px;margin-bottom:10px;";
+			layer_slider_input.style = "width:75%;margin-left:35px;margin-top:5px;margin-bottom:10px;height:5px;";
 			layer_slider_input.value = lyr.getOpacity();
 			layer_slider_input.className = "not-draggable";
 			layer_slider_html.append(layer_slider_input);
+			layer_slider_html.innerHTML = layer_slider_html.innerHTML + '<span class="glyphicon glyphicon-eye-close"></span>';
 			li.append(layer_slider_html);
 		}
 	}
@@ -320,7 +318,6 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 		if (options.reverse) lyrs = lyrs.reverse();
 		if (options.dragAndDrop){
 			if(lyrs[0]) if(!(lyrs[0] instanceof LayerGroup)) if(lyrs[0].getZIndex()!=NaN){
-				console.info("Sorting by layer Z indexes!");
 				lyrs.sort((a, b) => { 
 					return ((a.getZIndex() - b.getZIndex()) > 0 ? -1 : 1); 
 				});
@@ -364,9 +361,6 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			 
 			var dragLayerEnter = function(e) {
 				var draggable = dragAuth(e.target);
-				console.log(e);
-				console.log(e.target);
-				console.log(draggable);
 				if(draggable) this.classList.add('draggable-layer-over');
 				return false;
 			}

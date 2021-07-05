@@ -78,5 +78,8 @@
 	"layer": "Capa",
 	"layer_selection": "Selección de capa",
 	"layer_selection_title": "Seleccionar una capa a visualizar",
-	"layer_selection_placeholder": "Seleccionar una capa"	
+	"layer_selection_placeholder": "Seleccionar una capa",
+	"styling_options": "Opciones de mapa",
+	"styling_selector": "Seleccionar un estilo",
+	"styling_selector_title": "Select un estilo a aplicar al mapa"
 }
