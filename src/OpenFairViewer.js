@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,7,5)}
+		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,7,7)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3232,10 +3232,25 @@ class OpenFairViewer {
 		this.handleQueryFormButtons(1);
 		
 		//query service capabilities
-		if(this.getDatasetServiceCouplingType(dataset) == "tight") this.handleDatasetServiceCapabilities(dataset).then(function(capabilities){
-			dataset.capabilities = capabilities;
-			deferred.resolve(dataset);
-		});
+		console.log(this_.getDatasetServiceCouplingType(this_.dataset_on_query));
+		if(this_.getDatasetServiceCouplingType(this_.dataset_on_query) == "tight"){
+			this_.handleDatasetServiceCapabilities(this_.dataset_on_query).then(function(capabilities){
+				console.log(strategy);
+				if(strategy == "ogc_dimensions") {
+					this_.dataset_on_query.capabilities = capabilities;
+					var ogc_dsd = this_.parseLayerDescription(this_.dataset_on_query, entry.wms[0].name);
+					console.log(ogc_dsd);
+					this_.dataset_on_query.dsd = ogc_dsd.components;
+				}
+				
+				//build UI
+				$("#dsd-loader").hide();
+				deferred.resolve(this_.dataset_on_query);
+			});
+		}else{
+			$("#dsd-loader").hide();
+			deferred.resolve(this_.dataset_on_query);
+		}
 		
 		return deferred.promise();
 	}
@@ -6457,6 +6472,7 @@ class OpenFairViewer {
 		hidden = hidden? hidden : false;
 	    if(envparams){ layerParams['env'] = envparams; }
 	    if(style) layerParams['STYLES'] = style;
+		console.log(layerParams);
 	    var layer = new olLayerClass({
 			id : (hidden? undefined : id),
 			title : (hidden? undefined : title),
