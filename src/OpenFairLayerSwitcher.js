@@ -68,14 +68,15 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			layer_slider_html.style.display = lyr.getVisible()? "table" : "none";
 			//input
 			var layer_slider_input = document.createElement('input');
+			console.log(layer_slider_input);
 			layer_slider_input.id = layer_slider;
 			layer_slider_input.name = layer_slider;
 			layer_slider_input.type = "range";
 			layer_slider_input.step = "0.1";
 			layer_slider_input.min = "0";
 			layer_slider_input.max = "1";
+			layer_slider_input.setAttribute("value", String(lyr.getOpacity()));
 			layer_slider_input.style = "width:75%;margin-left:35px;margin-top:5px;margin-bottom:10px;height:5px;";
-			layer_slider_input.value = lyr.getOpacity();
 			layer_slider_input.className = "not-draggable";
 			layer_slider_html.append(layer_slider_input);
 			layer_slider_html.innerHTML = layer_slider_html.innerHTML + '<span class="glyphicon glyphicon-eye-close"></span>';
