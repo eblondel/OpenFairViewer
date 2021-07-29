@@ -5946,6 +5946,7 @@ class OpenFairViewer {
 	 * drawFeatureFromGeom
 	 */
 	drawFeatureFromGeom(geom){
+		var this_ = this;
 		var feature = new Feature({
 			geometry: geom,
 			style : this_.options.find.defaultStyle
