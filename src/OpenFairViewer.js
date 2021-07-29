@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,7,7)}
+		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,7,29)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -5939,6 +5939,40 @@ class OpenFairViewer {
 	}
 
 	/**
+	 * drawFeatureFromGeom
+	 */
+	drawFeatureFromGeom(geom){
+		var feature = new Feature({
+			geometry: geom,
+			style : this_.options.find.defaultStyle
+		});
+		feature.setId('generic');
+
+		var layerId = 'ofv-feature-marker';
+		var layer = this.getLayerByProperty(layerId, 'id');
+		var source = new Vector({ features: [feature] });
+		if(!layer){
+			var layer = new VectorLayer({
+			  source: new Vector({
+			    features: [feature]
+			  })
+			});
+			layer.id = layerId;
+			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
+		}else{
+			layer.setSource(source);
+		}
+	}
+	
+	/**
+	 * drawFeatureFromWKT
+	 *
+	 */
+	drawFeatureFromWKT(wkt){
+		var this_ = this;
+		var geom = this.processWKT(wkt);
+		this.drawFeatureFromGeom(geom);
+	}
 
 	/**
 	 * zoomToFeature
@@ -5957,26 +5991,7 @@ class OpenFairViewer {
 	highlightFeature(pid, id, wkt){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
-		var feature = new Feature({
-			geometry: geom,
-			style : this_.options.find.defaultStyle
-		});
-		feature.setId(id);
-
-		var layerId = 'ofv-feature-marker';
-		var layer = this.getLayerByProperty(layerId, 'id');
-		var source = new Vector({ features: [feature] });
-		if(!layer){
-			var layer = new VectorLayer({
-			  source: new Vector({
-			    features: [feature]
-			  })
-			});
-			layer.id = layerId;
-			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
-		}else{
-			layer.setSource(source);
-		}
+		this.drawFeatureFromGeom(geom);
 		
 		//add popup
 		var target_layer = this_.getLayerByProperty(pid, "id");
