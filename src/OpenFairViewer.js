@@ -821,6 +821,9 @@ class OpenFairViewer {
 			//resolve viewer from URL
 			this_.resolveViewer();
 			
+			//message listener
+			this_.enableMessageListener();
+			
 			this_._copyright();
 		});
 	}
@@ -7150,6 +7153,23 @@ class OpenFairViewer {
 		}
 		if(params.zoom) this.map.getView().setZoom(parseInt(params.zoom));
 		
+	}
+	
+	/**
+	 * enableMessageListener
+	 */
+	enableMessageListener(){
+		//testing messaging between children (Shiny popups) and parent (OFV)
+		// Create IE + others compatible event handler
+		var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+		var eventer = window[eventMethod];
+		var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+		// Listen to message from child window
+		eventer(messageEvent,function(e) {
+		  console.log('parent received message! = ', e.data);
+		  eval(e.data);
+		},false);
 	}
 	
 	//===========================================================================================
