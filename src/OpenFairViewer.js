@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.0", DATE: new Date(2021,7,7)}
+		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,7,29)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -820,6 +820,9 @@ class OpenFairViewer {
 			
 			//resolve viewer from URL
 			this_.resolveViewer();
+			
+			//message listener
+			this_.enableMessageListener();
 			
 			this_._copyright();
 		});
@@ -5921,7 +5924,8 @@ class OpenFairViewer {
 		var feature = format.readFeature(wkt);
 		var geom = feature.getGeometry();
 		//reproject if needed
-		var srs_data = this.dataset_on_query.entry.projection;
+		var srs_data = null;
+		if(this.dataset_on_query) srs_data = this.dataset_on_query.entry.projection;
 		var srs_map = this.map.getView().getProjection();
 		if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
 			geom.transform(srs_data, srs_map);
@@ -5939,6 +5943,41 @@ class OpenFairViewer {
 	}
 
 	/**
+	 * drawFeatureFromGeom
+	 */
+	drawFeatureFromGeom(geom){
+		var this_ = this;
+		var feature = new Feature({
+			geometry: geom,
+			style : this_.options.find.defaultStyle
+		});
+		feature.setId('generic');
+
+		var layerId = 'ofv-feature-marker';
+		var layer = this.getLayerByProperty(layerId, 'id');
+		var source = new Vector({ features: [feature] });
+		if(!layer){
+			var layer = new VectorLayer({
+			  source: new Vector({
+			    features: [feature]
+			  })
+			});
+			layer.id = layerId;
+			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
+		}else{
+			layer.setSource(source);
+		}
+	}
+	
+	/**
+	 * drawFeatureFromWKT
+	 *
+	 */
+	drawFeatureFromWKT(wkt){
+		var this_ = this;
+		var geom = this.processWKT(wkt);
+		this.drawFeatureFromGeom(geom);
+	}
 
 	/**
 	 * zoomToFeature
@@ -5957,26 +5996,7 @@ class OpenFairViewer {
 	highlightFeature(pid, id, wkt){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
-		var feature = new Feature({
-			geometry: geom,
-			style : this_.options.find.defaultStyle
-		});
-		feature.setId(id);
-
-		var layerId = 'ofv-feature-marker';
-		var layer = this.getLayerByProperty(layerId, 'id');
-		var source = new Vector({ features: [feature] });
-		if(!layer){
-			var layer = new VectorLayer({
-			  source: new Vector({
-			    features: [feature]
-			  })
-			});
-			layer.id = layerId;
-			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
-		}else{
-			layer.setSource(source);
-		}
+		this.drawFeatureFromGeom(geom);
 		
 		//add popup
 		var target_layer = this_.getLayerByProperty(pid, "id");
@@ -7135,6 +7155,23 @@ class OpenFairViewer {
 		}
 		if(params.zoom) this.map.getView().setZoom(parseInt(params.zoom));
 		
+	}
+	
+	/**
+	 * enableMessageListener
+	 */
+	enableMessageListener(){
+		//testing messaging between children (Shiny popups) and parent (OFV)
+		// Create IE + others compatible event handler
+		var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+		var eventer = window[eventMethod];
+		var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+		// Listen to message from child window
+		eventer(messageEvent,function(e) {
+		  console.log('parent received message! = ', e.data);
+		  eval(e.data);
+		},false);
 	}
 	
 	//===========================================================================================
