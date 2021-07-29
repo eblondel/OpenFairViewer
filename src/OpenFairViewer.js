@@ -5924,7 +5924,8 @@ class OpenFairViewer {
 		var feature = format.readFeature(wkt);
 		var geom = feature.getGeometry();
 		//reproject if needed
-		var srs_data = this.dataset_on_query.entry.projection;
+		var srs_data = null;
+		if(this.dataset_on_query) srs_data = this.dataset_on_query.entry.projection;
 		var srs_map = this.map.getView().getProjection();
 		if(srs_data) if(srs_data.getCode() != srs_map.getCode()){
 			geom.transform(srs_data, srs_map);
