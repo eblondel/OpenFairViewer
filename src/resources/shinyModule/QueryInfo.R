@@ -172,7 +172,7 @@ QueryInfo <- function(input, output, session) {
       }
       
     #Final columns selection for data et columns informations
-    Data<-subset(Data,select=ColumnName)
+    #Data<-subset(Data,select=ColumnName)
     if(!is.null(dsd)){
       dsd<-subset(dsd,MemberCode%in%ColumnName)
     }
