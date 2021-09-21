@@ -5994,7 +5994,7 @@ class OpenFairViewer {
 		if(!json.features) return;
 		var features = json.features.map(function(item){
 			var feature = format.readFeature(item,{
-				dataProjection: 'EPSG:4326'
+				featureProjection: this_.map.getView().getProjection()
 			});
 			return feature;
 		});
