@@ -5993,7 +5993,9 @@ class OpenFairViewer {
 		var format = new olFormat.GeoJSON();
 		if(!json.features) return;
 		var features = json.features.map(function(item){
-			var feature = format.readFeature(item);
+			var feature = format.readFeature(item,{
+				dataProjection: 'EPSG:4326'
+			});
 			return feature;
 		});
 		var feature_styles = styles? styles : [this_.options.find.defaultStyle];
