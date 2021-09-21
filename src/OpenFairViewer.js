@@ -5990,7 +5990,8 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		var format = new olFormat.GeoJSON();
-		var features = json.map(function(item){
+		if(!json.features) return;
+		var features = json.features.map(function(item){
 			var feature = format.readFeature(item);
 			return feature;
 		});
