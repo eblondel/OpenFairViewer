@@ -5982,6 +5982,36 @@ class OpenFairViewer {
 	}
 
 	/**
+	 * drawFeaturesFromGeoJSON
+	 * @param json
+	 * @param styles
+	 */
+	drawFeaturesFromGeoJSON(json, styles){
+		var this_ = this;
+		
+		var format = new olFormat.GeoJSON();
+		var features = json.map(function(item){
+			var feature = format.readFeature(item);
+			return feature;
+		});
+		var feature_styles = styles? styles : [this_.options.find.defaultStyle];
+		
+		var layerId = 'ofv-feature-marker';
+		var layer = this.getLayerByProperty(layerId, 'id');
+		var source = new Vector({ features: features });
+		if(!layer){
+			var layer = new VectorLayer({
+			  source: source,
+			  style : feature_styles
+			});
+			layer.id = layerId;
+			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
+		}else{
+			layer.setSource(source);
+		}
+	}
+	
+	/**
 	 * zoomToFeature
 	 *
 	 */
