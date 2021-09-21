@@ -5945,16 +5945,13 @@ class OpenFairViewer {
 	/**
 	 * drawFeatureFromGeom
 	 * @param geom
-	 * @param style
+	 * @param styles
 	 */
-	drawFeatureFromGeom(geom, style){
+	drawFeatureFromGeom(geom, styles){
 		
 		var this_ = this;
-		var feature_style = style? style : this_.options.find.defaultStyle;
-		var feature = new Feature({
-			geometry: geom,
-			style : feature_style
-		});
+		var feature_styles = styles? styles : [this_.options.find.defaultStyle];
+		var feature = new Feature({ geometry: geom });
 		feature.setId('generic');
 
 		var layerId = 'ofv-feature-marker';
@@ -5964,7 +5961,8 @@ class OpenFairViewer {
 			var layer = new VectorLayer({
 			  source: new Vector({
 			    features: [feature]
-			  })
+			  }),
+			  style : feature_styles
 			});
 			layer.id = layerId;
 			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
@@ -5977,10 +5975,10 @@ class OpenFairViewer {
 	 * drawFeatureFromWKT
 	 *
 	 */
-	drawFeatureFromWKT(wkt, style){
+	drawFeatureFromWKT(wkt, styles){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
-		this.drawFeatureFromGeom(geom, style);
+		this.drawFeatureFromGeom(geom, styles);
 	}
 
 	/**
