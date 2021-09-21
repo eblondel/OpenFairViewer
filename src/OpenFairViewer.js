@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,7,29)}
+		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,8,21)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -5944,12 +5944,14 @@ class OpenFairViewer {
 
 	/**
 	 * drawFeatureFromGeom
+	 * @param geom
+	 * @param style
 	 */
-	drawFeatureFromGeom(geom){
+	drawFeatureFromGeom(geom, style){
 		var this_ = this;
 		var feature = new Feature({
 			geometry: geom,
-			style : this_.options.find.defaultStyle
+			style : (style? style : this_.options.find.defaultStyle)
 		});
 		feature.setId('generic');
 
@@ -5973,10 +5975,10 @@ class OpenFairViewer {
 	 * drawFeatureFromWKT
 	 *
 	 */
-	drawFeatureFromWKT(wkt){
+	drawFeatureFromWKT(wkt, style){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
-		this.drawFeatureFromGeom(geom);
+		this.drawFeatureFromGeom(geom, style);
 	}
 
 	/**
