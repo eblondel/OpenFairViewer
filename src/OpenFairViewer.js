@@ -5968,6 +5968,7 @@ class OpenFairViewer {
 			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
 		}else{
 			layer.setSource(source);
+			if(styles) layer.setStyle(styles);
 		}
 	}
 	
@@ -6009,6 +6010,7 @@ class OpenFairViewer {
 			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
 		}else{
 			layer.setSource(source);
+			if(styles) layer.setStyle(styles);
 		}
 	}
 	
