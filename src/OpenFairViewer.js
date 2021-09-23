@@ -18,7 +18,7 @@
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *		   
  */
-
+ 
 //jquery
 import './import-jquery';
 import 'jquery-ui-dist/jquery-ui.css';
@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.6.1", DATE: new Date(2021,8,21)}
+		this.versioning = {VERSION: "2.7.0", DATE: new Date(2021,8,23)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -274,16 +274,21 @@ class OpenFairViewer {
 		
 		//spatial coverage vector layer params
 		this.options.find.defaultStyle = new Style({
-		   stroke : new Stroke({color : [0, 153, 255, 1], width: 3})
+		   fill : new Fill({color: [0, 153, 255, 0.5]}),
+		   stroke : new Stroke({color : [0, 153, 255, 1], width: 2})
+		});
+		this.options.find.selectStyle = new Style({
+		   fill : new Fill({color: [255, 255, 255, 0.8]}),
+		   stroke : new Stroke({color : [0, 153, 255, 1], width: 2})
 		})
 		this.options.find.hoverStyle = new Style({
 		   image: new CircleStyle({
 			    radius: 3,
 				fill : new Fill({color: [255, 255, 255, 0.2]}),
-				stroke : new Stroke({color : "orange", width: 3})
+				stroke : new Stroke({color : [0, 153, 255, 1], width: 2})
 		   }),
 		   fill : new Fill({color: [255, 255, 255, 0.2]}),
-		   stroke : new Stroke({color : "orange", width: 3})
+		   stroke : new Stroke({color : [0, 153, 255, 1], width: 2})
 		});
 		
 		//QUERY options
@@ -566,6 +571,7 @@ class OpenFairViewer {
 			  DATETIME: new RegExp("^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$")
 			}
 			var props = feature.getProperties();
+			console.log(props);
 			var html = '<table class="table table-condensed">';
 			var propNames = Object.keys(props);
 			//text fields
@@ -1377,16 +1383,25 @@ class OpenFairViewer {
 	
 	
 	/**
-	 * OpenFairViewer.prototype.getWFSFeatureInfo
+	 * OpenFairViewer.prototype.getVectorFeatureInfo
 	 * @param layer
 	 * @param feature
 	 * @param coords
 	 */
-	getWFSFeatureInfo(layer, feature, coords){
+	getVectorFeatureInfo(layer, feature, coords){
 		var this_ = this;		
 		var popup = this.map.getOverlayById(layer.id);
 		if(feature){
-			if(!coords) coords = feature.getGeometry().getCoordinates();
+			if(!coords){
+				var geom = feature.getGeometry();
+				coords = olExtent.getCenter(geom.getExtent());
+				if(geom instanceof olGeom.LineString ||
+		   	   	   geom instanceof olGeom.MultiLineString ||
+	 	   	   	   geom instanceof olGeom.MultiPoint){
+					coords = geom.getCoordinates()[0][Math.floor(geom.getCoordinates()[0].length/2)];
+				}
+				if(geom instanceof olGeom.Point) coords = geom.getCoordinates();	
+			}
 			feature.geometry_column = feature.getGeometryName();
 			feature.popup_coordinates = coords;
 			popup.show(coords, this_.options.map.popup.handler(layer, feature));		
@@ -1472,7 +1487,7 @@ class OpenFairViewer {
 				console.log(coords);
 			}
 			//popup handling
-			this_.getWFSFeatureInfo(layer, nextfeature, coords);
+			this_.getVectorFeatureInfo(layer, nextfeature, coords);
 		});
 	}
 	
@@ -1496,10 +1511,10 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * addWFSLayerPopup
+	 * addVectorLayerPopup
 	 * @param layer
 	 */
-    addWFSLayerPopup(layer){
+    addVectorLayerPopup(layer){
 
 		var this_ = this;
 		//configure popup
@@ -4513,7 +4528,7 @@ class OpenFairViewer {
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-							this_.addWFSLayerPopup(layer);
+							this_.addVectorLayerPopup(layer);
 							layer.variable = null;
 							layer.envfun = null;
 							layer.envmaptype = null;
@@ -4727,7 +4742,7 @@ class OpenFairViewer {
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-						this_.addWFSLayerPopup(layer);
+						this_.addVectorLayerPopup(layer);
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -5945,12 +5960,12 @@ class OpenFairViewer {
 	/**
 	 * drawFeatureFromGeom
 	 * @param geom
-	 * @param styles
+	 * @param style
 	 */
-	drawFeatureFromGeom(geom, styles){
+	drawFeatureFromGeom(geom, style){
 		
 		var this_ = this;
-		var feature_styles = styles? styles : [this_.options.find.defaultStyle];
+		var feature_style = style? style : this_.options.find.defaultStyle;
 		var feature = new Feature({ geometry: geom });
 		feature.setId('generic');
 
@@ -5962,32 +5977,33 @@ class OpenFairViewer {
 			  source: new Vector({
 			    features: [feature]
 			  }),
-			  style : feature_styles
+			  style : feature_style
 			});
 			layer.id = layerId;
 			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
 		}else{
 			layer.setSource(source);
-			if(styles) layer.setStyle(styles);
+			if(style) layer.setStyle(style);
 		}
 	}
 	
 	/**
 	 * drawFeatureFromWKT
-	 *
+	 * @param wkt
+	 * @param style
 	 */
-	drawFeatureFromWKT(wkt, styles){
+	drawFeatureFromWKT(wkt, style){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
-		this.drawFeatureFromGeom(geom, styles);
+		this.drawFeatureFromGeom(geom, style);
 	}
 
 	/**
 	 * drawFeaturesFromGeoJSON
 	 * @param json
-	 * @param styles
+	 * @param style
 	 */
-	drawFeaturesFromGeoJSON(json, styles){
+	drawFeaturesFromGeoJSON(json, style){
 		var this_ = this;
 		
 		var format = new olFormat.GeoJSON();
@@ -5998,7 +6014,7 @@ class OpenFairViewer {
 			});
 			return feature;
 		});
-		var feature_styles = styles? styles : [this_.options.find.defaultStyle];
+		var feature_style = style? style : this_.options.find.defaultStyle;
 		
 		var layerId = 'ofv-feature-marker';
 		var layer = this.getLayerByProperty(layerId, 'id');
@@ -6006,13 +6022,13 @@ class OpenFairViewer {
 		if(!layer){
 			var layer = new VectorLayer({
 			  source: source,
-			  style : feature_styles
+			  style : feature_style
 			});
 			layer.id = layerId;
 			this_.layers.overlays[this_.options.map.mainlayergroup].getLayers().push(layer);
 		}else{
 			layer.setSource(source);
-			if(styles) layer.setStyle(styles);
+			if(style) layer.setStyle(style);
 		}
 	}
 	
@@ -6049,7 +6065,7 @@ class OpenFairViewer {
 			var vectorSource = target_layer.getSource();
 			if(vectorSource instanceof Cluster) vectorSource = vectorSource.getSource();
 			feature = vectorSource.getFeatureById(id);
-			this_.getWFSFeatureInfo(target_layer, feature, coords);
+			this_.getVectorFeatureInfo(target_layer, feature, coords);
 		}else{
 			this_.getWMSFeatureInfo(target_layer, coords);
 		}
@@ -6473,11 +6489,15 @@ class OpenFairViewer {
 		if( source instanceof Vector){
 			var features = source instanceof Cluster? source.source.getFeatures() : source.getFeatures();
 			if(features.length > 0){
-				var style = lyr.getStyle()(features[0]);
-				var canvas = style.getImage().getImage();
-				console.log(canvas.toDataURL("image/png"));
-				lyr.legendGraphic = canvas.toDataURL("image/png");
-				this_.renderMapLegend();
+				var style = lyr.getStyle();
+				if(typeof style == "function") style = style(features[0]);
+				console.log(style.getImage());
+				if(style.getImage()){
+					var canvas = style.getImage().getImage();
+					console.log(canvas.toDataURL("image/png"));
+					lyr.legendGraphic = canvas.toDataURL("image/png");
+					this_.renderMapLegend();
+				}
 			}
 		}
 	}
@@ -6658,6 +6678,143 @@ class OpenFairViewer {
 	}
 	
 	/**
+	 * addVectorLayer Adds a vector layer
+	 * @param {Integer} mainOverlayGroup
+	 * @param {String} pid
+	 * @param {String} id
+	 * @param {String} title
+	 * @param {Object} data
+	 * @param {Object} style
+	 * @param {Boolean} clustering
+	 * @param {String} projection
+	 * @param {ol/format} format
+	 */
+	addVectorLayer(mainOverlayGroup, pid, id, title, data, style, clustering, projection, format){
+		var this_ = this;
+		var deferred = $.Deferred();
+		if(!data.features){
+			console.error("Invalid GeoJSON data for GeoJSON layer = "+id);
+		}
+		var features = data.features.map(function(item){
+			var feature = format.readFeature(item,{
+				featureProjection: this_.map.getView().getProjection()
+			});
+			if(feature.getProperties()["gml_id"]) feature.setId(feature.getProperties()["gml_id"]);
+			if(feature.getProperties()["id"]) feature.setId(feature.getProperties()["id"]);
+			feature.pid = pid;
+			feature.layerid = id; //hack required to control layer-specific SelectCluster interaction
+			return feature;
+		})
+		console.log(features);
+		
+		var source = new Vector({ projection: (projection? projection : 'EPSG:4326'), features: features });
+		
+		var feature_style = style? style : this_.options.find.defaultStyle;
+		
+		var layer = undefined;
+		if(!clustering){
+			//vectorizing without cluster
+			layer = new VectorLayer({
+				id: id, title: title,
+				source: source,
+				style: feature_style,
+				visible: true
+			});
+			layer.pid = pid;
+			layer.id = id;
+			layer.showLegendGraphic = true;
+			layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
+			this_.layers.overlays[mainOverlayGroup].getLayers().push(layer);
+			
+			//Select interactions
+			//click
+			var layerClick = new olInteraction.Select({layers: [layer] });
+			layerClick.on('select', function(evt){
+				if(evt.deselected) if(evt.deselected.length>0){
+					evt.deselected.forEach(function(feature){
+						feature.setStyle(null);
+						$("#"+feature.getId()).removeClass("selected");
+						//popup behaviour
+						var popup = this_.map.getOverlayById(layer.id);
+						popup.hide();
+						this_.popup = {};
+						this_.options.map.popup.onclose(layer, evt.element);
+						
+					});
+				}
+				if(evt.selected) if(evt.selected.length>0){
+					evt.selected.forEach(function(feature){
+						feature.setStyle(this_.options.find.selectStyle);
+						$("#"+feature.getId()).addClass("selected");
+						//popup behaviour
+						this_.getVectorFeatureInfo(layer, feature);
+					});
+					
+				}
+			});
+			this_.map.addInteraction(layerClick);
+		}else{
+			//vectorizing with cluster approach
+			var clusterSource = new Cluster({
+				distance : this_.options.map.point_clustering_options.distance,
+				source : source
+			});
+			console.log(clusterSource);
+			layer = new AnimatedCluster({
+				id : id,
+				title : title,
+				source : clusterSource,
+				animationDuration : this_.options.map.point_clustering_options.animationDuration,
+				style : this_.options.map.point_clustering_options.style
+			});			
+			layer.id = id;
+			layer.showLegendGraphic = true;
+			layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
+			this_.layers.overlays[mainOverlayGroup].getLayers().push(layer);
+			
+			var selectCluster = this_.getSelectCluster();
+			if(!selectCluster) this_.configureSelectCluster();
+		}
+		
+		layer.strategy = null;
+		layer.dsd = null;
+		layer.baseDataUrl = null;
+		this_.addVectorLayerPopup(layer);
+		layer.variable = null;
+		layer.envfun = null;
+		layer.envmaptype = null;
+		layer.envcolscheme = null;
+		layer.count = null;
+		layer.params = null;
+		layer.geom = null;
+		layer.geomtype = null;
+		this_.setLegendGraphic(layer);
+		//this_.map.changed();
+		this_.renderMapLegend();
+		this_.showLegendPanel();
+		
+		deferred.resolve(layer);
+		return deferred.promise();
+	}
+	
+	
+	/**
+	 * addGeoJSONLayer Adds a vector layer
+	 * @param {Integer} mainOverlayGroup
+	 * @param {String} pid
+	 * @param {String} id
+	 * @param {String} title
+	 * @param {Object} data
+	 * @param {Object} style
+	 * @param {Boolean} clustering
+	 * @param {String} projection
+	 */
+	addGeoJSONLayer(mainOverlayGroup, pid, id, title, data, style, clustering, projection){
+		var format = new olFormat.GeoJSON();
+		return this.addVectorLayer(mainOverlayGroup, pid, id, title, data, style, clustering, projection, format);
+	}
+	
+	/**
 	 * getSelectCluster
 	 */
 	getSelectCluster(){
@@ -6688,7 +6845,7 @@ class OpenFairViewer {
 			  var layer = this_.getLayerByProperty(c[0].layerid, "id");
 			  if (c.length==1){
 				var feature = c[0];
-				this_.getWFSFeatureInfo(layer, feature);
+				this_.getVectorFeatureInfo(layer, feature);
 			  } else {
 				console.log("Cluster ("+c.length+" features)");
 				this_.options.map.popup.onclose(layer, e.element);
