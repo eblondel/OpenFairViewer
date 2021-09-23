@@ -49,11 +49,11 @@ nav ul li.active { background-color: #0C71B8;}
 .about-dialog .ui-dialog-titlebar{border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000; border-radius:0px;}
 .partner-logo{ height:40px; margin-top:10px; margin-right:5px;}
 .partner-logos{text-align:center;}
-.find-dialog { width: 35vw !important; height: 85% !important; top: 15% !important; }
-.access-dialog { width: 35vw !important; height: 85% !important; top: 15% !important; }
-.info-dialog { width: 65vw !important; left: 35vw !important; height: 85% !important; top: 15% !important;}
-.data-dialog { width: 65vw !important;height: 40vh !important; left:35vw !important; top: 60% !important; }
-.dashboard-dialog { width: 65vw !important;height: 85vh !important; left:35vw !important; top: 15% !important; }
+.find-dialog { width: 40vw !important; height: 85% !important; top: 15% !important; }
+.access-dialog { width: 40vw !important; height: 85% !important; top: 15% !important; }
+.info-dialog { width: 60vw !important; left: 40vw !important; height: 85% !important; top: 15% !important;}
+.data-dialog { width: 60vw !important;height: 40vh !important; left:40vw !important; top: 60% !important; }
+.dashboard-dialog { width: 60vw !important;height: 85vh !important; left:40vw !important; top: 15% !important; }
 .find-dialog, .access-dialog, .info-dialog, .data-dialog, .dashboard-dialog {border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
 .find-dialog .ui-dialog-content, .access-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-content, .dashboard-dialog .ui-dialog-content { color:#000; padding: .5em .1em}
 .find-dialog .ui-dialog-titlebar, .access-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar, .dashboard-dialog .ui-dialog-titlebar {background-color:#fff; opacity:0.95; color:#FFF;background-color: rgba(55,96,146,.6);}
@@ -194,7 +194,7 @@ ul.pagination {margin: 0px !important;}
 .dsd-ui-dimension{ width:90% !important; text-align:left !important; margin-top:25px !important; display:block;}
 .dsd-ui-dimension-time{ margin: 10px auto;}
 .dsd-ui-dimension-datepicker{ width:115px; margin-right:10px;}
-.dsd-ui-dimension-slider{ margin:10px; }
+.dsd-ui-dimension-slider{ margin:10px !important; }
 .dsd-ui-item-label{color: #0C71B8;}
 .dsd-ui-item-sublabel{font-style: italic; color: orange;}
 .dsd-ui-item-code{font-style: italic; color: #000;}

@@ -90,13 +90,13 @@ QueryInfo <- function(input, output, session) {
         dsd[is.na(dsd)]<-""
     }
     
-    if(is.null(dsd)){
+    if(is.null(dsd)&(!is.null(csw_server))&(!is.null(csw_version))){
       print("QUERYINFO : No dsd parameter provided in url...dsd will be compute with CSW service")
         CSW <- CSWClient$new(
         url = csw_server,
         serviceVersion = csw_version,
         logger = "INFO"
-    )
+        )
       
       fc <- CSW$getRecordById(paste0(pid,"_dsd"), outputSchema = "http://www.isotc211.org/2005/gfc")
       dsd<-getColumnDefinitions(fc)
@@ -136,11 +136,11 @@ QueryInfo <- function(input, output, session) {
         WMS <- WMSClient$new(
           url = wms_server, 
           serviceVersion = wms_version, 
-          logger = "INFO"
+          logger = "DEBUG"
         )
-        
+
         Layer <- WMS$capabilities$findLayerByName(layer)
-        
+
         if(!is.null(par)){
           Data <- switch(strategy,
                             "ogc_filters"=Layer$getFeatureInfo(srs = srs,x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = bbox,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName)),
@@ -172,9 +172,10 @@ QueryInfo <- function(input, output, session) {
       }
       
     #Final columns selection for data et columns informations
-    Data<-subset(Data,select=ColumnName)
-    dsd<-subset(dsd,MemberCode%in%ColumnName)
-
+    #Data<-subset(Data,select=ColumnName)
+    if(!is.null(dsd)){
+      dsd<-subset(dsd,MemberCode%in%ColumnName)
+    }
     data$data<-Data
     data$dsd<-dsd
     data$query<-query
