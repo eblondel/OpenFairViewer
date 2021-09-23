@@ -6705,14 +6705,21 @@ class OpenFairViewer {
 	 * @param {String} pid
 	 * @param {String} id
 	 * @param {String} title
+	 * @param {String} description
 	 * @param {Object} data
 	 * @param {Object} style
 	 * @param {Boolean} clustering
 	 * @param {String} projection
 	 * @param {ol/format} format
 	 */
-	addVectorLayer(mainOverlayGroup, pid, id, title, data, style, clustering, projection, format){
+	addVectorLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection, format){
 		var this_ = this;
+		
+		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+pid+'" data-lyr="'+id+'" title="'+this_.options.labels.dataset_remove+'" onclick="'+this_.config.OFV_ID+'.unselectDatasetView(this)"> X </button>';
+		layerTitle += '<span>'+title+'</span>';
+		layerTitle += '</br>';
+		layerTitle += '<p style="font-weight:normal !important;font-size:90%;"><span class="glyphicon glyphicon-pushpin"></span><b style="margin-left:4px;">'+this_.options.labels.layer+'</b>: '+description+ ' ['+id+']';
+		
 		var deferred = $.Deferred();
 		if(!data.features){
 			console.error("Invalid GeoJSON data for GeoJSON layer = "+id);
@@ -6737,7 +6744,7 @@ class OpenFairViewer {
 		if(!clustering){
 			//vectorizing without cluster
 			layer = new VectorLayer({
-				id: id, title: title,
+				id: id, title: layerTitle,
 				source: source,
 				style: feature_style,
 				visible: true
@@ -6826,14 +6833,15 @@ class OpenFairViewer {
 	 * @param {String} pid
 	 * @param {String} id
 	 * @param {String} title
+	 * @param {String} description
 	 * @param {Object} data
 	 * @param {Object} style
 	 * @param {Boolean} clustering
 	 * @param {String} projection
 	 */
-	addGeoJSONLayer(mainOverlayGroup, pid, id, title, data, style, clustering, projection){
+	addGeoJSONLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection){
 		var format = new olFormat.GeoJSON();
-		return this.addVectorLayer(mainOverlayGroup, pid, id, title, data, style, clustering, projection, format);
+		return this.addVectorLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection, format);
 	}
 	
 	/**
