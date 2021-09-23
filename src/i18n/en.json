@@ -81,5 +81,6 @@
 	"layer_selection_placeholder": "Select a layer",
 	"styling_options": "Map options",
 	"styling_selector": "Select a style",
-	"styling_selector_title": "Select a layer style to apply"
+	"styling_selector_title": "Select a layer style to apply",
+	"featureinfo": "Feature Info"
 }

@@ -83,5 +83,6 @@
 	"layer_selection_placeholder": "Sélectionner une couche",
 	"styling_options": "Options de carte",
 	"styling_selector": "Sélectionner un style",
-	"styling_selector_title": "Sélectionner un style à appliquer à la carte"
+	"styling_selector_title": "Sélectionner un style à appliquer à la carte",
+	"featureinfo": "Information sur l'entité"
 }

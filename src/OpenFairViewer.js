@@ -815,7 +815,7 @@ class OpenFairViewer {
 			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 5,  function(){}, function(){
 				$("#dashboard-selector").val("").trigger("change");
 			});
-			this_.initDialog("featureDialog", "Feature Info", {"ui-dialog": "feature-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 6);
+			this_.initDialog("featureDialog", this_.options.labels.featureinfo, {"ui-dialog": "feature-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 6);
 
 			this_.closeAccessDialog();
 			this_.closeDataDialog();
