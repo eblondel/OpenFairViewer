@@ -280,7 +280,7 @@ class OpenFairViewer {
 		this.options.find.selectStyle = new Style({
 		   fill : new Fill({color: [255, 255, 255, 0.8]}),
 		   stroke : new Stroke({color : [0, 153, 255, 1], width: 2})
-		})
+		});
 		this.options.find.hoverStyle = new Style({
 		   image: new CircleStyle({
 			    radius: 3,
@@ -6700,6 +6700,22 @@ class OpenFairViewer {
 	}
 	
 	/**
+	 * getVectorLayerViewTitle
+	 * @param {String} pid
+	 * @param {String} id
+	 * @param {String} title
+	 * @param {String} description
+	 */
+	getVectorLayerViewTitle(pid, id, title, description){
+		var this_ = this;
+		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+pid+'" data-lyr="'+id+'" title="'+this_.options.labels.dataset_remove+'" onclick="'+this_.config.OFV_ID+'.unselectDatasetView(this)"> X </button>';
+		layerTitle += '<span>'+title+'</span>';
+		layerTitle += '</br>';
+		layerTitle += '<p style="font-weight:normal !important;font-size:90%;"><span class="glyphicon glyphicon-pushpin"></span><b style="margin-left:4px;">'+this_.options.labels.layer+'</b>: '+description+ ' ['+id+']';
+		return layerTitle;
+	}
+	
+	/**
 	 * addVectorLayer Adds a vector layer
 	 * @param {Integer} mainOverlayGroup
 	 * @param {String} pid
@@ -6715,12 +6731,8 @@ class OpenFairViewer {
 	addVectorLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection, format){
 		var this_ = this;
 		
-		var layerTitle = '<button class="btn btn-xs dataset-button dataset-button-remove" data-pid="'+pid+'" data-lyr="'+id+'" title="'+this_.options.labels.dataset_remove+'" onclick="'+this_.config.OFV_ID+'.unselectDatasetView(this)"> X </button>';
-		layerTitle += '<span>'+title+'</span>';
-		layerTitle += '</br>';
-		layerTitle += '<p style="font-weight:normal !important;font-size:90%;"><span class="glyphicon glyphicon-pushpin"></span><b style="margin-left:4px;">'+this_.options.labels.layer+'</b>: '+description+ ' ['+id+']';
-		
-		var deferred = $.Deferred();
+		var layerTitle = this.getVectorLayerViewTitle(pid, id, title, description);
+
 		if(!data.features){
 			console.error("Invalid GeoJSON data for GeoJSON layer = "+id);
 		}
@@ -6741,6 +6753,7 @@ class OpenFairViewer {
 		var feature_style = style? style : this_.options.find.defaultStyle;
 		
 		var layer = undefined;
+		
 		if(!clustering){
 			//vectorizing without cluster
 			layer = new VectorLayer({
@@ -6821,9 +6834,66 @@ class OpenFairViewer {
 		//this_.map.changed();
 		this_.renderMapLegend();
 		this_.showLegendPanel();
+
+	}
+	
+	
+	/**
+	 * setVectorLayer Adds a vector layer
+	 * @param {Integer} mainOverlayGroup
+	 * @param {String} pid
+	 * @param {String} id
+	 * @param {String} title
+	 * @param {String} description
+	 * @param {Object} data
+	 * @param {Object} style
+	 * @param {Boolean} clustering
+	 * @param {String} projection
+	 * @param {ol/format} format
+	 */
+	setVectorLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection, format){
+		var this_ = this;
+		var layer = this_.getLayerByProperty(id, "id");
+		if(!layer){
+			this.addVectorLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection, format);
+		}else{
+			
+			var layerTitle = this.getVectorLayerViewTitle(pid, id, title, description);
+			
+			if(!data.features){
+				console.error("Invalid GeoJSON data for GeoJSON layer = "+id);
+			}
+			var features = data.features.map(function(item){
+				var feature = format.readFeature(item,{
+					featureProjection: this_.map.getView().getProjection()
+				});
+				if(feature.getProperties()["gml_id"]) feature.setId(feature.getProperties()["gml_id"]);
+				if(feature.getProperties()["id"]) feature.setId(feature.getProperties()["id"]);
+				feature.pid = pid;
+				feature.layerid = id; //hack required to control layer-specific SelectCluster interaction
+				return feature;
+			})
+			console.log(features);
+			
+			var source = new Vector({ projection: (projection? projection : 'EPSG:4326'), features: features });
 		
-		deferred.resolve(layer);
-		return deferred.promise();
+			var feature_style = style? style : this_.options.find.defaultStyle;
+			layer.setStyle(feature_style);
+			
+			//update viewparams, envparams & legend
+			layer.setProperties({title: layerTitle});
+			if(layer.getSource() instanceof Cluster){
+				layer.getSource().setSource(source);
+				var selectCluster = this_.getSelectCluster();
+				if(selectCluster) this_.map.removeInteraction(selectCluster);
+				this_.configureSelectCluster();
+			}else{
+				layer.setSource(source);
+			}
+			
+			this_.renderMapLegend();
+			this_.showLegendPanel();
+		}
 	}
 	
 	
@@ -6839,9 +6909,9 @@ class OpenFairViewer {
 	 * @param {Boolean} clustering
 	 * @param {String} projection
 	 */
-	addGeoJSONLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection){
+	setGeoJSONLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection){
 		var format = new olFormat.GeoJSON();
-		return this.addVectorLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection, format);
+		this.setVectorLayer(mainOverlayGroup, pid, id, title, description, data, style, clustering, projection, format);
 	}
 	
 	/**
