@@ -812,14 +812,16 @@ class OpenFairViewer {
 			this_.initDialog("accessDialog", this_.options.labels.access, {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
 			this_.initDialog("infoDialog", this_.options.labels.info, {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 			this_.initDialog("dataDialog", this_.options.labels.tabulardata, {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
-			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4,  function(){}, function(){
+			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 5,  function(){}, function(){
 				$("#dashboard-selector").val("").trigger("change");
 			});
+			this_.initDialog("featureDialog", "Feature Info", {"ui-dialog": "feature-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 6);
 
 			this_.closeAccessDialog();
 			this_.closeDataDialog();
 			this_.closeDashboardDialog();
 			this_.closeInfoDialog();
+			this_.closeFeatureDialog();
 			this_.openFindDialog();
 			
 			if(intro) this_.openAboutDialog();
@@ -1360,14 +1362,24 @@ class OpenFairViewer {
 						height: featureInfoParams.filter(function(item){if(item[0]=="HEIGHT") return item;})[0][1],
 						bbox: featureInfoParams.filter(function(item){if(item[0]=="BBOX") return item;})[0][1]
 					}
-					popup.show(coords, this_.options.map.popup.handler(layer, feature));
-					this_.options.map.popup.onopen(layer, feature);
-					this_.popup = {id: layer.id, coords: coords};
+					if(this_.options.map.popup.mode == 'map'){
+						popup.show(coords, this_.options.map.popup.handler(layer, feature));
+						this_.options.map.popup.onopen(layer, feature);
+						this_.popup = {id: layer.id, coords: coords};
+					}else if(this_.options.map.popup.mode == 'dialog'){
+						$("#datasetFeatureInfo").html(this_.options.map.popup.handler(layer, feature));
+						this_.openFeatureDialog();
+					}
 				}else{
-					popup.hide();
-					this_.popup = {};
-					this_.options.map.popup.onclose(layer, feature);
-
+					if(this_.options.map.popup.mode == 'map'){
+						popup.hide();
+						this_.popup = {};
+						this_.options.map.popup.onclose(layer, feature);
+					}else if(this_.options.map.popup.mode == 'dialog'){
+						$("#datasetFeatureInfo").html("");
+						this_.closeFeatureDialog();
+					}
+						
 					//in case feature markers are highlighted we remove them
 					var markersId = 'ofv-feature-marker';
 					var markers = this_.getLayerByProperty(markersId, 'id');
@@ -1404,14 +1416,24 @@ class OpenFairViewer {
 			}
 			feature.geometry_column = feature.getGeometryName();
 			feature.popup_coordinates = coords;
-			popup.show(coords, this_.options.map.popup.handler(layer, feature));		
-			this_.options.map.popup.onopen(layer, feature);
-			this_.popup = {id: layer.id, coords: coords};
+			
+			if(this.options.map.popup.mode == 'map'){
+				popup.show(coords, this_.options.map.popup.handler(layer, feature));		
+				this_.options.map.popup.onopen(layer, feature);
+				this_.popup = {id: layer.id, coords: coords};
+			}else if(this.options.map.popup.mode == 'dialog'){
+				$("#datasetFeatureInfo").html(this_.options.map.popup.handler(layer, feature));
+				this.openFeatureDialog();
+			}
 		}else{
-			popup.hide();
-			this_.popup = {};
-			this_.options.map.popup.onclose(layer, feature);
-
+			if(this.options.map.popup.mode == 'map'){
+				popup.hide();
+				this_.popup = {};
+				this_.options.map.popup.onclose(layer, feature);
+			}else if(this.options.map.popup.mode == 'dialog'){
+				$("#datasetFeatureInfo").html("");
+				this.closeFeatureDialog();
+			}
 			//in case feature markers are highlighted we remove them
 			var markersId = 'ofv-feature-marker';
 			var markers = this_.getLayerByProperty(markersId, 'id');

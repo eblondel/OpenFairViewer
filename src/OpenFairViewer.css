@@ -54,15 +54,17 @@ nav ul li.active { background-color: #0C71B8;}
 .info-dialog { width: 60vw !important; left: 40vw !important; height: 85% !important; top: 15% !important;}
 .data-dialog { width: 60vw !important;height: 40vh !important; left:40vw !important; top: 60% !important; }
 .dashboard-dialog { width: 60vw !important;height: 85vh !important; left:40vw !important; top: 15% !important; }
-.find-dialog, .access-dialog, .info-dialog, .data-dialog, .dashboard-dialog {border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
-.find-dialog .ui-dialog-content, .access-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-content, .dashboard-dialog .ui-dialog-content { color:#000; padding: .5em .1em}
-.find-dialog .ui-dialog-titlebar, .access-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar, .dashboard-dialog .ui-dialog-titlebar {background-color:#fff; opacity:0.95; color:#FFF;background-color: rgba(55,96,146,.6);}
+.feature-dialog { width: 30vw !important;height: 50vh !important; left:70vw !important; top: 50% !important; }
+.find-dialog, .access-dialog, .info-dialog, .data-dialog, .dashboard-dialog, .feature-dialog {border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
+.find-dialog .ui-dialog-content, .access-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-content, .dashboard-dialog .ui-dialog-content, .feature-dialog .ui-dialog-content { color:#000; padding: .5em .1em}
+.find-dialog .ui-dialog-titlebar, .access-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar, .dashboard-dialog .ui-dialog-titlebar, .feature-dialog .ui-dialog-titlebar {background-color:#fff; opacity:0.95; color:#FFF;background-color: rgba(55,96,146,.6);}
 
 #findDialog {height: 95% !important; font-size: 12px !important;overflow: auto; }
 #accessDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
 #infoDialog {height: 90% !important; font-size: 12px !important;overflow: hidden; }
 #dataDialog {height: auto; font-size: 12px !important; overflow: hidden;}
 #dashboardDialog {height: 95% !important; font-size: 12px !important; overflow: hidden; overflow-y: auto;}
+#featureDialog {height: auto; fontsize: 12px !important; overflow: hidden;}
 
 /** BROWSER **/
 #dataset-list { height:85%;}
