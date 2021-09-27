@@ -6513,10 +6513,11 @@ class OpenFairViewer {
 			if(features.length > 0){
 				var style = lyr.getStyle();
 				if(typeof style == "function") style = style(features[0]);
-				console.log(style.getImage());
-				if(style.getImage()){
-					var canvas = style.getImage().getImage();
-					console.log(canvas.toDataURL("image/png"));
+				var img = style.getImage();
+				if(img instanceof Icon){
+					lyr.legendGraphic = img.getSrc();
+				}else{
+					var canvas = img.getImage();
 					lyr.legendGraphic = canvas.toDataURL("image/png");
 					this_.renderMapLegend();
 				}
