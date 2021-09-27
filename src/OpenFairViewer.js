@@ -6514,12 +6514,14 @@ class OpenFairViewer {
 				var style = lyr.getStyle();
 				if(typeof style == "function") style = style(features[0]);
 				var img = style.getImage();
-				if(img instanceof Icon){
-					lyr.legendGraphic = img.getSrc();
-				}else{
-					var canvas = img.getImage();
-					lyr.legendGraphic = canvas.toDataURL("image/png");
-					this_.renderMapLegend();
+				if(img){
+					if(img instanceof Icon){
+						lyr.legendGraphic = img.getSrc();
+					}else{
+						var canvas = img.getImage();
+						lyr.legendGraphic = canvas.toDataURL("image/png");
+						this_.renderMapLegend();
+					}
 				}
 			}
 		}
