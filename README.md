@@ -128,7 +128,7 @@ To create a build for deployment on web servers, run ``npm run build``. The comp
 
 ## Options
 
-The options of OpenFairViewer are grouped according to the main component of application, ie **labels**, **find**, **access**, **map**
+Apart from global options, options of OpenFairViewer are grouped according to the main component of application, ie **language**, **labels**, **find**, **access**, **map**
 
 An OpenFairViewer instance can be then customized handling one more options like this:
 
@@ -159,7 +159,13 @@ $(document).ready(function(){
 
 ```
 
-The next sections highlight the current options available in OpenFairViewer
+### *global* options
+
+| Name    | Type       | Description                                                  | Default value |
+| ------- | ---------- | ------------------------------------------------------------ | ------------- |
+| oninit    | `function`  | A function to trigger on viewer init | null          |
+
+The next sections highlight the current groups of options available in OpenFairViewer
 
 ### *language* options
 
