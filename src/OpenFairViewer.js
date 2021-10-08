@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.0", DATE: new Date(2021,8,23)}
+		this.versioning = {VERSION: "2.7.0", DATE: new Date(2021,9,8)}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -236,6 +236,9 @@ class OpenFairViewer {
 		
 		var options = opt_options || {};
 		this.options = {};
+		
+		//oninit
+		if(options.oninit) this.options.oninit = options.oninit;
 		
 		//LABELS
 		//--------------------------------------------------------------------------------------------------
@@ -812,7 +815,7 @@ class OpenFairViewer {
 			this_.initDialog("accessDialog", this_.options.labels.access, {"ui-dialog": "access-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 2);
 			this_.initDialog("infoDialog", this_.options.labels.info, {"ui-dialog": "info-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 3);
 			this_.initDialog("dataDialog", this_.options.labels.tabulardata, {"ui-dialog": "data-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 4);
-			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 5,  function(){}, function(){
+			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 5, function(){}, function(){
 				$("#dashboard-selector").val("").trigger("change");
 			});
 			this_.initDialog("featureDialog", this_.options.labels.featureinfo, {"ui-dialog": "feature-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 6);
@@ -833,9 +836,15 @@ class OpenFairViewer {
 			this_.enableMessageListener();
 			
 			this_._copyright();
+			
+			//on init
+			this_.oninit();
 		});
 	}
 	
+	oninit(){
+		if(this.options.oninit) this.options.oninit();
+	}
 	
 	/**
 	 * reset
@@ -1314,6 +1323,8 @@ class OpenFairViewer {
 	 */
 	getWMSFeatureInfo(layer, coords){
 		
+		console.log("Get WMS FeatureInfo on layer = "+layer.id);
+		
 		var this_ = this;
 		
 		var viewResolution = this_.map.getView().getResolution();
@@ -1401,7 +1412,7 @@ class OpenFairViewer {
 	 * @param coords
 	 */
 	getVectorFeatureInfo(layer, feature, coords){
-		var this_ = this;		
+		var this_ = this;
 		var popup = this.map.getOverlayById(layer.id);
 		if(feature){
 			if(!coords){
@@ -1525,7 +1536,9 @@ class OpenFairViewer {
 		this.map.addOverlay(popup);
 	
 		//display popup on mouse hover
-		var featureInfoEvent = this.map.on('singleclick', function(evt) {		
+		var featureInfoEvent = this.map.on('singleclick', function(evt) {
+			console.log("Event on WMS FeatureInfo");
+			console.log(evt);
 			this_.getWMSFeatureInfo(layer, evt.coordinate);
 		});
 		featureInfoEvent.id = layer.id;
