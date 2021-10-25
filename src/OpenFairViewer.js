@@ -925,13 +925,21 @@ class OpenFairViewer {
 	setEmbedLink(){
 		if ( ! ( document.getElementById ) ) return void(0);
 		var url = location.href.replace(/#.*$/,'').replace(/\?.*$/,'');
+		url += '?';
+		
+		var ofv_params = ['mode', 'dataset', 'baseview', 'views', 'extent', 'center', 'zoom', 'popup_id', 'popup_coords']
+		var custom_params = Object.keys(this.getAllUrlParams()).filter(function(item){if(ofv_params.indexOf(item)<0 && item != '') return item;});
+		if(custom_params.length > 0){
+			for(var i=0;i<custom_params.length;i++){
+				url += (i==0? '' : '&') + custom_params[i] + '=' + this.getAllUrlParams()[custom_params[i]];
+			}
+		}
 		
 		//dataset on query
-		url += '?';
-		if(this.dataset_on_query) url += 'dataset=' + this.dataset_on_query.pid;
+		if(this.dataset_on_query) url += (url.endsWith('?')? '': '&') + 'dataset=' + this.dataset_on_query.pid;
 		
 		//mode
-		url += '&mode=' + (this.enable_3d? (this.ol3d.getEnabled()? '3D' : '2D') : '2D');
+		url += (url.endsWith('?')? '': '&') + 'mode=' + (this.enable_3d? (this.ol3d.getEnabled()? '3D' : '2D') : '2D');
 		
 		//baseview
 		var baseview = this.map.getLayers().getArray()[0].getLayersArray().filter(function(item){return item.getVisible()})[0];
