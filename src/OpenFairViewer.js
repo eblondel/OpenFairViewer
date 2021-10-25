@@ -137,7 +137,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.0", DATE: new Date(2021,9,8)}
+		this.versioning = {VERSION: "2.7.0", DATE: new Date('2021-10-25')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -555,93 +555,102 @@ class OpenFairViewer {
 		this.options.map.popup = {};
 		this.options.map.popup.mode = 'map';
 		this.options.map.popup.enabled = true;	
-		this.options.map.popup.onopen = function(layer, feature){};
-		this.options.map.popup.onclose = function(layer, feature){};
+		this.options.map.popup.onopen = function(layer, features){};
+		this.options.map.popup.onclose = function(layer, features){};
 		
 		//default handlers
-		this.options.map.popup.DEFAULT_HANDLER = function(layer, feature){
+		this.options.map.popup.DEFAULT_HANDLER = function(layer, features){
 			console.log(layer);
-			console.log(feature);
+			console.log(features);
 			console.log("Inherit DSD from layer in popup");
 			console.log(layer.dsd);
-			console.log("Inherit properties for custom popup");
-			console.log(feature.geometry_column);
-			console.log(feature.popup_coordinates);
 			
 			//patterns
 			var regexps = {
 			  DATE: new RegExp("^([1-9][0-9]{3})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])?$"),
 			  DATETIME: new RegExp("^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$")
 			}
-			var props = feature.getProperties();
-			console.log(props);
-			var html = '<table class="table table-condensed">';
-			var propNames = Object.keys(props);
-			//text fields
-			for(var i=0;i<propNames.length;i++){
-				var propName = propNames[i];
-				var prop = props[propName];
-				if(prop){
+			
+			//featureHandler
+			var featureHandler = function(layer, feature){
+				var props = feature.getProperties();
+				console.log(props);
+				var html = '<table class="table table-condensed">';
+				var propNames = Object.keys(props);
+				//text fields
+				for(var i=0;i<propNames.length;i++){
+					var propName = propNames[i];
+					if(propName == "boundedBy") continue;
+					var prop = props[propName];
+					if(prop){
+						
+					  var propFromDsd = null;
 					
-				  var propFromDsd = null;
-				
-				  //propName
-				  var propNameLabel = '<b>'+propName+'</b>';
-				  if(layer.dsd) {
-					propFromDsd = layer.dsd.filter(function(item){if(item.primitiveCode == propName) return item});
-					if(propFromDsd.length > 0) {
-						propFromDsd = propFromDsd[0];
-						propNameLabel = '<b>' + propFromDsd.name + '</b> <span class="dsd-ui-item-code">['+propFromDsd.primitiveCode+']</span>';
-						if(propFromDsd.definition) if(propFromDsd.definition.length > 0) propNameLabel += ' <span class="glyphicon glyphicon-info-sign attribute-info" title="'+propFromDsd.definition+'"></span>'
-					}
-				  }
-				
-				  if(typeof prop == "string") if(prop.indexOf("http")==0){
-				    prop = '<a href="'+prop+'" target="_blank" style="color:#337ab7">Link</a>';
-				  }
+					  //propName
+					  var propNameLabel = '<b>'+propName+'</b>';
+					  if(layer.dsd) {
+						propFromDsd = layer.dsd.filter(function(item){if(item.primitiveCode == propName) return item});
+						if(propFromDsd.length > 0) {
+							propFromDsd = propFromDsd[0];
+							propNameLabel = '<b>' + propFromDsd.name + '</b> <span class="dsd-ui-item-code">['+propFromDsd.primitiveCode+']</span>';
+							if(propFromDsd.definition) if(propFromDsd.definition.length > 0) propNameLabel += ' <span class="glyphicon glyphicon-info-sign attribute-info" title="'+propFromDsd.definition+'"></span>'
+						}
+					  }
+					
+					  if(typeof prop == "string") if(prop.indexOf("http")==0){
+						prop = '<a href="'+prop+'" target="_blank" style="color:#337ab7">Link</a>';
+					  }
 
-				  var isBase64 = false; if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
-				  var isDate = false; if(typeof prop == "string") isDate = prop.match(regexps.DATE) != null;
-				  var isDateTime = false; if(typeof prop == "string") isDateTime = prop.match(regexps.DATETIME) != null;
-				  if(typeof prop != "undefined" && !(prop instanceof olGeom.Geometry)) if(!isBase64) {
-					var propToDisplay = prop;
-					if(isDateTime){
-						var date = new Date(Date.parse(prop));
-						propToDisplay = date.toISOString().split("T")[0] + 'T' + date.toLocaleTimeString();
+					  var isBase64 = false; if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
+					  var isDate = false; if(typeof prop == "string") isDate = prop.match(regexps.DATE) != null;
+					  var isDateTime = false; if(typeof prop == "string") isDateTime = prop.match(regexps.DATETIME) != null;
+					  if(typeof prop != "undefined" && !(prop instanceof olGeom.Geometry)) if(!isBase64) {
+						var propToDisplay = prop;
+						if(isDateTime){
+							var date = new Date(Date.parse(prop));
+							propToDisplay = date.toISOString().split("T")[0] + 'T' + date.toLocaleTimeString();
+						}
+						html += '<tr><td>' + propNameLabel + "</td><td>" + propToDisplay;
+						if(propFromDsd) if(propFromDsd.uom) {
+							html += ' '+ propFromDsd.uom;
+						}
+						if(isDate || isDateTime){
+							html += '<button style="margin: 0px 10px;font-size:inherit;" class="btn btn-xs" ';
+							html += 'onclick="'+this_.config.OFV_ID+'.getNextFeatureInfoInTime(\''+layer.id+'\',\''+layer.baseDataUrl+'\',\'1.0.0\',\''+layer.getSource().getParams().LAYERS+'\',\''+propName+'\',\''+prop+'\')">Next</button>';
+						}
+						html += "</td></tr>";
+					  }
 					}
-					html += '<tr><td>' + propNameLabel + "</td><td>" + propToDisplay;
-					if(propFromDsd) if(propFromDsd.uom) {
-						html += ' '+ propFromDsd.uom;
-					}
-					if(isDate || isDateTime){
-						html += '<button style="margin: 0px 10px;font-size:inherit;" class="btn btn-xs" ';
-						html += 'onclick="'+this_.config.OFV_ID+'.getNextFeatureInfoInTime(\''+layer.id+'\',\''+layer.baseDataUrl+'\',\'1.0.0\',\''+layer.getSource().getParams().LAYERS+'\',\''+propName+'\',\''+prop+'\')">Next</button>';
-					}
-					html += "</td></tr>";
-				  }
 				}
+				
+				//image fields
+				var imgPropNames = propNames.filter(function(propName){
+					var prop = props[propName];
+					if(typeof prop == 'undefined') return false;
+					var isBase64 = false;
+					if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
+					if(isBase64) return propName;
+				});
+				if(imgPropNames.length>0){
+				  html += "<tr><td><b>Images</b></td><td>";
+				  for(var i=0;i<imgPropNames.length;i++){
+					var imgPropName = imgPropNames[i];
+					var prop = props[imgPropName];
+					if(prop.startsWith('base64:')) prop = 'data:image/png;base64,' + prop.split('base64:')[1];
+					html += '<img src="'+prop+'" width="45%" style="margin:2px;" alt="'+imgPropName+'" title="'+imgPropName+'"/>';
+				  }
+				  html += '</td></tr>';
+				}
+				html += '</table>';
+				return html;
 			}
 			
-			//image fields
-			var imgPropNames = propNames.filter(function(propName){
-				var prop = props[propName];
-				if(typeof prop == 'undefined') return false;
-				var isBase64 = false;
-				if(typeof prop == "string") isBase64 = prop.startsWith('base64:') || prop.startsWith('data:image/png;base64,');
-				if(isBase64) return propName;
-			});
-			if(imgPropNames.length>0){
-			  html += "<tr><td><b>Images</b></td><td>";
-			  for(var i=0;i<imgPropNames.length;i++){
-				var imgPropName = imgPropNames[i];
-				var prop = props[imgPropName];
-				if(prop.startsWith('base64:')) prop = 'data:image/png;base64,' + prop.split('base64:')[1];
-				html += '<img src="'+prop+'" width="45%" style="margin:2px;" alt="'+imgPropName+'" title="'+imgPropName+'"/>';
-			  }
-		  	  html += '</td></tr>';
+			if(features.length == 1){
+				return featureHandler(layer, features[0]);
+			}else{
+				return features.map(function(item){return featureHandler(layer, item)}).join('<br>');
 			}
-			html += '</table>';
-			return html;
+			
 		} 
 		
 		//Set default handler
@@ -818,7 +827,7 @@ class OpenFairViewer {
 			this_.initDialog("dashboardDialog", this_.options.labels.dashboard, {"ui-dialog": "dashboard-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 5, function(){}, function(){
 				$("#dashboard-selector").val("").trigger("change");
 			});
-			this_.initDialog("featureDialog", this_.options.labels.featureinfo, {"ui-dialog": "feature-dialog", "ui-dialog-title": "dialog-title"}, { my: "left top", at: "left center", of: window }, 6);
+			this_.initDialog("featureDialog", this_.options.labels.featureinfo, {"ui-dialog": "feature-dialog", "ui-dialog-title": "dialog-title"}, { my: "right bottom", at: "right bottom", of: window }, 6, function(){}, function(){}, true, true);
 
 			this_.closeAccessDialog();
 			this_.closeDataDialog();
@@ -1317,6 +1326,87 @@ class OpenFairViewer {
 	}
 	
 	/**
+	 * OpenFairViewer.prototype.getFeatureInfos
+	 * @param layers
+	 * @param coords
+	 */
+	getFeatureInfos(layers, coords){
+		var this_ = this;
+		
+		//feature info requests
+		var featureinfo_promises = new Array();
+		for(var i=0;i<layers.length;i++){
+			var layerid = layers[i];
+			var layer = this.getLayerByProperty(layerid, 'id');
+			featureinfo_promises.push( this.getWMSFeatureInfo(layer, coords) );
+		}
+		//$("#"+layerid+"_featureinfo")
+		Promise.all(featureinfo_promises).then(values => { 
+			var total_features = values.map(function(item){return item.features.length}).reduce((a, b) => a + b, 0);
+			if(total_features > 0){
+				
+				console.log("Total feature infos fetched => "+total_features);
+				console.log(values);
+				
+				//html
+				var div = $("<div id='featureinfo-tabs' style='font-size:9px;'>");
+				var ul = $("<ul>");
+				for(var i=0;i<layers.length;i++){
+					var layerid = layers[i];
+					var layer = this.getLayerByProperty(layerid, 'id');
+					var featureinfos = values.filter(function(item){if(item.id == layerid) return item});
+					if(featureinfos[0].features.length > 0){
+						ul.append($("<li><a href='#"+layerid+"_featureinfo'>"+layerid+"</a></li>"));
+					}
+				}
+				div.append(ul);
+				for(var i=0;i<layers.length;i++){
+					var layerid = layers[i];
+					var layer = this.getLayerByProperty(layerid, 'id');
+					var layer_tab = $("<div id='"+layerid+"_featureinfo'></div>");
+					div.append(layer_tab);
+				}
+				
+				if(this_.options.map.popup.mode == 'map'){
+					var popup = this_.map.getOverlayById('featureinfos');
+					popup.show(coords, div.prop('outerHTML'));
+					//this.options.map.popup.onopen(layer, feature); //TODO HOW TO DEAL WITH THAT
+					this_.popup = {id: 'featureinfos', coords: coords};
+				}else if(this_.options.map.popup.mode == 'dialog'){
+					$("#datasetFeatureInfo").html(div.prop('outerHTML'));
+					this_.openFeatureDialog();
+				}
+				
+				for(var i=0;i<layers.length;i++){
+					var layerid = layers[i];
+					var layer = this.getLayerByProperty(layerid, 'id');
+					var layer_tab = $("<div id='"+layerid+"_featureinfo'></div>");
+					var featureinfos = values.filter(function(item){if(item.id == layerid) return item});
+					console.log(featureinfos);
+					if(featureinfos[0].features.length > 0){
+						$("#"+layerid+"_featureinfo").append(this_.options.map.popup.handler(layer, featureinfos[0].features));
+					}else{
+						$("#"+layerid+"_featureinfo").remove();
+					}
+				}
+				
+				$( "#featureinfo-tabs" ).tabs();
+				
+			}else{
+				if(this_.options.map.popup.mode == 'map'){
+					var popup = this_.map.getOverlayById('featureinfos');
+					popup.hide();
+					this_.popup = {};
+				}else if(this_.options.map.popup.mode == 'dialog'){
+					$("#datasetFeatureInfo").html("No feature info");
+					this_.closeFeatureDialog();
+				}
+			}
+		});
+		
+	}
+	
+	/**
 	 * OpenFairViewer.prototype.getWMSFeatureInfo
 	 * @param layer
 	 * @param coords
@@ -1329,7 +1419,6 @@ class OpenFairViewer {
 		
 		var viewResolution = this_.map.getView().getResolution();
 		var viewProjection = this_.map.getView().getProjection().getCode();
-		var popup = this.map.getOverlayById(layer.id);
 
 		var default_info_format = "application/vnd.ogc.gml";
 		if(layer.getSource().getUrl) if(layer.getSource().getUrl().indexOf("thredds") != -1) default_info_format = "text/xml";
@@ -1338,6 +1427,8 @@ class OpenFairViewer {
 		if(this.secure) featureInfoUrl = featureInfoUrl.replace("http://", "https://");
 		var featureInfoParams = featureInfoUrl.split('?')[1].split("&").map(function(item){return item.split('=')});
 
+		var deferred = $.Deferred();
+		
 		$.ajax({
 			url: featureInfoUrl,
 			crossOrigin: true,
@@ -1360,48 +1451,43 @@ class OpenFairViewer {
 				console.log(features);
 				var feature = null;
 				if(features.length > 0){
-					feature = features[0];
-					feature.geometry_column = feature.getGeometryName();
-					feature.popup_coordinates = coords;
-					
-					//TODO investigate how to deal with similar in shiny popup when layer is vector
-					//(for now shiny popups limited to WMS layers)
-					feature.info = {
-						x: featureInfoParams.filter(function(item){if(item[0]== (layer.getSource().getParams().VERSION == "1.3.0"? "I" :"X") ) return item;})[0][1],
-						y: featureInfoParams.filter(function(item){if(item[0]== (layer.getSource().getParams().VERSION == "1.3.0"? "J" :"Y")  ) return item;})[0][1],
-						width: featureInfoParams.filter(function(item){if(item[0]=="WIDTH") return item;})[0][1],
-						height: featureInfoParams.filter(function(item){if(item[0]=="HEIGHT") return item;})[0][1],
-						bbox: featureInfoParams.filter(function(item){if(item[0]=="BBOX") return item;})[0][1]
-					}
-					if(this_.options.map.popup.mode == 'map'){
-						popup.show(coords, this_.options.map.popup.handler(layer, feature));
-						this_.options.map.popup.onopen(layer, feature);
-						this_.popup = {id: layer.id, coords: coords};
-					}else if(this_.options.map.popup.mode == 'dialog'){
-						$("#datasetFeatureInfo").html(this_.options.map.popup.handler(layer, feature));
-						this_.openFeatureDialog();
-					}
-				}else{
-					if(this_.options.map.popup.mode == 'map'){
-						popup.hide();
-						this_.popup = {};
-						this_.options.map.popup.onclose(layer, feature);
-					}else if(this_.options.map.popup.mode == 'dialog'){
-						$("#datasetFeatureInfo").html("");
-						this_.closeFeatureDialog();
-					}
+					console.log("Nb of features on layer "+layer.id+": "+features.length);
+					features = features.map(function(item){
+						feature = item;
+						feature.geometry_column = feature.getGeometryName();
+						feature.popup_coordinates = coords;
 						
+						//TODO investigate how to deal with similar in shiny popup when layer is vector
+						//(for now shiny popups limited to WMS layers)
+						feature.info = {
+							x: featureInfoParams.filter(function(item){if(item[0]== (layer.getSource().getParams().VERSION == "1.3.0"? "I" :"X") ) return item;})[0][1],
+							y: featureInfoParams.filter(function(item){if(item[0]== (layer.getSource().getParams().VERSION == "1.3.0"? "J" :"Y")  ) return item;})[0][1],
+							width: featureInfoParams.filter(function(item){if(item[0]=="WIDTH") return item;})[0][1],
+							height: featureInfoParams.filter(function(item){if(item[0]=="HEIGHT") return item;})[0][1],
+							bbox: featureInfoParams.filter(function(item){if(item[0]=="BBOX") return item;})[0][1]
+						}
+						return feature;
+					});
+					
+					deferred.resolve({ id: layer.id, features: features});
+				}else{
+					deferred.resolve({id: layer.id, features: []});
+					
+					//TODO review this case
 					//in case feature markers are highlighted we remove them
+					/*
 					var markersId = 'ofv-feature-marker';
 					var markers = this_.getLayerByProperty(markersId, 'id');
 					if(markers){
 						var source = new Vector({ features: [] });
 						markers.setSource(source);
-					}
+					}*/
 			
 				}
+				
 			}
 		});
+		return deferred;
 	}
 	
 	
@@ -1429,11 +1515,11 @@ class OpenFairViewer {
 			feature.popup_coordinates = coords;
 			
 			if(this.options.map.popup.mode == 'map'){
-				popup.show(coords, this_.options.map.popup.handler(layer, feature));		
+				popup.show(coords, this_.options.map.popup.handler(layer, [feature]));		
 				this_.options.map.popup.onopen(layer, feature);
 				this_.popup = {id: layer.id, coords: coords};
 			}else if(this.options.map.popup.mode == 'dialog'){
-				$("#datasetFeatureInfo").html(this_.options.map.popup.handler(layer, feature));
+				$("#datasetFeatureInfo").html(this_.options.map.popup.handler(layer, [feature]));
 				this.openFeatureDialog();
 			}
 		}else{
@@ -1525,24 +1611,20 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * addWMSLayerPopup
+	 * registerWMSFeatureInfoLayer
 	 * @param layer
 	 */
-    addWMSLayerPopup(layer){
-
-		var this_ = this;
-		//configure popup
-		var popup = new Popup({id: layer.id});
-		this.map.addOverlay(popup);
+    registerWMSFeatureInfoLayer(layer){
+		this.layers_with_featureinfo.push(layer.id);
+	}
 	
-		//display popup on mouse hover
-		var featureInfoEvent = this.map.on('singleclick', function(evt) {
-			console.log("Event on WMS FeatureInfo");
-			console.log(evt);
-			this_.getWMSFeatureInfo(layer, evt.coordinate);
-		});
-		featureInfoEvent.id = layer.id;
-		this.mapEvents.push(featureInfoEvent);
+	/**
+	 * unregisterWMSFeatureInfoLayer
+	 * @param layer
+	 */
+    unregisterWMSFeatureInfoLayer(layer){
+		const index = this.layers_with_featureinfo.indexOf(layer.id);
+		if (index > -1) this.layers_with_featureinfo.splice(index, 1);
 	}
 	
 	/**
@@ -1555,28 +1637,6 @@ class OpenFairViewer {
 		//configure popup
 		var popup = new Popup({id: layer.id});
 		this.map.addOverlay(popup);
-	}
-
-    /**
-	 * removeMapEventByProperty Util method to remove a map event by property
-	 * @param eventProperty the property value
-	 * @param by the property 
-	 */
-    removeMapEventByProperty(eventProperty, by){
-		console.log("Remove map event with property "+by+" = " + eventProperty);
-		var removed = false;
-		var target = undefined;
-		var events = this.mapEvents;
-		for(var i=0;i<events.length;i++){
-			var event = events[i];
-			if(event[by] === eventProperty){
-				unByKey(event);
-				removed = true;
-				break;
-			}
-		}
-		this.mapEvents = this.mapEvents.filter(function(value, index, arr){return value.id != eventProperty});
-		return removed;
 	}
 	
 
@@ -1599,9 +1659,7 @@ class OpenFairViewer {
 				var condition  = by? (layer.get(by) === layerProperty) : (layer.getSource().getParams()["LAYERS"] === layerProperty);
 				if(condition){
 					this.layers.overlays[i-1].getLayers().remove(layer);
-					var related_overlay = this.map.getOverlayById(layer.id)
-					if(related_overlay) this.map.removeOverlay(related_overlay);
-					this.removeMapEventByProperty(layer.id, "id");
+					this.unregisterWMSFeatureInfoLayer(layer);
 					this.renderMapLegend();
 					removed = true;
 					break;
@@ -4468,6 +4526,7 @@ class OpenFairViewer {
 		var strategyvariable = from_query_form? this_.getStrategyVariable(dataset): dataset.variable;
 		console.log("Strategy variable = " + strategyvariable);
 	    var layerTitle = this_.getDatasetViewTitle(dataset, strategyparams, from_query_form);
+		var shortTitle = dataset.entry.title;
 		
 		//thematic mapping properties
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
@@ -4513,7 +4572,7 @@ class OpenFairViewer {
 							}
 							
 							this_.selectDatasetView(dataset, lyr);
-							var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, null, null, classType, envparams, (values? values.length : null));
+							var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, shortTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle, null, null, null, classType, envparams, (values? values.length : null));
 							layer.strategy = dataset.strategy;
 							layer.dsd = dataset.dsd;
 							layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -4525,7 +4584,7 @@ class OpenFairViewer {
 							layer.params = layer.getSource().getParams();
 							layer.geom = geom;
 							layer.geomtype = geomtype;
-							this_.addWMSLayerPopup(layer);
+							this_.registerWMSFeatureInfoLayer(layer);
 							this_.setLegendGraphic(layer, breaks, colors);	
 							this_.map.changed();
 							this_.renderMapLegend();
@@ -4588,11 +4647,11 @@ class OpenFairViewer {
 						//static styling
 						console.log("Add "+dataset.entry.dataModel+" layer with strategy 'ogc_filters' (static styling)");
 						this_.selectDatasetView(dataset, lyr);
-						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle);
+						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, shortTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, (strategyparams == null)? null : decodeURIComponent(strategyparams_str), layerStyle);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-						this_.addWMSLayerPopup(layer);
+						this_.registerWMSFeatureInfoLayer(layer);
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -4619,7 +4678,7 @@ class OpenFairViewer {
 					var cql_filter = null;
 					if(strategyparams) if(strategyparams.length >0) cql_filter = strategyparams[0].CQL_FILTER;
 					this_.selectDatasetView(dataset, lyr);
-					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, layerStyle);
+					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, shortTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, cql_filter, layerStyle);
 					layer.strategy = dataset.strategy;
 					layer.dsd = false;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -4629,7 +4688,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
-					this_.addWMSLayerPopup(layer);
+					this_.registerWMSFeatureInfoLayer(layer);
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
@@ -4671,11 +4730,11 @@ class OpenFairViewer {
 						console.log("Add grid layer with strategy 'ogc_dimensions' (static styling)");
 						//static styling
 						this_.selectDatasetView(dataset, lyr);
-						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle,null, ogc_time_dimension, ogc_elevation_dimension);
+						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, shortTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle,null, ogc_time_dimension, ogc_elevation_dimension);
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-						this_.addWMSLayerPopup(layer);
+						this_.registerWMSFeatureInfoLayer(layer);
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -4728,7 +4787,7 @@ class OpenFairViewer {
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
 						this_.selectDatasetView(dataset, lyr);
-						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, null, null, classType, envparams, (values? values.length : 0));
+						var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, shortTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, layerStyle, strategyparams_str, null, null, classType, envparams, (values? values.length : 0));
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
@@ -4740,7 +4799,7 @@ class OpenFairViewer {
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
 						layer.geomtype = geomtype;
-						this_.addWMSLayerPopup(layer);
+						this_.registerWMSFeatureInfoLayer(layer);
 						this_.setLegendGraphic(layer, breaks, colors);	
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -4803,11 +4862,11 @@ class OpenFairViewer {
 					console.log("Add vector layer with strategy 'ogc_viewparams' (static styling)");
 					//static styling
 					this_.selectDatasetView(dataset, lyr);
-					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
+					var layer = this_.addWMSLayer(this_.options.map.mainlayergroup, pid, lyr, layerTitle, shortTitle, baseWmsUrl, wmsVersion, layerName, false, true, true, opacity, tiled, null, null,strategyparams_str);
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-					this_.addWMSLayerPopup(layer);
+					this_.registerWMSFeatureInfoLayer(layer);
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
@@ -5900,7 +5959,7 @@ class OpenFairViewer {
 								data += 'onclick="'+this_.config.OFV_ID+'.zoomToFeature(\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-zoom-in"></span></button>';
 								//button to display feature
 								data += '<button id="'+button_id_disp+'" class="btn btn-xs dataset-button-add" style="margin-left:10px"  title="Display feature" ';
-								data += 'onclick="'+this_.config.OFV_ID+'.highlightFeature(\''+this_.dataset_on_query.pid+'\',\''+row[0]+'\',\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-map-marker"></span></button>';
+								data += 'onclick="'+this_.config.OFV_ID+'.highlightFeature(\''+this_.dataset_on_query.lyr+'\',\''+row[0]+'\',\''+wkt.toUpperCase()+'\')"><span class="glyphicon glyphicon-map-marker"></span></button>';
 							}
 						}
 						return data;
@@ -6081,13 +6140,13 @@ class OpenFairViewer {
 	 * highlightFeature
 	 *
 	 */
-	highlightFeature(pid, id, wkt){
+	highlightFeature(lyr, id, wkt){
 		var this_ = this;
 		var geom = this.processWKT(wkt);
 		this.drawFeatureFromGeom(geom);
 		
 		//add popup
-		var target_layer = this_.getLayerByProperty(pid, "id");
+		var target_layer = this_.getLayerByProperty(lyr, "id");
 		var coords = olExtent.getCenter(geom.getExtent());
 		if(geom instanceof olGeom.LineString ||
 		   geom instanceof olGeom.MultiLineString ||
@@ -6102,7 +6161,7 @@ class OpenFairViewer {
 			feature = vectorSource.getFeatureById(id);
 			this_.getVectorFeatureInfo(target_layer, feature, coords);
 		}else{
-			this_.getWMSFeatureInfo(target_layer, coords);
+			this_.getFeatureInfos([lyr], coords);
 		}
 	}
 
@@ -6300,7 +6359,7 @@ class OpenFairViewer {
 				var layerDef = this.options.map.overlays[i];
 				var wmsVersion = layerDef.wmsVersion? layerDef.wmsVersion : "1.1.1";
 				this.addWMSLayer(
-					layerDef.group, layerDef.pid, layerDef.id, layerDef.title, layerDef.wmsUrl, wmsVersion, layerDef.layer, layerDef.hidden,
+					layerDef.group, layerDef.pid, layerDef.id, layerDef.title, layerDef.shortTitle, layerDef.wmsUrl, wmsVersion, layerDef.layer, layerDef.hidden,
 					layerDef.visible, layerDef.showLegend, layerDef.opacity, layerDef.tiled, layerDef.cql_filter, layerDef.style
 				);
 			}
@@ -6381,6 +6440,14 @@ class OpenFairViewer {
 		
 		//events
 		//------
+		//map click (for feature info)
+		//configure popup (for popup featureinfo mode)
+		var popup = new Popup({id: 'featureinfos'});
+		this.map.addOverlay(popup);
+		this.layers_with_featureinfo = new Array();
+		this.map.on('singleclick', function(evt) {
+			this_.getFeatureInfos(this_.layers_with_featureinfo, evt.coordinate);
+		});
 		//spatial search
 		this.map.on('moveend', function(evt){
 			if($("#dataset-search-bbox-on-search").prop("checked") && $("#dataset-search-bbox-on-mapinteraction").prop("checked")){
@@ -6546,6 +6613,7 @@ class OpenFairViewer {
 	 * @param {String} pid
 	 * @param {String} id
 	 * @param {String} title
+	 * @param {String} shortTitle
 	 * @param {String} wmsUrl
 	 * @param {String} wmsVersion
 	 * @param {String} layer
@@ -6560,7 +6628,7 @@ class OpenFairViewer {
 	 */
 	addWMSLayer(
 
-		mainOverlayGroup, pid, id, title, wmsUrl, wmsVersion, layer,
+		mainOverlayGroup, pid, id, title, shortTitle, wmsUrl, wmsVersion, layer,
 		hidden, visible, showLegend, opacity, tiled, cql_filter, style, 
 		viewparams, time, elevation, 
 		envfun, envparams, count){
@@ -6609,6 +6677,7 @@ class OpenFairViewer {
 	    layer.envfun = envfun;
 	    layer.count = count;
 	    layer.showLegendGraphic = showLegend;
+		layer.shortTitle = shortTitle;
 			
  	    if(mainOverlayGroup > this.layers.overlays.length-1){
 			alert("Overlay group with index " + mainOverlayGroup + " doesn't exist");
@@ -7437,7 +7506,7 @@ class OpenFairViewer {
 							triggerPopup = function(){
 								var layer = this_.getLayerByProperty(encoded_dataset.pid, "id");
 								var coords = params.popup_coords.split(",").map(function(coord,i){return parseFloat(coord)});
-								this_.getWMSFeatureInfo(layer, coords);
+								this_.getFeatureInfos([layer.id], coords);
 							}
 							window.setTimeout(triggerPopup, 1000); //TO TEST, IF LAYER IS LOW TO RENDER THIS FAILS
 						}
@@ -7489,9 +7558,13 @@ class OpenFairViewer {
 	//===========================================================================================
     
 	/**
-     * initDialog Init dialog
+     * initDialog Init dialoginitDialog
 	 */
-	initDialog(id, title, classes, position, liIdx, onopen, onclose){
+	initDialog(id, title, classes, position, liIdx, onopen, onclose, draggable, resizable){
+		
+		var is_draggable = draggable? draggable : false;
+		var is_resizable = resizable? resizable : false;
+		
 		var this_ = this;
 		if(!classes){
 			classes  = {
@@ -7505,8 +7578,8 @@ class OpenFairViewer {
 		$( "#" + id ).dialog({
 			width: ((id=='accessDialog')? ((this_.options.access.columns * 400)+'px') : undefined),
 			autoOpen: false,
-			draggable: false,
-			resizable: false,
+			draggable: is_draggable,
+			resizable: is_resizable,
 			title: title,
 			classes: classes,
 			position: position,
