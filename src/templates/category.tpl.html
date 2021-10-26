@@ -1,0 +1,11 @@
+<script id="categoryTpl" type="text/html">
+  <a  id="{{category.id}}_category" title="{{category.title}}" class="badge badge-pill dataset-category" style="color:{{category.color}};background-color:{{category.background}};padding:4px;opacity:0.5;"  
+      onclick="$('#{{category.id}}_category').toggleClass('selected');{{OFV_ID}}.displayDatasets({{OFV_ID}}.config.OGC_CSW_MAXRECORDS)">
+	  {{#category.withIcon}}
+		<i class="{{category.icon}}"></i><span style="margin-left:3px;">{{category.title}}</span>
+	  {{/category.withIcon}}
+	  {{^category.withIcon}}
+		<span style="margin-left:3px;">{{category.title}}</span>
+	  {{/category.withIcon}}
+ </a>
+</script>

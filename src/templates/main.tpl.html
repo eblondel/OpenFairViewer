@@ -41,47 +41,50 @@
     <div id="aboutDialog">{{{OFV_PROFILE}}}</div>
     <div id="findDialog">
         <div id="dataset-form">
-          <!-- Search form -->
+          <!-- Search form -->		  
           <section class="col-xs-12 col-sm-12 col-md-12 search" style="margin-bottom:5px;">
             <form id="dataset-form">
-              <div class="form-group" style="margin-bottom:4px;">
-                <input type="text" class="form-control" id="dataset-search-text" aria-describedby="searchHelp" placeholder="{{labels.datasets_search_placeholder}}">
-              </div>
-	      <a data-toggle="collapse" href="#dataset-search-advanced" role="button" aria-expanded="false" aria-controls="dataset-search-advanced">{{labels.settings}}</a>
-	      <br>
-	      <div class="collapse multi-collapse" id="dataset-search-advanced">
-      		<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">
-		 <div class="col-md-6">
-              	  <div class="form-check" >
-                     <label class="form-check-label" style="font-weight:100">
-                  	<input id ="dataset-search-bbox-on-search" type="checkbox" class="form-check-input">
-                  	{{labels.settings_mapextent}}
-                     </label>
-              	  </div>
-		  <div class="form-check" >
-                     <label class="form-check-label" style="font-weight:100">
-                  	<input id ="dataset-search-bbox-on-mapmove" type="checkbox" class="form-check-input">
-                  	{{labels.settings_mapmove}}
-                     </label>
-              	  </div>
-		 </div>
-		 <div>
-		  <div class="form-check" >
-                     <label class="form-check-label" style="font-weight:100">
-                  	<input id ="dataset-spatial-coverage-visible" type="checkbox" class="form-check-input">
-                  	{{labels.settings_bbox}}
-                     </label>
-              	  </div>
-				  <div class="form-check" >
-                     <label class="form-check-label" style="font-weight:100">
-                  	<input id ="dataset-spatial-coverage-extended" type="checkbox" class="form-check-input">
-                  	{{labels.settings_geom}}
-                     </label>
-              	  </div>
-		 </div>
-		</fieldset>
-	      </div>
-              <input type="submit" class="btn btn-primary btn-sm" style="float:right;" value="{{labels.search}}"></input>
+				<div class="form-inline" style="margin-bottom:4px;">
+					<div class="form-group" style="width:90%;">
+						<input type="text" class="form-control" id="dataset-search-text" aria-describedby="searchHelp" placeholder="{{labels.datasets_search_placeholder}}" style="width:100%;">
+					</div>
+					<input type="submit" class="btn btn-primary btn-sm" style="float:right;margin-top:2px;" value="{{labels.search}}"></input>
+				</div>
+				{{labels.datasets_search_bycategory}}: <div id="find-categories" style="display:inline;"></div><a id="find-categories-reset" title="{{labels.datasets_search_bycategory_clear}}" class="badge badge-pill" style="background-color:transparent;color:#CCC;border:1px #CCC solid;padding:4px;display:none;" onclick="$('.dataset-category').each(function(i,item){ $(item).removeClass('selected')});{{OFV_ID}}.displayDatasets({{OFV_ID}}.config.OGC_CSW_MAXRECORDS);"><i class="fa fa-times"></i></a>
+				<div><a data-toggle="collapse" href="#dataset-search-advanced" role="button" aria-expanded="false" aria-controls="dataset-search-advanced">{{labels.settings}}</a></div>
+				<br>
+				<div class="collapse multi-collapse" id="dataset-search-advanced">
+					<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">
+					 <div class="col-md-6">
+							  <div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-search-bbox-on-search" type="checkbox" class="form-check-input">
+								{{labels.settings_mapextent}}
+								 </label>
+							  </div>
+					  <div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-search-bbox-on-mapmove" type="checkbox" class="form-check-input">
+								{{labels.settings_mapmove}}
+								 </label>
+							  </div>
+					 </div>
+					 <div>
+					  <div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-spatial-coverage-visible" type="checkbox" class="form-check-input">
+								{{labels.settings_bbox}}
+								 </label>
+							  </div>
+							  <div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-spatial-coverage-extended" type="checkbox" class="form-check-input">
+								{{labels.settings_geom}}
+								 </label>
+							  </div>
+					 </div>
+					</fieldset>
+				</div>
             </form>
           </section>
         </div>

@@ -40,6 +40,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 //bootstrap-slider
 import 'bootstrap-slider/dist/css/bootstrap-slider.css';
 import 'bootstrap-slider/dist/bootstrap-slider.js';
+//font awesome
+import '@fortawesome/fontawesome-free/js/all.js';
 //academicons
 import 'academicons/css/academicons.css';
 //jsonix
@@ -137,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.0", DATE: new Date('2021-10-25')}
+		this.versioning = {VERSION: "2.7.0", DATE: new Date('2021-10-26')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -250,7 +252,7 @@ class OpenFairViewer {
 			});
 		}
 		
-		//BROWSE options
+		//FIND options
 		//--------------------------------------------------------------------------------------------------
 		this.options.find = {};
 		this.options.find.maxitems = null;
@@ -260,6 +262,7 @@ class OpenFairViewer {
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
 			window.open(datasetInfoUrl, '_blank');
 		}
+		this.options.find.categories = [];
 		if(options.find){
 			if(options.find.maxitems) this.options.find.maxitems = options.find.maxitems;
 			if(options.find.filter) this.options.find.filter = options.find.filter;
@@ -272,6 +275,9 @@ class OpenFairViewer {
 				}else{
 					this.options.find.filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [this.options.find.filter, wmsFilter]);
 				}
+			}
+			if(options.find.categories) if(options.find.categories.length > 0){
+				this.options.find.categories = options.find.categories;
 			}
 		}
 		
@@ -783,6 +789,7 @@ class OpenFairViewer {
 			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels, mode: (this_.options.map.mode == '2D'? '3D':'2D')});
 			if(this_.config.OFV_CONTAINERID == 'body') main = '<div class="wrapper">' + main + '</div>';
 			if(intro) $(this_.config.OFV_CONTAINERID == 'body'? 'body' : "#"+this_.config.OFV_CONTAINERID).append(main);
+			this_.initFindCategories();
 			deferred.resolve();
 		});
 		return deferred.promise();
@@ -814,7 +821,12 @@ class OpenFairViewer {
 			$("#dataset-form").submit(function(e) {
 				e.preventDefault();
 				var maxrecords = parseInt($("select[id='datasets_length']").val());
-				this_.displayDatasets(maxrecords);
+				if($("#dataset-search-bbox-on-search").prop("checked") && $("#dataset-search-bbox-on-mapinteraction").prop("checked")){
+					var bbox = this_.map.getView().calculateExtent(this_.map.getSize());
+					this_.displayDatasets(maxrecords, bbox); 
+				}else{
+					this_.displayDatasets(maxrecords); 
+				}
 				return false;
 			});
 					
@@ -2111,7 +2123,6 @@ class OpenFairViewer {
 		}));
 		
 		//add config filters?
-
 		if(typeof this.options.find.filter != 'undefined'){
 			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, this.options.find.filter]);
 		}
@@ -2139,6 +2150,20 @@ class OpenFairViewer {
 				filter, new BBOX(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, bbox[1], bbox[0], bbox[3], bbox[2], 'urn:x-ogc:def:crs:EPSG:6.11:4326')
 			]);
 		}
+		
+		//category filter
+		if($('.dataset-category.selected').length > 0){
+			var category_filters = new Array();
+			$('.dataset-category.selected').each(function(i, item){
+				var category = $(item).attr('id').split('_category')[0];
+				var filter_on_category = this_.options.find.categories.filter(function(item){if(item.id == category) return item;})[0].filter;
+				category_filters.push( filter_on_category );
+			});
+			var category_filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, category_filters);
+			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, category_filter]);
+			$("#find-categories-reset").show();
+		}
+		
 		return filter;
 	}
 	
@@ -2154,6 +2179,24 @@ class OpenFairViewer {
             deferred.resolve(template);
         });
 		return deferred.promise();
+	}
+	
+	/**
+	 * initFindCategories
+	 */
+	initFindCategories(){
+		var this_ = this;
+		$("#find-categories").empty();
+		this.loadTemplate('templates/category.tpl.html', 'categoryTpl').then(function(template){
+			var dataHtml = '';
+			for(var i=0;i<this_.options.find.categories.length;i++){
+				var category = this_.options.find.categories[i];
+				category.withIcon = category.icon? true : false;
+				var item_html = mustache.render(template, {OFV_ID : this_.config.OFV_ID, category: category});
+				dataHtml += item_html;
+			}
+			$("#find-categories").html(dataHtml);
+		});
 	}
 	
 	/**
@@ -2237,7 +2280,7 @@ class OpenFairViewer {
 	 * @param bbox
 	 */
 	getDatasetsFromCSW(maxrecords, bbox){
-		
+
 		$("#dataset-count").empty();
 		$("#dataset-articles").empty();
 		$("#dataset-articles").html('<p id="dataset-loader" class="loader-generic loader-generic-wide"><br /><br /><br />Fetching datasets...</p>');
@@ -2282,13 +2325,14 @@ class OpenFairViewer {
 	 * displayDatasets
 	 * @param maxrecords
 	 * @param bbox
+	 * @param category
 	 */
-	displayDatasets(maxrecords, bbox){
+	displayDatasets(maxrecords, bbox, category){
 		var this_ = this;
 		if($("#dataset-search-bbox-on-search").prop("checked") && !bbox){
 			bbox = this.map.getView().calculateExtent(this.map.getSize());
 		}
-		this.getDatasetsFromCSW(maxrecords, bbox);
+		this.getDatasetsFromCSW(maxrecords, bbox, category);
 	}
 	 
 	/**

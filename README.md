@@ -189,6 +189,7 @@ filter | ``Object``| An OGC filter to restrain the selection of datasets through
 filterByWMS| ``Boolean``| Indicates if only datasets with OGC WMS map resources should be listed | false
 datasetInfoHandler| ``function`` | A function taking as parameter a metadata object. By default it will open a new tab with the XML version of the metadata through an OGC CSW GetRecordById request. | Function returning CSW GetRecordByID XML in new tab
 maxitems| ``Integer``| Maximum number of datasets to retrieve from the catalogue| null
+categories|``Array``| An array of category definitions to enable quick search buttons. Each category should come with an `id`, `title` (to be displayed), `color` (CSS color code to use for text), `background` (CSS background color), `icon` (optional CSS class string to use with Font awesome), `filter` (mandatory OGC filter to restrain the selection of datasets through the CSW)
 
 
 ### _access_ options

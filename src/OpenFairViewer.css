@@ -177,7 +177,12 @@ ul.pagination {margin: 0px !important;}
 	color:#286090 !important;
 	background-color: transparent !important;
 }
-
+.dataset-category{
+	opacity:0.4;
+}
+.dataset-category.selected{
+	opacity:1 !important;
+}
 
 /** QUERY **/
 #dsd-ui-wrapper { }

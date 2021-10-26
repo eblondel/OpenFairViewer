@@ -36,6 +36,7 @@
     "parcel-plugin-static-files-copy": "^2.5.0"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.4",
     "academicons": "^1.8.6",
     "bootpag": "^1.0.7",
     "bootstrap": "^3.4.1",
