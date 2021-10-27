@@ -2162,6 +2162,8 @@ class OpenFairViewer {
 			var category_filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, category_filters);
 			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, category_filter]);
 			$("#find-categories-reset").show();
+		}else{
+			$("#find-categories-reset").hide();
 		}
 		
 		return filter;
