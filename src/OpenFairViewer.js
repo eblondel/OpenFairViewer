@@ -1361,65 +1361,68 @@ class OpenFairViewer {
 			featureinfo_promises.push( this.getWMSFeatureInfo(layer, coords) );
 		}
 		//$("#"+layerid+"_featureinfo")
-		Promise.all(featureinfo_promises).then(values => { 
-			var total_features = values.map(function(item){return item.features.length}).reduce((a, b) => a + b, 0);
-			if(total_features > 0){
-				
-				console.log("Total feature infos fetched => "+total_features);
-				console.log(values);
-				
-				//html
-				var div = $("<div id='featureinfo-tabs' style='font-size:9px;'>");
-				var ul = $("<ul>");
-				for(var i=0;i<layers.length;i++){
-					var layerid = layers[i];
-					var layer = this.getLayerByProperty(layerid, 'id');
-					var featureinfos = values.filter(function(item){if(item.id == layerid) return item});
-					if(featureinfos[0].features.length > 0){
-						ul.append($("<li><a href='#"+layerid+"_featureinfo'>"+layerid+"</a></li>"));
+		Promise.all(featureinfo_promises).then(values => {
+			if(values.length > 0){
+				var total_features = values.map(function(item){return item.features.length}).reduce((a, b) => a + b, 0);
+				if(total_features > 0){
+					
+					console.log("Total feature infos fetched => "+total_features);
+					console.log(values);
+					
+					//html
+					var div = $("<div id='featureinfo-tabs' style='font-size:9px;'>");
+					var ul = $("<ul>");
+					for(var i=0;i<layers.length;i++){
+						var layerid = layers[i];
+						var layer = this.getLayerByProperty(layerid, 'id');
+						var featureinfos = values.filter(function(item){if(item.id == layerid) return item});
+						if(featureinfos[0].features.length > 0){
+							ul.append($("<li><a href='#"+layerid+"_featureinfo'>"+layerid+"</a></li>"));
+						}
 					}
-				}
-				div.append(ul);
-				for(var i=0;i<layers.length;i++){
-					var layerid = layers[i];
-					var layer = this.getLayerByProperty(layerid, 'id');
-					var layer_tab = $("<div id='"+layerid+"_featureinfo'></div>");
-					div.append(layer_tab);
-				}
-				
-				if(this_.options.map.popup.mode == 'map'){
-					var popup = this_.map.getOverlayById('featureinfos');
-					popup.show(coords, div.prop('outerHTML'));
-					//this.options.map.popup.onopen(layer, feature); //TODO HOW TO DEAL WITH THAT
-					this_.popup = {id: 'featureinfos', coords: coords};
-				}else if(this_.options.map.popup.mode == 'dialog'){
-					$("#datasetFeatureInfo").html(div.prop('outerHTML'));
-					this_.openFeatureDialog();
-				}
-				
-				for(var i=0;i<layers.length;i++){
-					var layerid = layers[i];
-					var layer = this.getLayerByProperty(layerid, 'id');
-					var layer_tab = $("<div id='"+layerid+"_featureinfo'></div>");
-					var featureinfos = values.filter(function(item){if(item.id == layerid) return item});
-					console.log(featureinfos);
-					if(featureinfos[0].features.length > 0){
-						$("#"+layerid+"_featureinfo").append(this_.options.map.popup.handler(layer, featureinfos[0].features));
-					}else{
-						$("#"+layerid+"_featureinfo").remove();
+					div.append(ul);
+					for(var i=0;i<layers.length;i++){
+						var layerid = layers[i];
+						var layer = this.getLayerByProperty(layerid, 'id');
+						var layer_tab = $("<div id='"+layerid+"_featureinfo'></div>");
+						div.append(layer_tab);
 					}
-				}
-				
-				$( "#featureinfo-tabs" ).tabs();
-				
-			}else{
-				if(this_.options.map.popup.mode == 'map'){
-					var popup = this_.map.getOverlayById('featureinfos');
-					popup.hide();
-					this_.popup = {};
-				}else if(this_.options.map.popup.mode == 'dialog'){
-					$("#datasetFeatureInfo").html("No feature info");
-					this_.closeFeatureDialog();
+					
+					if(this_.options.map.popup.mode == 'map'){
+						var popup = this_.map.getOverlayById('featureinfos');
+						popup.show(coords, div.prop('outerHTML'));
+						//this.options.map.popup.onopen(layer, feature); //TODO HOW TO DEAL WITH THAT
+						this_.popup = {id: 'featureinfos', coords: coords};
+					}else if(this_.options.map.popup.mode == 'dialog'){
+						$("#datasetFeatureInfo").html(div.prop('outerHTML'));
+						this_.openFeatureDialog();
+					}
+					
+					for(var i=0;i<layers.length;i++){
+						var layerid = layers[i];
+						var layer = this.getLayerByProperty(layerid, 'id');
+						var layer_tab = $("<div id='"+layerid+"_featureinfo'></div>");
+						var featureinfos = values.filter(function(item){if(item.id == layerid) return item});
+						console.log(featureinfos);
+						if(featureinfos[0].features.length > 0){
+							$("#"+layerid+"_featureinfo").append(this_.options.map.popup.handler(layer, featureinfos[0].features));
+						}else{
+							$("#"+layerid+"_featureinfo").remove();
+						}
+					}
+					
+					$( "#featureinfo-tabs" ).tabs();
+					
+				}else{
+					if(this_.options.map.popup.mode == 'map'){
+						var popup = this_.map.getOverlayById('featureinfos');
+						popup.hide();
+						this_.popup = {};
+					}
+					/*else if(this_.options.map.popup.mode == 'dialog'){
+						$("#datasetFeatureInfo").html("No feature info");
+						this_.closeFeatureDialog();
+					}*/
 				}
 			}
 		});
@@ -1534,23 +1537,25 @@ class OpenFairViewer {
 			feature.geometry_column = feature.getGeometryName();
 			feature.popup_coordinates = coords;
 			
-			if(this.options.map.popup.mode == 'map'){
+			//if(this.options.map.popup.mode == 'map'){
 				popup.show(coords, this_.options.map.popup.handler(layer, [feature]));		
 				this_.options.map.popup.onopen(layer, feature);
 				this_.popup = {id: layer.id, coords: coords};
-			}else if(this.options.map.popup.mode == 'dialog'){
+			//}
+			/*else if(this.options.map.popup.mode == 'dialog'){
 				$("#datasetFeatureInfo").html(this_.options.map.popup.handler(layer, [feature]));
 				this.openFeatureDialog();
-			}
+			}*/
 		}else{
-			if(this.options.map.popup.mode == 'map'){
+			//if(this.options.map.popup.mode == 'map'){
 				popup.hide();
 				this_.popup = {};
 				this_.options.map.popup.onclose(layer, feature);
-			}else if(this.options.map.popup.mode == 'dialog'){
+			//}
+			/*else if(this.options.map.popup.mode == 'dialog'){
 				$("#datasetFeatureInfo").html("");
 				this.closeFeatureDialog();
-			}
+			}*/
 			//in case feature markers are highlighted we remove them
 			var markersId = 'ofv-feature-marker';
 			var markers = this_.getLayerByProperty(markersId, 'id');
@@ -1631,18 +1636,18 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * registerWMSFeatureInfoLayer
+	 * registerFeatureInfoLayer
 	 * @param layer
 	 */
-    registerWMSFeatureInfoLayer(layer){
+    registerFeatureInfoLayer(layer){
 		this.layers_with_featureinfo.push(layer.id);
 	}
 	
 	/**
-	 * unregisterWMSFeatureInfoLayer
+	 * unregisterFeatureInfoLayer
 	 * @param layer
 	 */
-    unregisterWMSFeatureInfoLayer(layer){
+    unregisterFeatureInfoLayer(layer){
 		const index = this.layers_with_featureinfo.indexOf(layer.id);
 		if (index > -1) this.layers_with_featureinfo.splice(index, 1);
 	}
@@ -1679,7 +1684,7 @@ class OpenFairViewer {
 				var condition  = by? (layer.get(by) === layerProperty) : (layer.getSource().getParams()["LAYERS"] === layerProperty);
 				if(condition){
 					this.layers.overlays[i-1].getLayers().remove(layer);
-					this.unregisterWMSFeatureInfoLayer(layer);
+					this.unregisterFeatureInfoLayer(layer);
 					this.renderMapLegend();
 					removed = true;
 					break;
@@ -4638,7 +4643,7 @@ class OpenFairViewer {
 							layer.params = layer.getSource().getParams();
 							layer.geom = geom;
 							layer.geomtype = geomtype;
-							this_.registerWMSFeatureInfoLayer(layer);
+							this_.registerFeatureInfoLayer(layer);
 							this_.setLegendGraphic(layer, breaks, colors);	
 							this_.map.changed();
 							this_.renderMapLegend();
@@ -4685,6 +4690,7 @@ class OpenFairViewer {
 							layer.params = {CQL_FILTER: (strategyparams == null)? null : decodeURIComponent(strategyparams_str)};
 							layer.geom = geom;
 							layer.geomtype = geomtype;
+							this_.registerFeatureInfoLayer(layer);
 							this_.setLegendGraphic(layer);
 							//this_.map.changed();
 							this_.renderMapLegend();
@@ -4705,7 +4711,7 @@ class OpenFairViewer {
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-						this_.registerWMSFeatureInfoLayer(layer);
+						this_.registerFeatureInfoLayer(layer);
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -4714,6 +4720,7 @@ class OpenFairViewer {
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
 						layer.geomtype = geomtype;
+						this_.registerFeatureInfoLayer(layer);
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -4742,7 +4749,7 @@ class OpenFairViewer {
 					layer.envcolscheme = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
-					this_.registerWMSFeatureInfoLayer(layer);
+					this_.registerFeatureInfoLayer(layer);
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
@@ -4788,7 +4795,7 @@ class OpenFairViewer {
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-						this_.registerWMSFeatureInfoLayer(layer);
+						this_.registerFeatureInfoLayer(layer);
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -4797,6 +4804,7 @@ class OpenFairViewer {
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
 						layer.geomtype = geomtype;
+						this_.registerFeatureInfoLayer(layer);
 						this_.setLegendGraphic(layer);
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -4853,7 +4861,7 @@ class OpenFairViewer {
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
 						layer.geomtype = geomtype;
-						this_.registerWMSFeatureInfoLayer(layer);
+						this_.registerFeatureInfoLayer(layer);
 						this_.setLegendGraphic(layer, breaks, colors);	
 						this_.map.changed();
 						this_.renderMapLegend();
@@ -4899,6 +4907,7 @@ class OpenFairViewer {
 						layer.params = {'VIEWPARAMS': strategyparams_str};
 						layer.geom = geom;
 						layer.geomtype = geomtype;
+						this_.registerFeatureInfoLayer(layer);
 						this_.setLegendGraphic(layer);
 						//this_.map.changed();
 						this_.renderMapLegend();
@@ -4920,7 +4929,7 @@ class OpenFairViewer {
 					layer.strategy = dataset.strategy;
 					layer.dsd = dataset.dsd;
 					layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-					this_.registerWMSFeatureInfoLayer(layer);
+					this_.registerFeatureInfoLayer(layer);
 					layer.variable = null;
 					layer.envfun = null;
 					layer.envmaptype = null;
@@ -4929,6 +4938,7 @@ class OpenFairViewer {
 					layer.params = layer.getSource().getParams();
 					layer.geom = geom;
 					layer.geomtype = geomtype;
+					this_.registerFeatureInfoLayer(layer);
 					this_.setLegendGraphic(layer);
 					this_.map.changed();
 					this_.renderMapLegend();
