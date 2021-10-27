@@ -54,7 +54,7 @@ nav ul li.active { background-color: #0C71B8;}
 .info-dialog { width: 60vw !important; left: 40vw !important; height: 85% !important; top: 15% !important;}
 .data-dialog { width: 60vw !important;height: 40vh !important; left:40vw !important; top: 60% !important; }
 .dashboard-dialog { width: 60vw !important;height: 85vh !important; left:40vw !important; top: 15% !important; }
-.feature-dialog { width: 30vw !important;height: 40vh !important; left:70vw; top: 60%; }
+.feature-dialog { width: 30vw;height: 40vh; left:70vw; top: 60%; }
 .find-dialog, .access-dialog, .info-dialog, .data-dialog, .dashboard-dialog, .feature-dialog {border-color:#1674B8; background-color:#fff; opacity:0.95; color:#000;}
 .find-dialog .ui-dialog-content, .access-dialog .ui-dialog-content , .info-dialog .ui-dialog-content, .data-dialog .ui-dialog-content, .dashboard-dialog .ui-dialog-content, .feature-dialog .ui-dialog-content { color:#000; padding: .5em .1em}
 .find-dialog .ui-dialog-titlebar, .access-dialog .ui-dialog-titlebar, .info-dialog .ui-dialog-titlebar, .data-dialog .ui-dialog-titlebar, .dashboard-dialog .ui-dialog-titlebar, .feature-dialog .ui-dialog-titlebar {background-color:#fff; opacity:0.95; color:#FFF;background-color: rgba(55,96,146,.6);}
@@ -67,7 +67,7 @@ nav ul li.active { background-color: #0C71B8;}
 #featureDialog {height: auto; fontsize: 12px !important; overflow: hidden; overflow-y: auto;}
 
 /** BROWSER **/
-#dataset-list { height:85%;}
+#dataset-list { height:95%;}
 #dataset-list section.list { height: 100%; }
 #dataset-articles {min-height:400px; height: 90%; overflow:auto;}
 #dataset-pages { text-align: center; margin: 5px 0px;}
@@ -76,7 +76,7 @@ ul.pagination {margin: 0px !important;}
 .search-result .thumbnail { border-radius: 0 !important; padding: 0px; height: 100%; margin-bottom: 0px;}
 .search-result .thumbnail img { height: 100%;}
 .search-result:first-child { margin-top: 0 !important; }
-.search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 110px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px; background-color: ghostwhite;}
+.search-result {border: 1px solid #ccc; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; height: 90px; margin: 4px 0px;transition: background-color .25s ease-in-out; -moz-transition: background-color .25s ease-in-out; -webkit-transition: background-color .25s ease-in-out; padding: 2px; background-color: ghostwhite;}
 .search-result:hover, .search-result.hovered {background-color: lightsteelblue;}
 .search-result ul { padding-left: 0 !important; list-style: none;  }
 .search-result ul li { line-height: 30px; }
@@ -84,11 +84,11 @@ ul.pagination {margin: 0px !important;}
 .search-result .col-md-9{ position: relative; }
 .search-result h6{ margin-top: 0 !important; margin-bottom: 0px !important; font-weight: bold; width: 90%;cursor: default;}
 .search-result h6 > a, .search-result i { color: #248dc1 !important; }
-.search-result p { font-size:90%; margin-right:45px; cursor: default;}
+.search-result p { font-size:90%; cursor: default;}
 
 .ellipsis {
     	display: -webkit-box;
-	-webkit-line-clamp: 6;
+	-webkit-line-clamp: 4;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -100,7 +100,7 @@ ul.pagination {margin: 0px !important;}
 .loader-generic-wide { text-align:center; display:none; position: absolute; margin: 30% 0; width: 100%; }
 .loader-generic {background:url(img/loading.gif) center center no-repeat;background-size:30px 30px;};
 .graphic_overview {background-repeat: no-repeat !important;background-size: 48px 48px !important; background-position: center !important;}
-.dataset-button { font-size: 80%; position: absolute; top: 0px; right: 0px; padding: 3px 6px !important;}
+.dataset-button { font-size: 80%; padding: 3px 6px !important;}
 .dataset-button:before {content: '' !important;}
 .dataset-button-add {
 	margin: 0px 1px;
@@ -135,8 +135,6 @@ ul.pagination {margin: 0px !important;}
 .dataset-button-zoom {
 	margin: 0px 1px;
 	width:20px !important;
-	top: 80px;
-	right: 24px;
 	height: 20px !important;
 	color:#8e8e8e !important;
 	background-color: transparent !important;
@@ -150,8 +148,6 @@ ul.pagination {margin: 0px !important;}
 .dataset-button-info {
 	margin: 0px 1px;
 	width:20px !important;
-	top: 80px;
-	right: 48px;
 	height: 20px !important;
 	color:#8e8e8e !important;
 	background-color: transparent !important;
@@ -165,8 +161,6 @@ ul.pagination {margin: 0px !important;}
 .dataset-button-doi {
 	margin: 0px 1px;
 	width:20px !important;
-	top: 80px;
-	right: 74px;
 	height: 20px !important;
 	color:#8e8e8e !important;
 	background-color: transparent !important;

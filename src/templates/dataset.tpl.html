@@ -5,28 +5,29 @@
 	</div>
 	<div class="col-xs-9 col-sm-9 col-md-9 excerpet">
 	
-	<div class="ellipsis">
+	<div class="row ellipsis">
 		<h6>{{title}} - <small style="font-weight:bold;color:#0C71B8;">{{pid}}</small></h6>
-		<p>{{_abstract}}</p>
+		<!--<p>{{_abstract}}</p>-->
 	</div>
 
-	
-	{{#doi}}
-	<button class="btn btn-xs dataset-button dataset-button-doi" 
-		data-pid="{{pid}}" title="{{labels.dataset_access_doi}}" 
-		onclick="{{OFV_ID}}.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>
-	{{/doi}}
-	<button class="btn btn-xs dataset-button dataset-button-info"
-		data-pid="{{pid}}" title="{{labels.dataset_access_metadata}}"
-		onclick="{{OFV_ID}}.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>
-	<button class="btn btn-xs dataset-button dataset-button-zoom"
-		data-pid="{{pid}}" title="{{labels.dataset_zoom_extent}}"
-		onclick="{{OFV_ID}}.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>
-	{{#queryable}}
-	<button class="btn btn-xs dataset-button dataset-button-add pid"
-		data-pid="{{pid}}" title="{{labels.dataset_query_map_title}}"
-		onclick="{{OFV_ID}}.openAccessDialog();{{OFV_ID}}.displayDatasetQueryForm(this);"><span class="glyphicon glyphicon-globe"></span></button>
-	{{/queryable}}
-	</div>
+	<div class="row" style="float:right;">
+		{{#doi}}
+		<button class="btn btn-xs dataset-button dataset-button-doi" 
+			data-pid="{{pid}}" title="{{labels.dataset_access_doi}}" 
+			onclick="{{OFV_ID}}.resolveDatasetDOI(this)"><span class="ai ai-doi" style="font-size:120%;"></span></button>
+		{{/doi}}
+		<button class="btn btn-xs dataset-button dataset-button-info"
+			data-pid="{{pid}}" title="{{labels.dataset_access_metadata}}"
+			onclick="{{OFV_ID}}.displayDatasetMetadata(this)"><span class="glyphicon glyphicon-info-sign"></span></button>
+		<button class="btn btn-xs dataset-button dataset-button-zoom"
+			data-pid="{{pid}}" title="{{labels.dataset_zoom_extent}}"
+			onclick="{{OFV_ID}}.zoomToExtent(this)"><span class="glyphicon glyphicon-zoom-in"></span></button>
+		{{#queryable}}
+		<button class="btn btn-xs dataset-button dataset-button-add pid"
+			data-pid="{{pid}}" title="{{labels.dataset_query_map_title}}"
+			onclick="{{OFV_ID}}.openAccessDialog();{{OFV_ID}}.displayDatasetQueryForm(this);"><span class="glyphicon glyphicon-globe"></span></button>
+		{{/queryable}}
+		</div>
+	<div>
   </article>
 </script>
