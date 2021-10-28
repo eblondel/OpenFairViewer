@@ -173,6 +173,8 @@ ul.pagination {margin: 0px !important;}
 }
 .dataset-category{
 	opacity:0.4;
+	margin-bottom:1px;
+	margin-top:1px;
 }
 .dataset-category.selected{
 	opacity:1 !important;
