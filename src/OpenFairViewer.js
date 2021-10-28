@@ -4690,7 +4690,6 @@ class OpenFairViewer {
 							layer.params = {CQL_FILTER: (strategyparams == null)? null : decodeURIComponent(strategyparams_str)};
 							layer.geom = geom;
 							layer.geomtype = geomtype;
-							this_.registerFeatureInfoLayer(layer);
 							this_.setLegendGraphic(layer);
 							//this_.map.changed();
 							this_.renderMapLegend();
@@ -4795,7 +4794,6 @@ class OpenFairViewer {
 						layer.strategy = dataset.strategy;
 						layer.dsd = dataset.dsd;
 						layer.baseDataUrl = baseWfsUrl? baseWfsUrl : null;
-						this_.registerFeatureInfoLayer(layer);
 						layer.variable = null;
 						layer.envfun = null;
 						layer.envmaptype = null;
@@ -4907,7 +4905,6 @@ class OpenFairViewer {
 						layer.params = {'VIEWPARAMS': strategyparams_str};
 						layer.geom = geom;
 						layer.geomtype = geomtype;
-						this_.registerFeatureInfoLayer(layer);
 						this_.setLegendGraphic(layer);
 						//this_.map.changed();
 						this_.renderMapLegend();
