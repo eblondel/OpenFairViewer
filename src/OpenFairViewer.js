@@ -1540,7 +1540,7 @@ class OpenFairViewer {
 			
 			//if(this.options.map.popup.mode == 'map'){
 				popup.show(coords, this_.options.map.popup.handler(layer, [feature]));		
-				this_.options.map.popup.onopen(layer, feature);
+				this_.options.map.popup.onopen(layer, [feature]);
 				this_.popup = {id: layer.id, coords: coords};
 			//}
 			/*else if(this.options.map.popup.mode == 'dialog'){
@@ -1551,7 +1551,7 @@ class OpenFairViewer {
 			//if(this.options.map.popup.mode == 'map'){
 				popup.hide();
 				this_.popup = {};
-				this_.options.map.popup.onclose(layer, feature);
+				this_.options.map.popup.onclose(layer, [feature]);
 			//}
 			/*else if(this.options.map.popup.mode == 'dialog'){
 				$("#datasetFeatureInfo").html("");
@@ -6927,7 +6927,7 @@ class OpenFairViewer {
 						var popup = this_.map.getOverlayById(layer.id);
 						popup.hide();
 						this_.popup = {};
-						this_.options.map.popup.onclose(layer, evt.element);
+						this_.options.map.popup.onclose(layer, [evt.element]);
 						
 					});
 				}
@@ -7095,7 +7095,7 @@ class OpenFairViewer {
 				this_.getVectorFeatureInfo(layer, feature);
 			  } else {
 				console.log("Cluster ("+c.length+" features)");
-				this_.options.map.popup.onclose(layer, e.element);
+				this_.options.map.popup.onclose(layer, [e.element]);
 			  }
 			}else if(e.type == "remove"){
 				var feature = c[0];
@@ -7103,7 +7103,7 @@ class OpenFairViewer {
 				var popup = this_.map.getOverlayById(layer.id);
 				popup.hide();
 				this_.popup = {};
-				this_.options.map.popup.onclose(layer, e.element);
+				this_.options.map.popup.onclose(layer, [e.element]);
 
 				//in case feature markers are highlighted we remove them
 				var markersId = 'ofv-feature-marker';
