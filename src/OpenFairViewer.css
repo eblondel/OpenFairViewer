@@ -92,6 +92,7 @@ ul.pagination {margin: 0px !important;}
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	padding:0px 2px;
 }
 
 .pagination>li { display: inline-block; }
