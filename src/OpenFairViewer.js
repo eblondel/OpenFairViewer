@@ -6832,7 +6832,8 @@ class OpenFairViewer {
 					source : clusterSource,
 					animationDuration : this_.options.map.point_clustering_options.animationDuration,
 					style : this_.options.map.point_clustering_options.style
-				});			
+				});	
+				layer.pid = pid;
 				layer.id = id;
 				layer.showLegendGraphic = true;
 				layer.setZIndex(this_.layers.overlays[mainOverlayGroup].getLayers().length);
