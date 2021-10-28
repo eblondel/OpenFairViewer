@@ -89,7 +89,7 @@ import proj4 from 'proj4';
 import {register} from 'ol/proj/proj4';
 import * as olExtent from 'ol/extent';
 import * as olProj from 'ol/proj';
-import {Circle as CircleStyle, Fill, Stroke, Text, Style} from 'ol/style';
+import {Circle as CircleStyle, Fill, Stroke, Text, Style, Icon} from 'ol/style';
 import * as olCoordinate from 'ol/coordinate';
 import * as olGeom from 'ol/geom';
 import {fromExtent} from 'ol/geom/Polygon'
@@ -278,6 +278,7 @@ class OpenFairViewer {
 			}
 			if(options.find.categories) if(options.find.categories.length > 0){
 				this.options.find.categories = options.find.categories;
+				$("#find-categories-title").show();
 			}
 		}
 		
