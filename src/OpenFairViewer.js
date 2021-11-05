@@ -139,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.0", DATE: new Date('2021-10-28')}
+		this.versioning = {VERSION: "2.7.1", DATE: new Date('2021-11-05')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -2165,7 +2165,12 @@ class OpenFairViewer {
 				var filter_on_category = this_.options.find.categories.filter(function(item){if(item.id == category) return item;})[0].filter;
 				category_filters.push( filter_on_category );
 			});
-			var category_filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, category_filters);
+			var category_filter = null;
+			if(category_filters.length == 1){
+				category_filter = category_filters[0];
+			}else{
+				category_filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, category_filters);
+			}
 			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, category_filter]);
 			$("#find-categories-reset").show();
 		}else{
