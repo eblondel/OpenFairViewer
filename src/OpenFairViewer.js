@@ -1916,7 +1916,8 @@ class OpenFairViewer {
 		md_entry.dsdModel = "none";
 		if(md_entry.metadata.contentInfo) {
 			if(md_entry.metadata.contentInfo[0].featureCatalogueCitation) if(md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].uuidref){
-				var fc_url = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gfc&id=" + md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].uuidref;
+				//build fc_url, adding patch to encode isotc211 namespace in case full rewriting of url components to https is done on server
+				var fc_url = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema= " + encodeURIComponent("http://www.isotc211.org") + "/2005/gfc&id=" + md_entry.metadata.contentInfo[0].featureCatalogueCitation[0].uuidref;
 				md_entry.dsd = this_.rewriteURL(fc_url);
 				md_entry.dsdModel = "FeatureCatalogue";
 			}
@@ -3228,6 +3229,7 @@ class OpenFairViewer {
 						for(var i=0;i<item.containsOperations.length;i++){
 							var op = item.containsOperations[i];
 							if(op.svOperationMetadata.parameters) if(op.svOperationMetadata.parameters.length > 0){
+							
 								var op_params = op.svOperationMetadata.parameters.map(function(item){return item.svParameter.name.aName;});
 								if(op_params.indexOf("TIME") > 0 || op_params.indexOf("ELEVATION")){
 									strategy = "ogc_dimensions";
