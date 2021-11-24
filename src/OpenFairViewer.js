@@ -3228,7 +3228,7 @@ class OpenFairViewer {
 					if(item.containsOperations) if(item.containsOperations.length > 0){
 						for(var i=0;i<item.containsOperations.length;i++){
 							var op = item.containsOperations[i];
-							if(op.svOperationMetadata.parameters) if(op.svOperationMetadata.parameters.length > 0){
+							if(op.svOperationMetadata.parameters) if(op.svOperationMetadata.parameters.length > 0) if(typeof op.svOperationMetadata.parameters[0].nilReason == "undefined"){
 							
 								var op_params = op.svOperationMetadata.parameters.map(function(item){return item.svParameter.name.aName;});
 								if(op_params.indexOf("TIME") > 0 || op_params.indexOf("ELEVATION")){
