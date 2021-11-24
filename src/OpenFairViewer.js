@@ -139,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.1", DATE: new Date('2021-11-05')}
+		this.versioning = {VERSION: "2.7.1", DATE: new Date('2021-11-24')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3227,7 +3227,7 @@ class OpenFairViewer {
 					if(item.containsOperations) if(item.containsOperations.length > 0){
 						for(var i=0;i<item.containsOperations.length;i++){
 							var op = item.containsOperations[i];
-							if(op.svOperationMetadata.parameters){
+							if(op.svOperationMetadata.parameters) if(op.svOperationMetadata.parameters.length > 0){
 								var op_params = op.svOperationMetadata.parameters.map(function(item){return item.svParameter.name.aName;});
 								if(op_params.indexOf("TIME") > 0 || op_params.indexOf("ELEVATION")){
 									strategy = "ogc_dimensions";
