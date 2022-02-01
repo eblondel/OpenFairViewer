@@ -172,12 +172,12 @@ ul.pagination {margin: 0px !important;}
 	color:#286090 !important;
 	background-color: transparent !important;
 }
-.dataset-category{
+.dataset-facetitem{
 	opacity:0.4;
 	margin-bottom:1px;
 	margin-top:1px;
 }
-.dataset-category.selected{
+.dataset-facetitem.selected{
 	opacity:1 !important;
 }
 

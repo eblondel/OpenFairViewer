@@ -139,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.2", DATE: new Date('2021-12-04')}
+		this.versioning = {VERSION: "2.7.3", DATE: new Date('2021-02-01')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -263,7 +263,7 @@ class OpenFairViewer {
 			var datasetInfoUrl = this_.csw.url + "?service=CSW&request=GetRecordById&Version=2.0.2&elementSetName=full&outputSchema=http://www.isotc211.org/2005/gmd&id=" + metadata.fileIdentifier;
 			window.open(datasetInfoUrl, '_blank');
 		}
-		this.options.find.categories = [];
+		this.options.find.facets = [];
 		if(options.find){
 			if(options.find.maxitems) this.options.find.maxitems = options.find.maxitems;
 			if(options.find.filter) this.options.find.filter = options.find.filter;
@@ -277,9 +277,9 @@ class OpenFairViewer {
 					this.options.find.filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [this.options.find.filter, wmsFilter]);
 				}
 			}
-			if(options.find.categories) if(options.find.categories.length > 0){
-				this.options.find.categories = options.find.categories;
-				$("#find-categories-title").show();
+			if(options.find.facets) if(options.find.facets.length > 0){
+				this.options.find.facets = options.find.facets;
+				$("#find-facets-title").show();
 			}
 		}
 		
@@ -791,7 +791,7 @@ class OpenFairViewer {
 			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels, mode: (this_.options.map.mode == '2D'? '3D':'2D')});
 			if(this_.config.OFV_CONTAINERID == 'body') main = '<div class="wrapper">' + main + '</div>';
 			if(intro) $(this_.config.OFV_CONTAINERID == 'body'? 'body' : "#"+this_.config.OFV_CONTAINERID).append(main);
-			this_.initFindCategories();
+			this_.initFindFacets();
 			deferred.resolve();
 		});
 		return deferred.promise();
@@ -2160,23 +2160,24 @@ class OpenFairViewer {
 		}
 		
 		//category filter
-		if($('.dataset-category.selected').length > 0){
-			var category_filters = new Array();
-			$('.dataset-category.selected').each(function(i, item){
-				var category = $(item).attr('id').split('_category')[0];
-				var filter_on_category = this_.options.find.categories.filter(function(item){if(item.id == category) return item;})[0].filter;
-				category_filters.push( filter_on_category );
+		if($('.dataset-facetitem.selected').length > 0){
+			var facet_item_filters = new Array();
+			$('.dataset-facetitem.selected').each(function(i, item){
+				var facet_item = $(item).attr('id').split('_facet_item')[0];
+				var facetitems = [].concat.apply([], this_.options.find.facets.map(function(facet){return facet.items}));
+				var filter_on_facetitem = facetitems.filter(function(item){if(item.id == facet_item) return item;})[0].filter;
+				facet_item_filters.push( filter_on_facetitem );
 			});
-			var category_filter = null;
-			if(category_filters.length == 1){
-				category_filter = category_filters[0];
+			var facet_item_filter = null;
+			if(facet_item_filters.length == 1){
+				facet_item_filter = facet_item_filters[0];
 			}else{
-				category_filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, category_filters);
+				facet_item_filter = new Or(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, facet_item_filters);
 			}
-			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, category_filter]);
-			$("#find-categories-reset").show();
+			filter = new And(this.config.OGC_FILTER_VERSION, this.config.OGC_FILTER_SCHEMAS, [filter, facet_item_filter]);
+			$("#find-facets-reset").show();
 		}else{
-			$("#find-categories-reset").hide();
+			$("#find-facets-reset").hide();
 		}
 		
 		return filter;
@@ -2197,20 +2198,27 @@ class OpenFairViewer {
 	}
 	
 	/**
-	 * initFindCategories
+	 * initFindFacets
 	 */
-	initFindCategories(){
+	initFindFacets(){
 		var this_ = this;
-		$("#find-categories").empty();
-		this.loadTemplate('templates/category.tpl.html', 'categoryTpl').then(function(template){
+		$("#find-facets").empty();
+		this.loadTemplate('templates/facet_item_tag.tpl.html', 'facetItemTagTpl').then(function(template){
 			var dataHtml = '';
-			for(var i=0;i<this_.options.find.categories.length;i++){
-				var category = this_.options.find.categories[i];
-				category.withIcon = category.icon? true : false;
-				var item_html = mustache.render(template, {OFV_ID : this_.config.OFV_ID, category: category});
-				dataHtml += item_html;
+			for(var i=0;i<this_.options.find.facets.length;i++){
+				var facet = this_.options.find.facets[i];
+				dataHtml += '<h6 style="font-weight:bold; margin-top:10px;margin-bottom:0px;">'+ facet.title +'</h6><hr style="margin:4px;">';
+				//facet 'tag' type
+				if(facet.type = 'tag'){
+					for(var j=0;j<facet.items.length;j++){
+						var item = facet.items[j];
+						item.withIcon = item.icon? true : false;
+						var item_html = mustache.render(template, {OFV_ID : this_.config.OFV_ID, item: item});
+						dataHtml += item_html;
+					}
+				}
 			}
-			$("#find-categories").html(dataHtml);
+			$("#find-facets").html(dataHtml);
 		});
 	}
 	
@@ -2340,14 +2348,14 @@ class OpenFairViewer {
 	 * displayDatasets
 	 * @param maxrecords
 	 * @param bbox
-	 * @param category
+	 * @param facetItem
 	 */
-	displayDatasets(maxrecords, bbox, category){
+	displayDatasets(maxrecords, bbox, facetItem){
 		var this_ = this;
 		if($("#dataset-search-bbox-on-search").prop("checked") && !bbox){
 			bbox = this.map.getView().calculateExtent(this.map.getSize());
 		}
-		this.getDatasetsFromCSW(maxrecords, bbox, category);
+		this.getDatasetsFromCSW(maxrecords, bbox, facetItem);
 	}
 	 
 	/**

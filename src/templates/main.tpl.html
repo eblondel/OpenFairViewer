@@ -52,10 +52,10 @@
 					<input type="submit" class="btn btn-primary btn-sm" style="float:right;margin-top:2px;" value="{{labels.search}}"></input>
 				</div>
 				
-				<hr>
-				<span id="find-categories-title" style="display:none;">{{labels.datasets_search_bycategory}}:</span> <div id="find-categories" style="display:inline;"></div><a id="find-categories-reset" title="{{labels.datasets_search_bycategory_clear}}" class="badge badge-pill" style="background-color:transparent;color:#CCC;border:1px #CCC solid;padding:4px;display:none;" onclick="$('.dataset-category').each(function(i,item){ $(item).removeClass('selected')});{{OFV_ID}}.displayDatasets({{OFV_ID}}.config.OGC_CSW_MAXRECORDS);"><i class="fa fa-times"></i></a>
+				<hr style="border-top:2px solid #eeeeee;">
+				<span id="find-facets-title" style="display:none;">{{labels.datasets_search_byfacet}}:</span> <div id="find-facets" style="display:inline;"></div><br><br><a id="find-facets-reset" title="{{labels.datasets_search_byfacet_clear}}" class="badge badge-pill" style="background-color:transparent;color:#CCC;border:1px #CCC solid;padding:4px;display:none;" onclick="$('.dataset-facetitem').each(function(i,item){ $(item).removeClass('selected')});{{OFV_ID}}.displayDatasets({{OFV_ID}}.config.OGC_CSW_MAXRECORDS);"><i class="fa fa-times"></i> {{labels.datasets_search_byfacet_clear}}</a>
 				
-				<hr>
+				<hr style="border-top:2px solid #eeeeee;">
 				<div><a data-toggle="collapse" href="#dataset-search-advanced" role="button" aria-expanded="false" aria-controls="dataset-search-advanced">{{labels.settings}}</a></div>
 				<br>
 				<div class="collapse multi-collapse" id="dataset-search-advanced">
