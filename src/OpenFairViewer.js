@@ -139,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.3", DATE: new Date('2021-02-01')}
+		this.versioning = {VERSION: "2.7.4", DATE: new Date('2021-02-07')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -309,11 +309,13 @@ class OpenFairViewer {
 		this.options.access = {};
 		this.options.access.columns = 2;
 		this.options.access.time = 'datePicker';
+		this.options.access.values_to_exclude_for = null;
 		if(options.access){
 			if(options.access.columns){
 				if([1,2].indexOf(options.access.columns) != -1) this.options.access.columns = options.access.columns;
 			}
 			if(options.access.time) this.options.access.time = options.access.time;
+			if(options.access.values_to_exclude_for) this.options.access.values_to_exclude_for = options.access.values_to_exclude_for;
 		}
 		
 		//dashboard
@@ -3620,7 +3622,19 @@ class OpenFairViewer {
 								theme: 'classic',
 								allowClear: true,
 								placeholder: dsd_component_placeholder,
-								data: dsd_component.values,
+								data: dsd_component.values.filter(function(item){
+									if(!this_.options.access.values_to_exclude_for) return item;
+									if(this_.options.access.values_to_exclude_for){
+										var values_to_exclude = this_.options.access.values_to_exclude_for[dsd_component.primitiveCode];
+										if(values_to_exclude){
+											if(values_to_exclude.indexOf(item.id) == -1) return item;
+										}else{
+											return item;
+										}
+									}else{
+										return item;
+									}
+								}),
 								templateResult: attributeItemResult,
 								templateSelection: attributeItemSelection,
 								matcher: attributeMatcher
