@@ -7,6 +7,7 @@ OpenFairViewer - a FAIR, ISO and OGC (meta)data compliant GIS data viewer for br
 Many thanks to the following organizations that have provided fundings for strenghtening ``OpenFairViewer``:
 
 <div style="float:left;">
+  <a href="https://www.fao.org/home/en/"><img height=100 width=200 src="https://www.fao.org/fileadmin/templates/family-farming-decade/images/FAO-IFAD-Logos/FAO-Logo-EN.svg"></a>
   <a href="https://en.ird.fr/"><img src="https://en.ird.fr/sites/ird_fr/files/2019-08/logo_IRD_2016_BLOC_UK_COUL.png" height=200 width=200/></a>
   <a href="https://www.inrae.fr" target="_blank"><img height=200 width=200 src="https://www.inrae.fr/themes/custom/inrae_socle/logo.svg"></a>
 </div>
@@ -88,7 +89,7 @@ npm install eblondel/openfairviewer
 * for the latest release
 
 ```
-npm install eblondel/openfairviewer#2.4.0
+npm install eblondel/openfairviewer#2.7.5
 ```
 
 After the installation, OpenFairViewer will be installed as dependency.
