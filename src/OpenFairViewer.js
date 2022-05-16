@@ -2562,7 +2562,7 @@ class OpenFairViewer {
 		console.log("Resove DOI for dataset pid = " + pid);
 		var the_dataset = null;
 		if(this.dataset_on_query){
-			if(pid == this.dataset_on_query.pid) the_dataset = this.dataset_on_query;
+			if(pid == this.dataset_on_query.pid) the_dataset = this.dataset_on_query.entry;
 		}
 		if(!the_dataset){
 			the_dataset = this.datasets.filter(function(item){if(item.pid == pid) return item});
