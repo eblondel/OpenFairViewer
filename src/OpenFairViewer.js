@@ -516,9 +516,9 @@ class OpenFairViewer {
 				type: 'base',
 				source : new XYZ({
 					projection: olProj.get(this_.options.map.projection),
-					url: 'https://server.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer/tile/{z}/{y}/{x}',
-					tileSize: 512, // the tile size supported by the ArcGIS tile service
-					maxResolution: 180 / 512, // Esri's tile grid fits 180 degrees on one 512 px tile
+					url: 'https://wi.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+					tileSize: 256, // the tile size supported by the ArcGIS tile service
+					maxResolution: 180 / 256, // Esri's tile grid fits 180 degrees on one 512 px tile
 					crossOrigin: 'anonymous',
 					wrapX: true
 				})
