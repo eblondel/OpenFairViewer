@@ -139,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.5", DATE: new Date('2022-05-16')}
+		this.versioning = {VERSION: "2.7.6", DATE: new Date('2022-05-30')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -3242,11 +3242,11 @@ class OpenFairViewer {
 							if(op.svOperationMetadata.parameters) if(op.svOperationMetadata.parameters.length > 0) if(typeof op.svOperationMetadata.parameters[0].nilReason == "undefined"){
 							
 								var op_params = op.svOperationMetadata.parameters.map(function(item){return item.svParameter.name.aName;});
-								if(op_params.indexOf("TIME") > 0 || op_params.indexOf("ELEVATION")){
+								if(op_params.indexOf("TIME") >= 0 || op_params.indexOf("ELEVATION") >= 0){
 									strategy = "ogc_dimensions";
 									break;
 								}
-								if(op_params.indexOf("VIEWPARAMS") > 0){
+								if(op_params.indexOf("VIEWPARAMS") >= 0){
 									strategy = "ogc_viewparams";
 									break;
 								}
@@ -3705,7 +3705,6 @@ class OpenFairViewer {
 					//attribute with time --> datepicker / datetimepicker or slider
 					if(dsd_component.primitiveType == "xsd:date" || dsd_component.primitiveType == "xsd:datetime"){
 						if(!dsd_component.values){
-						
 							//indicates local tzone but required to display well the original date
 							var entry_time_start = entry.time_start; if(entry_time_start.length == 4) entry_time_start = entry_time_start + "-01-01";
 							var time_start_local = new Date(Date.parse(entry_time_start.split('Z')[0]));
@@ -3723,6 +3722,7 @@ class OpenFairViewer {
 							var dsd_component_time_html = '<div class="dsd-ui-dimension-time" style="text-align:left;margin-left:0px;margin-bottom:5px;">';
 							dsd_component_time_html += '<label style="width:120px;font-weight:normal;">'+dsd_component.name+ '</label><br> <input type="text" id="'+dsd_component_id_start+'" class="dsd-ui-dimension-datepicker" autocomplete="off" >'
 							if(strategy=="ogc_filters") dsd_component_time_html += '<input type="text" id="'+dsd_component_id_end+'" class="dsd-ui-dimension-datepicker" autocomplete="off">'
+							dsd_component_time_html += '</div>';
 							$("#dsd-ui-col-1").append(dsd_component_time_html);
 							
 							var startRange = $("#"+dsd_component_id_start);
@@ -3763,6 +3763,7 @@ class OpenFairViewer {
 											yearStart: time_start.getFullYear(), yearEnd: time_end.getFullYear(),
 											format:'Y-d-m', timepicker:false
 										});
+										break;
 										//startRange.val(time_start.toISOString().split('T')[0]); break;
 								}
 							}else if(dsd_component.primitiveType == "xsd:datetime"){
@@ -3801,7 +3802,6 @@ class OpenFairViewer {
 								}
 							}
 							
-							$("#dsd-ui-col-1").append('</div>');
 						}else{
 							
 							//html
