@@ -139,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.6", DATE: new Date('2022-05-30')}
+		this.versioning = {VERSION: "2.7.6", DATE: new Date('2022-06-01')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1245,18 +1245,22 @@ class OpenFairViewer {
 				if(url.indexOf("&VERSION=") > 0) serviceVersion = url.split("&VERSION=")[1].split("&")[0];
 				//protocol
 				var protocol = onLines[i].ciOnlineResource.protocol;
-				switch(protocol){
+				if(serviceVersion == null) switch(protocol){
+					case "OGC:WMS": serviceVersion = "1.1.0"; break;
 					case "OGC:WMS-1.1.0-http-get-map": serviceVersion = "1.1.0"; break;
 					case "OGC:WMS-1.1.1-http-get-map": serviceVersion = "1.1.1"; break;
 					case "OGC:WMS-1.3.0-http-get-map": serviceVersion = "1.3.0"; break;
+					case "OGC:WFS": serviceVersion = "2.0.0"; break;
 					case "OGC:WFS-1.0.0-http-get-feature": serviceVersion = "1.0.0"; break;
 					case "OGC:WFS-1.1.0-http-get-feature": serviceVersion = "1.1.0"; break;
 					case "OGC:WFS-2.0.0-http-get-feature": serviceVersion = "2.0.0"; break;
+					case "OGC:WCS": serviceVersion = "2.0.1"; break;
 					case "OGC:WCS-1.0.0-http-get-coverage": serviceVersion = "1.0.0"; break;
 					case "OGC:WCS-1.1-http-get-coverage": serviceVersion = "1.1"; break;
 					case "OGC:WCS-1.1.0-http-get-coverage": serviceVersion = "1.1.0"; break;
 					case "OGC:WCS-1.1.1-http-get-coverage": serviceVersion = "1.1.1"; break;
-					case "OGC:WCS-2.0.1-http-get-coverage": serviceVersion = "2.0.1"; break;					
+					case "OGC:WCS-2.0.1-http-get-coverage": serviceVersion = "2.0.1"; break;
+					case "OGC:WCS-2.1.0-http-get-coverage": serviceVersion = "2.1.0"; break;					
 				}				
 				out.push({url : layerUrl, version: serviceVersion, name: layerName, description: layerDescription});
 			}
