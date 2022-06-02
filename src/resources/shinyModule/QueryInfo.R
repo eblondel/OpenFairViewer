@@ -114,7 +114,7 @@ QueryInfo <- function(input, output, session) {
         logger = "INFO"
       )
       #Get feature type for dataset
-      ft <- WFS$capabilities$findFeatureTypeByName(layer)
+      ft <- WFS$capabilities$findFeatureTypeByName(layer, exact = FALSE)
       
       #Get columns names for propertyName argument
       desc <- ft$getDescription(TRUE) 
