@@ -5532,7 +5532,7 @@ class OpenFairViewer {
 		script += "	logger = \"INFO\"\n"
 		script += ")\n";
 		script += "#Get feature type for dataset '"+this.dataset_on_query.pid+"' (layer = '"+layerName+"' )\n";
-		script += "ft <- WFS$capabilities$findFeatureTypeByName(layer)\n";
+		script += "ft <- WFS$capabilities$findFeatureTypeByName(layer, exact = FALSE)\n";
 		script += "#Get data features for dataset '"+this.dataset_on_query.pid+"' (layer = '"+layerName+"' )\n";	
 		script += "data.sf <- ft$getFeatures(";
 		if(strategyparams_str){
