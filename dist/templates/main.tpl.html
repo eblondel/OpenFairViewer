@@ -1,0 +1,155 @@
+<script id="mainTpl" type="text/html">
+      <div class="col-sm-12 pages">
+      
+	<!-- Disclaimer -->
+    
+        <!-- Topbar menu -->
+        <nav class="topbarContent">
+            <ul>
+                <li data-where="#pageMap" onclick="{{OFV_ID}}.openAboutDialog()" title="{{labels.about_title}}">{{labels.about}}</li>
+                <li data-where="#pageMap" onclick="{{OFV_ID}}.openFindDialog()" title="{{labels.find_title}}">{{labels.find}}</li>
+                <li data-where="#pageMap" onclick="{{OFV_ID}}.openAccessDialog()" title="{{labels.access_title}}">{{labels.access}}</li>
+            </ul>
+        </nav>
+      
+        <!-- map -->
+        <div class="page" id="pageMap">
+            <div class="content">
+				<!-- Map -->
+                <div id="map"></div>
+				<div id="map-olcesium-switcher" class="bottomPanel" onclick="{{OFV_ID}}.switchMapView()">
+					<h4>{{labels.switchto}} <span id="map-olcesium-switcher-to">{{mode}}</span></h4>
+				</div>
+				
+				<!-- Link panel -->
+				<div id="linkPanel" class="sidePanel" onmouseover="{{OFV_ID}}.setEmbedLink()">
+					<h4>{{labels.link}}</h4>
+					<blockquote>
+						<div>
+							<label for="OpenFairViewer-link">{{labels.link_title}}</label>
+							<input id="OpenFairViewer-link" type="text" readonly="readonly" value="" onclick="this.focus();this.select();" /> 
+						</div>
+					<blockquote>
+				</div>
+            </div>
+        
+        <!-- other pages -->
+      </div>
+    </div>
+    
+    <!-- Dialog contents -->
+    <div id="aboutDialog">{{{OFV_PROFILE}}}</div>
+    <div id="findDialog">
+        <div id="dataset-form" class = "col-xs-5 col-sm-5 col-md-5" style="padding-left:5px;padding-right:5px;">
+          <!-- Search form -->		  
+          <section class="search" style="margin-bottom:5px;">
+            <form id="dataset-form">
+				<br>
+				<div class="form-inline" style="margin-bottom:4px;">
+					<div class="form-group" style="width:75%;">
+						<input type="text" class="form-control" id="dataset-search-text" aria-describedby="searchHelp" placeholder="{{labels.datasets_search_placeholder}}" style="width:100%;">
+					</div>
+					<input type="submit" class="btn btn-primary btn-sm" style="float:right;margin-top:2px;" value="{{labels.search}}"></input>
+				</div>
+				
+				<hr style="border-top:2px solid #eeeeee;">
+				<span id="find-facets-title" style="display:none;">{{labels.datasets_search_byfacet}}:</span> <div id="find-facets" style="display:inline;"></div><br><br><a id="find-facets-reset" title="{{labels.datasets_search_byfacet_clear}}" class="badge badge-pill" style="background-color:transparent;color:#CCC;border:1px #CCC solid;padding:4px;display:none;" onclick="$('.dataset-facetitem').each(function(i,item){ $(item).removeClass('selected')});{{OFV_ID}}.displayDatasets({{OFV_ID}}.config.OGC_CSW_MAXRECORDS);"><i class="fa fa-times"></i> {{labels.datasets_search_byfacet_clear}}</a>
+				
+				<hr style="border-top:2px solid #eeeeee;">
+				<div><a data-toggle="collapse" href="#dataset-search-advanced" role="button" aria-expanded="false" aria-controls="dataset-search-advanced">{{labels.settings}}</a></div>
+				<br>
+				<div class="collapse multi-collapse" id="dataset-search-advanced">
+					<fieldset style="border: 1px #ccc solid;border-radius:4px;padding:4px;">
+					 <div>
+						<div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-search-bbox-on-search" type="checkbox" class="form-check-input">
+								{{labels.settings_mapextent}}
+								 </label>
+							  </div>
+					  <div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-search-bbox-on-mapmove" type="checkbox" class="form-check-input">
+								{{labels.settings_mapmove}}
+								 </label>
+							  </div>
+					 </div>
+					 <div>
+					  <div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-spatial-coverage-visible" type="checkbox" class="form-check-input">
+								{{labels.settings_bbox}}
+								 </label>
+							  </div>
+							  <div class="form-check" >
+								 <label class="form-check-label" style="font-weight:100">
+								<input id ="dataset-spatial-coverage-extended" type="checkbox" class="form-check-input">
+								{{labels.settings_geom}}
+								 </label>
+							  </div>
+					 </div>
+					</fieldset>
+				</div>
+            </form>
+          </section>
+        </div>
+	
+		<div id="dataset-results" class = "col-xs-7 col-sm-7 col-md-7" style="padding-left:5px;padding-right:5px;height:100%;">
+			<span id="dataset-count" style="font-weight:bold;font-style:italic;margin-left:15px;"></span>
+
+			<div id="dataset-list">
+			  <!-- Search results -->
+			  <div id="dataset-articles"></div>
+			  <!-- Search pagination -->
+			  <div id="dataset-pages"></div>
+			  <div class="dataTables_length" style="text-align:right;margin-right:5px;">
+				<label>{{labels.show}} 
+				<select id="datasets_length" class="">
+				  <option value="5">5</option>
+				  <option value="10">10</option>
+				  <option value="25">25</option>
+				  <option value="50">50</option>
+				</select> {{labels.datasets}}</label>
+			   </div>
+			</div>
+		</div>
+    </div>
+    <div id="accessDialog">
+        <!-- Dynamic query UI -->
+        <div id="dsd-ui-wrapper">
+          <!-- Search loader -->
+          <p id="dsd-loader" class="loader-generic loader-generic-wide"><br /><br /><br />{{labels.dsd_loader}}</p>
+          <!-- Dynamic query -->
+          <div id="dsd-ui"></div>
+        </div>
+    </div>
+    <div id="infoDialog">
+	<div class="row" style="height:100% !important;">
+		<div class="col-md-12" style="height:100% !important;">
+			<div id="datasetInfo" style="height:100% !important; background:url(img/loading.gif) center center no-repeat;background-size:30px 30px;">
+			</div>
+		</div>
+	</div>
+    </div>
+    <div id="dataDialog">
+	<div class="row" style="height:100% !important;">
+		<div class="col-md-12" style="height:100% !important;">
+			<table id="data-table" class="display nowrap" style="width:100%"></table>
+		</div>
+	</div>
+    </div>
+    <div id="dashboardDialog">
+	<div class="row" style="height:100% !important;">
+		<div class="col-md-12" style="height:100% !important;">
+			<div id="datasetDashboard" class="display nowrap" style="width:100%;height:100%;"></div>
+		</div>
+	</div>
+    </div>
+	<div id="featureDialog">
+	<div class="row" style="height:100% !important;">
+		<div class="col-md-12" style="height:100% !important;">
+			<div id="datasetFeatureInfo" class="display nowrap" style="width:100%;height:100%;padding:5px;"></div>
+		</div>
+	</div>
+    </div>
+</script>

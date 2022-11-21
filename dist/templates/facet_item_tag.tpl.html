@@ -1,0 +1,11 @@
+<script id="facetItemTagTpl" type="text/html">
+  <a  id="{{item.id}}_facet_item" title="{{item.title}}" class="badge badge-pill dataset-facetitem" style="color:{{item.color}};background-color:{{item.background}};padding:4px;opacity:0.5;"  
+      onclick="$('#{{item.id}}_facet_item').toggleClass('selected');{{OFV_ID}}.displayDatasets({{OFV_ID}}.config.OGC_CSW_MAXRECORDS)">
+	  {{#item.withIcon}}
+		<i class="{{item.icon}}"></i><span style="margin-left:3px;">{{item.title}}</span>
+	  {{/item.withIcon}}
+	  {{^item.withIcon}}
+		<span style="margin-left:3px;">{{item.title}}</span>
+	  {{/item.withIcon}}
+ </a>
+</script>
