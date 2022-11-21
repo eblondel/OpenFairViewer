@@ -139,7 +139,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.6", DATE: new Date('2022-06-01')}
+		this.versioning = {VERSION: "2.7.7", DATE: new Date('2022-11-21')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1194,7 +1194,7 @@ class OpenFairViewer {
 					  }
 					  obj = this.lightenMetadata(newobj);
 					}else{
-					  obj[p] = this.lightenMetadata(obj[p]);
+					  if(typeof obj != "string") obj[p] = this.lightenMetadata(obj[p]);
 					}
 				  }
 				}
