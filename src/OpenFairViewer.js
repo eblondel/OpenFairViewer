@@ -31,8 +31,7 @@ import 'select2/dist/css/select2.css';
 import datetimepicker from 'jquery-datetimepicker';
 import 'jquery-datetimepicker/jquery.datetimepicker.css';
 //datatables
-import dataTables from 'datatables.net';
-dataTables(window, $);
+import 'datatables.net-dt';
 import 'datatables.net-dt/css/jquery.dataTables.css';
 //bootstrap
 import 'bootstrap';
