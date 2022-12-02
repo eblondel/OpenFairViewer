@@ -31,8 +31,7 @@ import 'select2/dist/css/select2.css';
 import datetimepicker from 'jquery-datetimepicker';
 import 'jquery-datetimepicker/jquery.datetimepicker.css';
 //datatables
-import dataTables from 'datatables.net';
-dataTables(window, $);
+import 'datatables.net-dt';
 import 'datatables.net-dt/css/jquery.dataTables.css';
 //bootstrap
 import 'bootstrap';
@@ -139,7 +138,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.7.7", DATE: new Date('2022-11-21')}
+		this.versioning = {VERSION: "2.7.8", DATE: new Date('2022-12-01')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1896,11 +1895,13 @@ class OpenFairViewer {
 		md_entry._abstract = md_entry.metadata.identificationInfo[0]._abstract;
 		//extents
 		var extents = md_entry.metadata.identificationInfo[0].extent; 
-		if(extents) if(extents[0].exExtent.temporalElement){                          
-			var temporalExtent = extents[0].exExtent.temporalElement[0].exTemporalExtent.extent;
-			if(temporalExtent.beginPosition) md_entry.time_start = temporalExtent.beginPosition.value[0];
-			if(temporalExtent.endPosition) md_entry.time_end = temporalExtent.endPosition.value[0];
-			if(temporalExtent.timePosition) md_entry.time_position = temporalExtent.timePosition.value; //TODO to see how to deal with that
+		if(extents) {
+			if(extents[0].exExtent.temporalElement) if(extents[0].exExtent.temporalElement.length >=0) if(extents[0].exExtent.temporalElement[0].exTemporalExtent){                          
+				var temporalExtent = extents[0].exExtent.temporalElement[0].exTemporalExtent.extent;
+				if(temporalExtent.beginPosition) md_entry.time_start = temporalExtent.beginPosition.value[0];
+				if(temporalExtent.endPosition) md_entry.time_end = temporalExtent.endPosition.value[0];
+				if(temporalExtent.timePosition) md_entry.time_position = temporalExtent.timePosition.value; //TODO to see how to deal with that
+			}
 		}
 		//projection
 		md_entry.projection = new olProj.get('EPSG:4326');
