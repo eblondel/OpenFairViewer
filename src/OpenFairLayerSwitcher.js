@@ -64,7 +64,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 			var layer_slider_html = document.createElement('p');
 			layer_slider_html.id = layer_id;
 			layer_slider_html.className = "not-draggable";
-			layer_slider_html.style = "margin-left:32px;height:40px;font-weight:normal !important;font-size:90%;overflow-wrap:break-word;";
+			layer_slider_html.style = "margin-left:32px;font-weight:normal !important;font-size:90%;overflow-wrap:break-word;";
 			layer_slider_html.style.display = lyr.getVisible()? "table" : "none";
 			//input
 			var layer_slider_input = document.createElement('input');
