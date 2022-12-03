@@ -99,7 +99,7 @@ ul.pagination {margin: 0px !important;}
 .loader { text-align:center; display:none; position: absolute; margin: 30% 0; width: 100%;}
 .loader img { -webkit-transform: translate3d(0, 0, 0); -ms-transform: translate3d(0, 0, 0);	-o-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); width: 48px; height: 48px;}
 .loader-generic-wide { text-align:center; display:none; position: absolute; margin: 30% 0; width: 100%; }
-.loader-generic {background:url(img/loading.gif) center center no-repeat;background-size:30px 30px;};
+.loader-generic {background:url(img/loading.gif) center center no-repeat;background-size:30px 30px;}
 .graphic_overview {background-repeat: no-repeat !important;background-size: 48px 48px !important; background-position: center !important;}
 .dataset-button { font-size: 80%; padding: 3px 6px !important;}
 .dataset-button:before {content: '' !important;}
