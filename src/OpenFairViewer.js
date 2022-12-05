@@ -74,7 +74,7 @@ import bootpag from 'bootpag/lib/jquery.bootpag';
 import mustache from 'mustache/mustache.mjs';
 //ol-cesium
 //import Cesium from 'cesium';
-import OLCesium from 'olcs/OLCesium.js';
+import OLCesium from 'ol-cesium/src/olcs/OLCesium.js';
 //openlayers
 import 'ol/ol.css';
 import Map from 'ol/Map';
