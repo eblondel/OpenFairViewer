@@ -1,6 +1,6 @@
 {
   "name": "openfairviewer",
-  "version": "2.7.8",
+  "version": "2.7.8.9001",
   "description": "OpenFairViewer: a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics",
   "source": "src/OpenFairViewer.js",
   "main": "dist/OpenFairViewer.js",
@@ -25,9 +25,6 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eblondel/OpenFairViewer/issues"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   },
   "devDependencies": {
     "parcel": "^2.0.0",
@@ -55,7 +52,7 @@
     "ol-layerswitcher": "^3.7.0",
     "ol-loadingpanel": "github:eblondel/ol-loadingpanel#2.0.2",
     "ol-popup": "^4.0.0",
-    "olcs": "^2.11.3",
+    "ol-cesium": "github:eblondel/ol-cesium#core-util-namedexports",
     "proj4": "^2.6.2",
     "select2": "^4.0.13",
     "simple-statistics": "^7.3.1",
