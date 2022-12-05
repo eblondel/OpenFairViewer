@@ -292,9 +292,9 @@ ul.pagination {margin: 0px !important;}
 .ol-zoom-extent button {
 	top:4.643em;
 	left:.5em;
-	-webkit-border-radius: 16px;
-	-moz-border-radius: 16px;
-	border-radius: 16px;
+	-webkit-border-radius: 16px !important;
+	-moz-border-radius: 16px !important;
+	border-radius: 16px !important;
 	background-size: 22px 22px;
 	background-repeat: no-repeat;
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAoCAMAAABU4iNhAAADAFBMVEWMjIzV1dXq6ur////5+fng4ODW1tbn5+f8/Pzu7u7p6enQ0ND09PTc3Nzf39/U1NTi4uL7+/ve3t7t7e3h4eH9/f3a2trd3d3z8/Ps7Oz6+vr19fX29vbS0tLj4+Pb29vZ2dnv7+/+/v7r6+vR0dHl5eXY2Njo6Oj4+PjX19cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAuAAAuNggAAFgAAAAAAQAAAAAAAAAAAAAAAAAuOdQt5zgAADQAAAAuNjwuNjwAACQAAAAAAEAAAAAAAAAAAAAAATgAABNBfMAAAAAAAAArEzwrEzwAACQAAAAAAAAAAAAAAAABAAAABKwAABNBfMAAAAAAAAAuNqQuNqQAAsgAAAAAAAAAAAAAAAAAAAAQAAAuNsguNsgAAqQAAAAuNtguNtgAACQAAACAAAAAAAAAAAAAAAAAADQAABNBfMAAAAAAAAArEzwrEzwAACQAAAAAAAAAAAAABAAAAAAAAGgAABNBfMAAAAAAAAArEzwrEzwAACQAAAAAAAAAAAAAAAAAAAAAAJwAABNBfMAAAAAAAAAuN3QuN3QAASgAAAAAAAAAAAAAAAAAAAAAAAAuN5guN5gAAQQAAAAt5kQt5kQAAFgAAAAAAAAAAAAAAAAAAAAAAAAuPKwuO6gAADQAAAArEzwrEzwAACQAAAAAAAAAAAAAAAAAAAAAAGgAABNBfMAAAAAAAAArEzwrEzwAACQAAAAAAAAAAAAAAAAAAAAAAJwAABNBfMAAAAAAAAArEzwrEzwAACQAAAAAAAAAAAAgAAAAAAAAANAAABNBfMAAAAAAAAArEzwrEzwAACQAAAAAAADJYlCnAAAAAXRSTlMAQObYZgAAAAlwSFlzAAAN1wAADdcBQiibeAAAAQ5JREFUeNrdkckWgjAMRaNPpY4gOA84o/7/D9oUUKDReo66MQtI09vkJSH6Z6vdvTrQaLLTcr/yFNB+BaDoA52n5aEKp65GezLYBwb894N7UgwlMNQXKiXqOag7kzSyeXoCEUJz9kxkZIHjrNaEpmlfPfINWgVnHJwad57HWhpbYFlUSDQwz1drrMp6KOakYaU2KsVq+rShLZp2Ow8BxoJ08qUhP8hibG4Ex2WQILTJC1rvUJKuyYBme2tyDSFBJG3tIEiio0RK4ol2NniSyeR5SkUuy8nkbVK4OFsR/VnEYoq+sxCbYnTpoiY8UiPKXpQwlmwloe+uf8ma3bvR98lUgBu7yp1+bJtvJPmB3QBVognUglnqqQAAAABJRU5ErkJggg==)
@@ -418,18 +418,18 @@ div.ol-custom-overviewmap:not(.ol-collapsed) button{bottom: auto;left: auto;righ
 * MousePosition control
 */
 .ol-mouse-position {
-	top:unset;
-	right:320px;
+	top:unset !important;
+	right:320px !important;
 	bottom: 0px;
 	font-size: 12px !important;
 	position: absolute;
 	background-color: rgba(55,96,146,.6);
-    	border-radius: 10px 10px 0px 0px;
-    	color: rgba(255,255,255,.9);
-    	font-size: 100%;
-    	margin: 0;
+    border-radius: 10px 10px 0px 0px;
+    color: rgba(255,255,255,.9);
+    font-size: 100%;
+    margin: 0;
    	padding: 5px 10px;
-    	text-align: center;
+    text-align: center;
 	cursor: default;
 }
 
