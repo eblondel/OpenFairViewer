@@ -138,7 +138,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.8.0", DATE: new Date('2022-12-05')}
+		this.versioning = {VERSION: "2.8.0", DATE: new Date('2022-12-19')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -148,6 +148,7 @@ class OpenFairViewer {
 		this.enable_3d = window.Cesium != undefined;
 		
 		//set-up application labels
+		this.lang = 'en';
 		this.initApplicationLanguage(config, opt_options).then(function(labels){	
 			this_.initApplicationConfig(config, opt_options, labels);
 			this_.init(true);
@@ -166,6 +167,7 @@ class OpenFairViewer {
 		
 		var language_auto = true;
 		var language_default = 'en';
+		this.lang = language_default;
 		if(options.language){
 			console.log(options.language);
 			if(typeof options.language.auto != "undefined") language_auto = options.language.auto;
@@ -176,7 +178,8 @@ class OpenFairViewer {
 		if(language_auto){
 			console.log("Language auto mode enabled");
 			var lang = navigator.language || navigator.userLanguage;
-			switch(lang.substr(0,2)){
+			this.lang = lang.substr(0,2);
+			switch(this.lang){
 				case "fr": url = './i18n/fr.json'; break;
 				case "en": url = './i18n/en.json'; break;
 				case "es": url = './i18n/es.json'; break;
@@ -1152,6 +1155,7 @@ class OpenFairViewer {
 	}
 	
 	lightenMetadata(inObj) {
+		var this_ = this;
 		var obj = inObj;
 		if(obj instanceof Array){
 			var newObj = new Array();
@@ -1176,26 +1180,41 @@ class OpenFairViewer {
 				  }
 				}
 
-			if(typeof obj === 'object'){	
+				if(typeof obj === 'object'){	
 				  var keys = Object.keys(obj);
-				  for(var i=0;i<keys.length;i++) {
-					var p = keys[i];
-					if( ["characterString", "integer", "real", "decimal", "_boolean"].indexOf(p) != -1 || p.startsWith("abstract")){
-					  var newobj = obj[p];
-					  if(p=="abstractRing") {
-						newobj = {
-							value: {
-								ring: {
-									value: obj[p]
-								}
+				  if(keys.length==1 && keys == "ptFreeText"){
+					var locale = "#"+this_.lang.toUpperCase();
+					var objs = obj.ptFreeText.textGroup.filter(function(item){if(item.localisedCharacterString.locale == locale) return item;});
+					if(objs.length > 0){
+						if(objs[0].localisedCharacterString.value == ""){
+							var objs = obj.ptFreeText.textGroup.filter(function(item){if(item.localisedCharacterString.value != "") return item;});
+							if(objs.length > 0){
+								obj = objs[0].localisedCharacterString.value;
 							}
-						};
-					  }
-					  obj = this.lightenMetadata(newobj);
-					}else{
-					  if(typeof obj != "string") obj[p] = this.lightenMetadata(obj[p]);
+						}else{
+							obj = objs[0].localisedCharacterString.value;	
+						}
 					}
-				  }
+				  }else{
+					  for(var i=0;i<keys.length;i++) {
+						var p = keys[i];
+						if( ["characterString", "integer", "real", "decimal", "_boolean"].indexOf(p) != -1 || p.startsWith("abstract")){
+						  var newobj = obj[p];
+						  if(p=="abstractRing") {
+							newobj = {
+								value: {
+									ring: {
+										value: obj[p]
+									}
+								}
+							};
+						  }
+						  obj = this.lightenMetadata(newobj);
+						}else{
+						  if(typeof obj != "string") obj[p] = this.lightenMetadata(obj[p]);
+						}
+					  }
+				   }
 				}
 			 
 			}
@@ -1881,6 +1900,7 @@ class OpenFairViewer {
 	createMetadataEntry(value){
 		var this_ = this;
 		var md_entry = new Object();
+		console.log(value);
 		md_entry.metadata = this_.lightenMetadata(value);
 
 		//delete csw_result.value;
