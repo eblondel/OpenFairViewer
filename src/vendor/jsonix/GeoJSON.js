@@ -1,4 +1,4 @@
-GML_V_3_1_1 = {};
+var GML_V_3_1_1 = {};
 GML_V_3_1_1.GeoJSON = {};
 
 GML_V_3_1_1.GeoJSON.AbstractForwardGeometryConverter = Jsonix.Class({
