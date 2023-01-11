@@ -31,6 +31,7 @@ Jsonix.Util.extend = function(destination, source) {
 
 		// REWORK
 		// Node.js
+		//@eblondel fix variable initialization
 		var sourceIsEvt = typeof window !== 'undefined' && window !== null && typeof window.Event === "function" && source instanceof window.Event;
 
 		if (!sourceIsEvt && source.hasOwnProperty && source.hasOwnProperty('toString')) {
@@ -5827,7 +5828,8 @@ Jsonix.Context = Jsonix
 				{
 					if (this.namespacePrefixes.hasOwnProperty(ns))
 					{
-						p = this.namespacePrefixes[ns];
+						//@eblondel fix variable initialization
+						var p = this.namespacePrefixes[ns];
 						this.prefixNamespaces[p] = ns;
 					}
 				}
