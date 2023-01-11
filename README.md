@@ -24,6 +24,10 @@ _Blue-Cloud has received funding from the European Union's Horizon programme cal
 * Wilfried Heintz @wheintz
 * Alexandre Bennici @abennici
 
+## Special thanks
+
+Warm and special thanks to @highsource (Alexey Valikov, RIP), for his amazing libraries ([jsonix](https://github.com/highsource/jsonix), [ogc-schemas](https://github.com/highsource/ogc-schemas)) to parse XML and OGC schemas.
+
 ## Introduction 
 
 The OpenFairViewer is an HTML5/JS map viewer application  developed to adopt the FAIR Data principles, while complying with ISO/OGC standards for geospatial data. It enables data findn, access, query and sharing of geospatial data, in interoperable way.
