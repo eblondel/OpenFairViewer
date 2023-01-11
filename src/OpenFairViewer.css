@@ -274,15 +274,15 @@ ul.pagination {margin: 0px !important;}
 .data-action-button {padding: 0px;border: none;width: 50px;height: 50px;margin: 4px;background-size: 50px 50px; background-repeat: no-repeat;background-color:transparent;opacity:0.7;}
 .data-action-button:hover{opacity:1;}
 .data-action-button:disabled{opacity:0.7;filter: grayscale(100%);-webkit-filter: grayscale(100%);-moz-filter: grayscale(100%);-ms-filter: grayscale(100%);-o-filter: grayscale(100%);}
-.data-csv-agg {background-image: url(img/buttons/csv-icon-agg.png);}
-.data-csv-raw {background-image: url(img/buttons/csv-icon.png);}
-.data-table { background-image: url(img/buttons/table-icon.png);}
-.data-dashboard{ background-image: url(img/buttons/dashboard-icon.png);}
-.data-png-map {background-image: url(img/buttons/png-icon-map.png);}
-.data-wfs {background-image: url(img/buttons/ogc-wfs-icon.png);}
-.data-rscript {background-image: url(img/buttons/rscript-icon.png);}
-.data-jupyter-notebook{background-image: url(img/buttons/jupyter-icon.png);}
-.data-bluecloud{background-image: url(img/buttons/bluecloud-icon.png);}
+.data-csv-agg {background-image: url(img/buttons/csv-icon-agg.png) !important;}
+.data-csv-raw {background-image: url(img/buttons/csv-icon.png) !important;}
+.data-table { background-image: url(img/buttons/table-icon.png) !important;}
+.data-dashboard{ background-image: url(img/buttons/dashboard-icon.png) !important;}
+.data-png-map {background-image: url(img/buttons/png-icon-map.png) !important;}
+.data-wfs {background-image: url(img/buttons/ogc-wfs-icon.png) !important;}
+.data-rscript {background-image: url(img/buttons/rscript-icon.png) !important;}
+.data-jupyter-notebook{background-image: url(img/buttons/jupyter-icon.png) !important;}
+.data-bluecloud{background-image: url(img/buttons/bluecloud-icon.png) !important;}
 .data-export-buttons {margin: 0 auto;width: 100%;text-align: center !important;}
 
 /** MAP **/
