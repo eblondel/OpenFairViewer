@@ -100,7 +100,7 @@ import {altKeyOnly, click, pointerMove} from 'ol/events/condition';
 import LoadingPanel from 'ol-loadingpanel';
 import 'ol-loadingpanel/src/ol-loadingpanel.css';
 import LayerSwitcher from 'ol-layerswitcher';
-import 'ol-layerswitcher/dist/ol-layerswitcher.css';
+import 'ol-layerswitcher/src/ol-layerswitcher.css';
 import Popup from 'ol-popup';
 import 'ol-popup/src/ol-popup.css';
 import ol_layer_AnimatedCluster from 'ol-ext/layer/AnimatedCluster.js'; window.AnimatedCluster = ol_layer_AnimatedCluster;
