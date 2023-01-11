@@ -14,7 +14,7 @@ Many thanks to the following organizations that have provided fundings for stren
 
 The following projects have contributed to strenghten ``OpenFairViewer``:
 
-<a href="https://www.blue-cloud.org"><img height=100 width=300 src="https://www.blue-cloud.org/sites/all/themes/arcadia/logo.png"/></a>
+<a href="https://www.blue-cloud.org"><img height=100 width=300 src="https://hackathon.blue-cloud.org/wp-content/uploads/2021/11/Blue-cloud_extended_color.png"/></a>
 
 _Blue-Cloud has received funding from the European Union's Horizon programme call BG-07-2019-2020, topic: [A] 2019 - Blue Cloud services, Grant Agreement No.862409._
 
@@ -32,7 +32,7 @@ Warm and special thanks to @highsource (Alexey Valikov, RIP), for his amazing li
 
 The OpenFairViewer is an HTML5/JS map viewer application  developed to adopt the FAIR Data principles, while complying with ISO/OGC standards for geospatial data. It enables data findn, access, query and sharing of geospatial data, in interoperable way.
 
-The development of OpenFairViewer is done in synergy with the [geoflow](https://github.com/eblondel/geoflow) R package which provides a workflow tool to facilitate the management / publication of geospatial data and metadata using OGC services. 
+The development of OpenFairViewer is done in synergy with the [geoflow](https://github.com/r-geoflow/geoflow) R package which provides a workflow tool to facilitate the management / publication of geospatial data and metadata using OGC services. 
 
 ## Installation
 
