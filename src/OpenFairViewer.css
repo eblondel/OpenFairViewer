@@ -357,11 +357,25 @@ li.layer-switcher-base-group > label {
 
 
 /** custom tooltip css **/
-.ol-popup { background-color: transparent; bottom: 12px; display: none; left: -50px; padding: 0; position: absolute; border:0px;}
+.ol-popup {
+	background-color: transparent !important; 
+	bottom: 12px !important; 
+	display: none; 
+	left: -50px !important; 
+	padding: 0 !important; 
+	position: absolute !important; 
+	border:0px !important;}
 .ol-popup:after, .ol-popup:before { border: solid transparent; content: " "; height: 0; pointer-events: none; position: absolute; top: 100%; width: 0; }
 .ol-popup:after { border-top-color: rgba(255,255,255,.8); border-width: 10px; left: 48px; margin-left: -10px; }
 .ol-popup:before { border-top-color: transparent; border-width: 11px; left: 48px; margin-left: -11px; }
-.ol-popup-content { background-color: rgba(255,255,255,.9); border-radius: 8px; box-shadow: 2px 2px 2px rgba(0,0,0,.4); color: rgba(0,0,0,.8); font-family: Verdana, Geneva, Helvetica, Arial, sans-serif; font-size: 9px; max-height: 420px; min-width: 175px; max-width: 600px; overflow-x: auto; padding: 0px; }
+.ol-popup-content { 
+background-color: rgba(255,255,255,.9); 
+border-radius: 8px; 
+box-shadow: 2px 2px 2px rgba(0,0,0,.4); 
+color: rgba(0,0,0,.8); 
+font-family: Verdana, Geneva, Helvetica, Arial, sans-serif; 
+font-size: 9px; 
+max-height: 420px !important; min-width: 175px !important; max-width: 600px; overflow-x: auto !important; padding: 0px; }
 .ol-popup-closer { font-size:100% !important; z-index: 1;}
 
 .table-condensed>tbody>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>thead>tr>th { padding:2px; }
