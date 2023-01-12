@@ -8,13 +8,13 @@ Many thanks to the following organizations that have provided fundings for stren
 
 <div style="float:left;">
   <a href="https://www.fao.org/home/en/"><img height=100 width=200 src="https://www.fao.org/fileadmin/templates/family-farming-decade/images/FAO-IFAD-Logos/FAO-Logo-EN.svg"></a>
-  <a href="https://en.ird.fr/"><img src="https://en.ird.fr/sites/ird_fr/files/2019-08/logo_IRD_2016_BLOC_UK_COUL.png" height=200 width=200/></a>
-  <a href="https://www.inrae.fr" target="_blank"><img height=200 width=200 src="https://www.inrae.fr/themes/custom/inrae_socle/logo.svg"></a>
+  <a href="https://en.ird.fr/"><img src="https://en.ird.fr/sites/ird_fr/files/2019-08/logo_IRD_2016_BLOC_UK_COUL.png" height=100 width=100/></a>
+  <a href="https://www.inrae.fr" target="_blank"><img height=100 width=100 src="https://www.inrae.fr/themes/custom/inrae_socle/logo.svg"></a>
 </div>
 
 The following projects have contributed to strenghten ``OpenFairViewer``:
 
-<a href="https://www.blue-cloud.org"><img height=100 width=300 src="https://www.blue-cloud.org/sites/all/themes/arcadia/logo.png"/></a>
+<a href="https://www.blue-cloud.org"><img height=100 width=300 src="https://hackathon.blue-cloud.org/wp-content/uploads/2021/11/Blue-cloud_extended_color.png"/></a>
 
 _Blue-Cloud has received funding from the European Union's Horizon programme call BG-07-2019-2020, topic: [A] 2019 - Blue Cloud services, Grant Agreement No.862409._
 
@@ -32,7 +32,7 @@ Warm and special thanks to @highsource (Alexey Valikov, RIP), for his amazing li
 
 The OpenFairViewer is an HTML5/JS map viewer application  developed to adopt the FAIR Data principles, while complying with ISO/OGC standards for geospatial data. It enables data findn, access, query and sharing of geospatial data, in interoperable way.
 
-The development of OpenFairViewer is done in synergy with the [geoflow](https://github.com/eblondel/geoflow) R package which provides a workflow tool to facilitate the management / publication of geospatial data and metadata using OGC services. 
+The development of OpenFairViewer is done in synergy with the [geoflow](https://github.com/r-geoflow/geoflow) R package which provides a workflow tool to facilitate the management / publication of geospatial data and metadata using OGC services. 
 
 ## Installation
 
