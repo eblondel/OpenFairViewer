@@ -30,7 +30,7 @@ The following projects have contributed to strenghten ``OpenFairViewer``:
 
 ## Special thanks
 
-Warm and special thanks to @highsource (Alexey Valikov, RIP), for his amazing libraries ([jsonix](https://github.com/highsource/jsonix), [ogc-schemas](https://github.com/highsource/ogc-schemas)) to parse XML and OGC schemas.
+Warm and special thanks to [@highsource](https://github.com/highsource) (Alexey Valikov, RIP), for his amazing libraries ([jsonix](https://github.com/highsource/jsonix), [ogc-schemas](https://github.com/highsource/ogc-schemas)) to parse XML and OGC schemas.
 
 ## Introduction 
 
