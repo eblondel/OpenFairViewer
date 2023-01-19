@@ -138,7 +138,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.8.0", DATE: new Date('2022-12-19')}
+		this.versioning = {VERSION: "2.8.0", DATE: new Date('2023-01-19')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1253,6 +1253,7 @@ class OpenFairViewer {
 				if(layerUrl.indexOf(service.toLowerCase()+"?")>0) layerUrl = layerUrl.split(service.toLowerCase()+"?")[0] + "ows?service=" + service;
 				//layerName
 				var layerName = onLines[i].ciOnlineResource.name;
+				if(typeof layerName == "object") layerName = onLines[i].ciOnlineResource.name.value; //case of MimeFileType
 				if(layerSuffix) layerName = layerName + layerSuffix;
 				//layerDescription
 				var layerDescription = onLines[i].ciOnlineResource.description;
