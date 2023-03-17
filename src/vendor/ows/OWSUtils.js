@@ -14,7 +14,7 @@ httpGet(url) {
 		}
 	}
 	
-	httpPost(url, lang, request, credentials) {
+	httpPost(url, request, credentials, lang) {
 		return new Promise(function(fulfill, reject){
 			var httpRequest = new XMLHttpRequest();
 			httpRequest.onreadystatechange=function() {
@@ -24,7 +24,7 @@ httpGet(url) {
 				}
 			};
 			httpRequest.open('POST', url, true);
-			httpRequest.setRequestHeader('Accept-Language',lang);
+			if(lang) httpRequest.setRequestHeader('Accept-Language',lang);
 			if (credentials != undefined && credentials.user != undefined && credentials.pass != undefined){
 				httpRequest.setRequestHeader("Authorization", "Basic " + btoa(credentials.user + ":" + credentials.pass));
 			}

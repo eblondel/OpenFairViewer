@@ -49,7 +49,7 @@ class CSW extends OWS {
 		// XML to Post.
 		var myXML = this.marshalDocument(getCapabilities);
 		var this_ = this;
-		return this.httpPost(this.url, "application/xml", myXML, this.credentials).then(function(responseXML){
+		return this.httpPost(this.url, myXML, this.credentials).then(function(responseXML){
 			var capabilities = this_.unmarshalDocument(responseXML);
 			console.log(capabilities);
 			return capabilities;
@@ -60,7 +60,7 @@ class CSW extends OWS {
 		var this_ = this;
 		var getdomainAction = new GetDomain(this.owsVersion, this.version, propertyName);
 		var myXML = this.marshalDocument(getdomainAction);
-		return Ows4js.Util.httpPost(this.url, "application/xml", myXML, this.credentials).then(function(responseXML){
+		return Ows4js.Util.httpPost(this.url, myXML, this.credentials).then(function(responseXML){
 			return this_.unmarshalDocument(responseXML);
 		});
 	}
@@ -85,7 +85,7 @@ class CSW extends OWS {
 		console.log(recordAction);
 		console.log(myXML);
 		// Post XML
-		return this.httpPost(this.url, "application/xml", myXML, this.credentials).then(function(responseXML){
+		return this.httpPost(this.url, myXML, this.credentials).then(function(responseXML){
 			var records = this_.unmarshalDocument(responseXML);
 			console.log(records);
 			return records;
@@ -100,7 +100,7 @@ class CSW extends OWS {
 		//console.log(byIdAction);
 		var myXML = this.marshalDocument(byIdAction);
 		//console.log(myXML);
-		return this.httpPost(this.url, "application/xml", myXML, this.credentials).then(function(responseXML){
+		return this.httpPost(this.url, myXML, this.credentials).then(function(responseXML){
 			var records = this_.unmarshalDocument(responseXML);
 			console.log(records);
 			return records;
