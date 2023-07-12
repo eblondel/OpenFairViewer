@@ -129,7 +129,9 @@ QueryInfo <- function(input, output, session) {
       ColumnName<-desc[,"name"]  
       }
       ColumnName = ColumnName[ColumnName != "fid"]
+      print(ColumnName)
       propertyName<-paste(ColumnName, collapse = ',')
+      print(propertyName)
       
       ###Get data feature for popup apps with WMS service
       
