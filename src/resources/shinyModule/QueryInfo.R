@@ -128,6 +128,7 @@ QueryInfo <- function(input, output, session) {
       print("QUERYINFO : FEATURE WITH GEOMETRY SELECTED")
       ColumnName<-desc[,"name"]  
       }
+      ColumnName = ColumnName[ColumnName != "fid"]
       propertyName<-paste(ColumnName, collapse = ',')
       
       ###Get data feature for popup apps with WMS service
