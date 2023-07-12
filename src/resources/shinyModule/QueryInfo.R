@@ -121,7 +121,7 @@ QueryInfo <- function(input, output, session) {
       
       if(!feature_geom){
       print("QUERYINFO : FEATURE WITHOUT GEOMETRY SELECTED")
-      ColumnName<-desc[desc$type!="geometry","name"]
+      ColumnName<-desc[!desc$geometry,"name"]
       }else{
       print("QUERYINFO : FEATURE WITH GEOMETRY SELECTED")
       ColumnName<-desc[,"name"]  
