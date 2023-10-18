@@ -138,7 +138,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.8.0", DATE: new Date('2023-03-17')}
+		this.versioning = {VERSION: "2.8.0", DATE: new Date('2023-10-18')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -151,7 +151,12 @@ class OpenFairViewer {
 		this.lang = 'en';
 		this.initApplicationLanguage(config, opt_options).then(function(labels){	
 			this_.initApplicationConfig(config, opt_options, labels);
-			this_.init(true);
+			var urlparams = this_.getAllUrlParams();
+			var about = true; 
+			if(urlparams.about != null) about = urlparams.about == 'true';
+			var find = true;
+			if(urlparams.find != null) find = urlparams.find == 'true';
+			this_.init(about, find);
 		});
 		
 	}
@@ -788,13 +793,13 @@ class OpenFairViewer {
 	 * OpenFairViewer.prototype.initMarkup
 	 *
 	 */
-	initMarkup(intro){
+	initMarkup(){
 		var this_ = this;
 		var deferred = $.Deferred();
 		this.loadTemplate('templates/main.tpl.html', 'mainTpl').then(function(template){
 			var main = mustache.render(template, {OFV_ID : this_.config.OFV_ID, OFV_PROFILE: this_.config.OFV_PROFILE, labels: this_.options.labels, mode: (this_.options.map.mode == '2D'? '3D':'2D')});
 			if(this_.config.OFV_CONTAINERID == 'body') main = '<div class="wrapper">' + main + '</div>';
-			if(intro) $(this_.config.OFV_CONTAINERID == 'body'? 'body' : "#"+this_.config.OFV_CONTAINERID).append(main);
+			$(this_.config.OFV_CONTAINERID == 'body'? 'body' : "#"+this_.config.OFV_CONTAINERID).append(main);
 			this_.initFindFacets();
 			deferred.resolve();
 		});
@@ -804,9 +809,9 @@ class OpenFairViewer {
 	/**
 	 * init
 	 */
-	init(intro){
+	init(about, find){
 		var this_ = this;
-		this.initMarkup(intro).then(function(){
+		this.initMarkup().then(function(){
 		
 			this_.selection = new Array();
 			this_.initBrowseCatalogue();
@@ -852,9 +857,9 @@ class OpenFairViewer {
 			this_.closeDashboardDialog();
 			this_.closeInfoDialog();
 			this_.closeFeatureDialog();
-			this_.openFindDialog();
 			
-			if(intro) this_.openAboutDialog();
+			if(find) this_.openFindDialog();
+			if(about) this_.openAboutDialog();
 			
 			//resolve viewer from URL
 			this_.resolveViewer();
@@ -883,7 +888,7 @@ class OpenFairViewer {
 		}else{
 			document.location.href = mainpage;
 		}
-		this.init(false);
+		this.init(true, true);
 	}
 	
 	/**
