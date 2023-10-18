@@ -51,6 +51,8 @@ QueryInfo <- function(input, output, session) {
     wfs_server <-if(!is.null(query$wfs_server)){as.character(query$wfs_server)}else{NULL}
     
     wfs_version <-if(!is.null(query$wfs_version)){as.character(query$wfs_version)}else{NULL}
+
+    wfs_format <- if(!is.null(query$wfs_format)){as.character(query$wfs_format)}else{"CSV"}
     
     feature_geom <-if(!is.null(query$feature_geom)){as.logical(query$feature_geom)}else{TRUE}
     
@@ -121,12 +123,15 @@ QueryInfo <- function(input, output, session) {
       
       if(!feature_geom){
       print("QUERYINFO : FEATURE WITHOUT GEOMETRY SELECTED")
-      ColumnName<-desc[desc$type!="geometry","name"]
+      ColumnName<-desc[!desc$geometry,"name"]
       }else{
       print("QUERYINFO : FEATURE WITH GEOMETRY SELECTED")
       ColumnName<-desc[,"name"]  
       }
+      ColumnName = ColumnName[ColumnName != "fid"]
+      print(ColumnName)
       propertyName<-paste(ColumnName, collapse = ',')
+      print(propertyName)
       
       ###Get data feature for popup apps with WMS service
       
@@ -164,8 +169,8 @@ QueryInfo <- function(input, output, session) {
 
         if(!is.null(par)){
           Data <- switch(strategy,
-                            "ogc_filters"=ft$getFeatures(outputFormat ="json",propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
-                            "ogc_viewparams"=ft$getFeatures(outputFormat ="json",propertyName=propertyName,viewparams = URLencode(par))
+                            "ogc_filters"=ft$getFeatures(outputFormat = wfs_format, propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
+                            "ogc_viewparams"=ft$getFeatures(outputFormat = wfs_format, propertyName=propertyName,viewparams = URLencode(par))
           )
         }
 
