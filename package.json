@@ -1,6 +1,6 @@
 {
   "name": "openfairviewer",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "description": "OpenFairViewer: a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics",
   "source": "src/OpenFairViewer.js",
   "main": "dist/OpenFairViewer.js",
