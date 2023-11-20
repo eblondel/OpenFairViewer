@@ -138,7 +138,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.8.0", DATE: new Date('2023-10-18')}
+		this.versioning = {VERSION: "2.8.1", DATE: new Date('2023-11-21')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -548,7 +548,7 @@ class OpenFairViewer {
 		this.options.map.thematicmapping_options = {
 			breaks: [""," to ",""],
 			thresholding : true,
-			threshold : "> 0"
+			threshold : ">0"
 		}
 		if(options.map) if(options.map.thematicmapping_options){
 			//breaks
@@ -1752,6 +1752,9 @@ class OpenFairViewer {
      */
 	calculateBreaks(values, classType, classNb){
 	    var breaks =  new Array();
+		console.log(stats);
+		console.log(Math.min(values));
+		console.log(Math.max(values));
 	    switch(classType){
 		//CKmeans
 		case "ckmeans":
@@ -4885,7 +4888,7 @@ class OpenFairViewer {
 			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Add vector layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
-					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
+					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str.replaceAll(';', '%3B'), ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 						console.log("Data series features");
 						console.log(features);
 						console.log("Data series values");
@@ -4894,6 +4897,7 @@ class OpenFairViewer {
 						var envparams = undefined;
 						var colors = [];
 						if(strategyvariable) values = this_.getDatasetValues(features, strategyvariable);
+						console.log(values);
 						if(values) if(values.length > 0){
 							if(values.length < classNb){
 								classNb = values.length;
@@ -5259,7 +5263,7 @@ class OpenFairViewer {
 			    if(dataset.thematicmapping && strategyvariable){
 					console.log("Update vector layer with strategy 'ogc_viewparams' (thematic mapping)");
 					//thematic mapping
-					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
+					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str.replaceAll(';', '%3B'), ((this_.options.map.thematicmapping_options.thresholding && strategyvariable)? strategyvariable + this_.options.map.thematicmapping_options.threshold : null), (strategyvariable? [strategyvariable] : null )).then(function(features){
 						console.log("Data series features");
 						console.log(features);
 						console.log("Data series values");
@@ -5334,7 +5338,7 @@ class OpenFairViewer {
 				}else if(dataset.point_vectorizing){
 					console.log("Update vector layer with strategy 'ogc_viewparams' (vector rendering)");
 					var projection = this_.map.getView().getProjection().getCode();
-					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str, null, (strategyvariable? [strategyvariable] : null ), 'json', projection).then(function(response){
+					this_.getDatasetFeatures(baseWfsUrl, wfsVersion, layerName, dataset.strategy, strategyparams_str.replaceAll(';', '%3B'), null, (strategyvariable? [strategyvariable] : null ), 'json', projection).then(function(response){
 						var format = new olFormat.GeoJSON();
 						var features = response.map(function(item){return format.readFeature(item)});
 						var source = new Vector({ projection: projection, features: features });
@@ -6835,7 +6839,7 @@ class OpenFairViewer {
 	addWFSLayer(mainOverlayGroup, pid, id, title, wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, projection, clustering){
 		var this_ = this;
 		var deferred = $.Deferred();
-		this_.getDatasetFeatures(wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, null, 'json', projection).then(function(response){
+		this_.getDatasetFeatures(wfsUrl, wfsVersion, layerName, strategy, viewparams.replaceAll(';', '%3B'), cql_filter, null, 'json', projection).then(function(response){
 			console.log("Get features to set WFS layer");
 			var format = new olFormat.GeoJSON();
 			var features = response.map(function(item){
