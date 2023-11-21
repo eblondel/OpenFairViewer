@@ -138,7 +138,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.8.1", DATE: new Date('2023-11-21')}
+		this.versioning = {VERSION: "2.8.2", DATE: new Date('2023-11-21')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -5473,7 +5473,7 @@ class OpenFairViewer {
 			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
 		}
 		 
-		var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, strategy, strategyparams_str, null, null);
+		var wfs_link = this_.getDatasetWFSLink(baseWfsUrl, wfsVersion, layerName, strategy, strategyparams_str.replaceAll(';', '%3B'), null, null);
 		window.open(wfs_link, '_blank');
 	}
 
@@ -5568,7 +5568,7 @@ class OpenFairViewer {
 		script += "data.sf <- ft$getFeatures(";
 		if(strategyparams_str){
 			if(strategy == "ogc_filters") script += "cql_filter = gsub(\" \", \"%20\", gsub(\"''\", \"%27%27\", URLencode(\"" + strategyparams_str + "\")))";
-			if(strategy == "ogc_viewparams") script += "viewparams = \"" + strategyparams_str + "\"";
+			if(strategy == "ogc_viewparams") script += "viewparams = \"" + strategyparams_str.replaceAll(';', '%3B') + "\"";
 		}else if(cql_filter){
 			 script += ", cql_filter = gsub(\" \", \"%20\", gsub(\"''\", \"%27%27\", URLencode(\"" + cql_filter + "\")))";
 		}
@@ -5824,7 +5824,7 @@ class OpenFairViewer {
 			strategyparams_str = this.getStrategyParams(this.dataset_on_query, true);
 			if(strategyparams.length>0) if(strategyparams[0].CQL_FILTER) cql_filter = strategyparams[0].CQL_FILTER;	
 		}
-		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.dataset_on_query.strategy, strategyparams_str, cql_filter, null);
+		var layerUrl = this.getDatasetWFSLink(baseLayerUrl, serviceVersion, layerName, this.dataset_on_query.strategy, strategyparams_str.replaceAll(';', '%3B'), cql_filter, null);
 		$.get(layerUrl, function(response){
 			var features = new olFormat.WFS().readFeatures(response);
 			console.log(features);
@@ -6038,7 +6038,7 @@ class OpenFairViewer {
 					var ajaxParams = Object.assign(wfsParams,{startIndex: data.start, count: data.length});
 					var ajaxUrl = baseLayerUrl + "&service=" +ajaxParams.service+ "&version=" + ajaxParams.serviceVersion + "&request=" + ajaxParams.request + "&typeName="+ajaxParams.typeName;
 					if(ajaxParams.cql_filter) ajaxUrl += "&cql_filter="+ajaxParams.cql_filter;
-					if(ajaxParams.viewparams) ajaxUrl += "&viewparams="+ajaxParams.viewparams;
+					if(ajaxParams.viewparams) ajaxUrl += "&viewparams="+ajaxParams.viewparams.replaceAll(';', '%3B');
 					ajaxUrl += "&sortBy=" +ajaxParams.sortBy + "&startIndex=" + ajaxParams.startIndex + "&count=" + ajaxParams.count;
 					if(wfsParams.outputFormat) ajaxUrl += "&outputFormat=" + wfsParams.outputFormat;
 					$.get(ajaxUrl, function(response) {
