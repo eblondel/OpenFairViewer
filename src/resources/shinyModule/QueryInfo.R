@@ -149,7 +149,7 @@ QueryInfo <- function(input, output, session) {
         if(!is.null(par)){
           Data <- switch(strategy,
                             "ogc_filters"=Layer$getFeatureInfo(srs = srs,x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = bbox,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)),propertyName = propertyName)),
-                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = bbox, viewparams = URLencode(par),propertyName = propertyName)
+                            "ogc_viewparams"=Layer$getFeatureInfo(srs = srs, x = x, y = y, width = width, height = height, feature_count = 1000000, info_format = "application/json", bbox = bbox, viewparams = gsub(";", "%3B", URLencode(par)),propertyName = propertyName)
           )
         }
         
@@ -170,7 +170,7 @@ QueryInfo <- function(input, output, session) {
         if(!is.null(par)){
           Data <- switch(strategy,
                             "ogc_filters"=ft$getFeatures(outputFormat = wfs_format, propertyName=propertyName,cql_filter = gsub(" ", "%20", gsub("''", "%27%27", URLencode(par)))),
-                            "ogc_viewparams"=ft$getFeatures(outputFormat = wfs_format, propertyName=propertyName,viewparams = URLencode(par))
+                            "ogc_viewparams"=ft$getFeatures(outputFormat = wfs_format, propertyName=propertyName,viewparams = gsub(";", "%3B", URLencode(par)))
           )
         }
 
