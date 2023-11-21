@@ -5538,7 +5538,6 @@ class OpenFairViewer {
 		//script body
 		script += "#packages\n";
 		script += "if(!require(ows4R)){\n	install.packages(\"ows4R\")\n	require(ows4R)\n}\n\n";
-		script += "if(!require(sp)){\n	install.packages(\"sp\")\n	require(sp)\n}\n\n";
 		
 		script += "#Dataset PID\n";
 		script += "pid <- \""+this.dataset_on_query.pid+"\"\n\n";
@@ -5573,7 +5572,6 @@ class OpenFairViewer {
 			 script += ", cql_filter = gsub(\" \", \"%20\", gsub(\"''\", \"%27%27\", URLencode(\"" + cql_filter + "\")))";
 		}
 		script += ")\n";
-		script += "data.sp <- as(data.sf, \"Spatial\")\n";
 		return script;
 	}
 	
