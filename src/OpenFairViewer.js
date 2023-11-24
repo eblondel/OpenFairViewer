@@ -138,7 +138,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.8.2", DATE: new Date('2023-11-21')}
+		this.versioning = {VERSION: "2.8.3", DATE: new Date('2023-11-24')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -7279,7 +7279,8 @@ class OpenFairViewer {
 						var envfun = datasetDef.envfun;
 						if(envfun) $("#map-classtype-selector").val(envfun).trigger('change');
 						var envmaptype = datasetDef.envmaptype;
-						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change'); 
+						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change');
+						if(envmaptype=="graduated") $("#map-colorscheme-selector").next(".select2-container").hide();
 						if(datasetDef.breaks){
 							var classnb = String(datasetDef.breaks.length-1);
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
@@ -7345,7 +7346,8 @@ class OpenFairViewer {
 						var envfun = datasetDef.envfun;
 						if(envfun) $("#map-classtype-selector").val(envfun).trigger('change');
 						var envmaptype = datasetDef.envmaptype;
-						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change'); 
+						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change');
+						if(envmaptype=="graduated") $("#map-colorscheme-selector").next(".select2-container").hide();
 						if(datasetDef.breaks){
 							var classnb = String(datasetDef.breaks.length-1);
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
@@ -7406,7 +7408,8 @@ class OpenFairViewer {
 						var envfun = datasetDef.envfun;
 						if(envfun) $("#map-classtype-selector").val(envfun).trigger('change');
 						var envmaptype = datasetDef.envmaptype;
-						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change'); 
+						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change');
+						if(envmaptype=="graduated") $("#map-colorscheme-selector").next(".select2-container").hide();
 						if(datasetDef.breaks){
 							var classnb = String(datasetDef.breaks.length-1);
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
@@ -7591,7 +7594,8 @@ class OpenFairViewer {
 				if(encoded_view_obj.geomtype) if(encoded_view_obj.geomtype == "gml:PointPropertyType") pt = "true";
 				encoded_datasets.push({
 					pid: pid, lyr : lyr, strategy: strategy, queryparams : queryparams, 
-					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, envcolscheme: envcolscheme, 
+					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, envcolscheme: envcolscheme,
+					geom: encoded_view_obj.geom, geomtype: encoded_view_obj.geomtype,
 					count : count, breaks: breaks, style: style, query: query, 
 					thematicmapping: (variable? true : false),
 					point_vectorizing: this_.options.map.point_vectorizing && pt,
