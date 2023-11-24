@@ -336,6 +336,9 @@ ul.pagination {margin: 0px !important;}
 .ol-unselectable.ol-control.layer-switcher { font-size: 12px; margin: 0; padding: 0; position: absolute; right: 10px; text-align: left; top: 0px; width: 290px;}
 .ol-unselectable.ol-control.layer-switcher .panel { background-color: rgba(166,216,232,0.95); border-radius: 0 0 10px 10px; color: #000; font-size: 12px; opacity: 0; padding: 0px 10px 5px 10px;}
 .ol-unselectable.ol-control.layer-switcher.shown .panel { opacity:1;padding-top:20px;width:100%;}
+@media screen and (max-height: 768px) { .ol-unselectable.ol-control.layer-switcher.shown .panel {max-height:600px;} }
+@media screen and (max-height: 1024px) { .ol-unselectable.ol-control.layer-switcher.shown .panel {max-height:850px;} }
+@media screen and (max-height: 1080px) { .ol-unselectable.ol-control.layer-switcher.shown .panel {max-height:900px;} }
 .layer-switcher.layer-switcher-activation-mode-click > button, .layer-switcher.shown.layer-switcher-activation-mode-click > button {height: 25px;}
 .layer-switcher.shown.layer-switcher-activation-mode-click {padding-left:0px!important;}
 .layer-switcher .group button, .layer-switcher .group button:hover, .layer-switcher .group button:focus {background-color:transparent;}
