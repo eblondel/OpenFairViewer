@@ -3094,7 +3094,7 @@ class OpenFairViewer {
 		var map_colorpicker_id = "map-colorpicker";
 		//html
 		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select>');
-		$("#dsd-ui-col-"+columnIdx).append('<div id = "'+map_colorpicker_id+'_wrapper" style="margin-top:5px;"><label for="'+map_colorpicker_id+'">Choose a symbol color</label><div style="float: right; margin-right: 20px;"><input id = "'+map_colorpicker_id+'" title="'+this_.options.labels.colorscheme_selector_title+'" data-coloris></div></div>');
+		$("#dsd-ui-col-"+columnIdx).append('<div id = "'+map_colorpicker_id+'_wrapper" style="margin-top:5px;"><label for="'+map_colorpicker_id+'">Choose a symbol color</label><div style="float: right; margin-right: 20px;"><input id = "'+map_colorpicker_id+'" title="'+this_.options.labels.colorscheme_selector_title+'" value="#FF4500" data-coloris></div></div>');
 		Coloris({el: "#"+map_colorpicker_id, theme: 'polaroid'});
 		//jquery widget for color scheme selector
 		var formatColorscheme = function(item){
