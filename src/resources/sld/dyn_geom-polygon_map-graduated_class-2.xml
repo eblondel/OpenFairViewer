@@ -63,7 +63,12 @@
 							<sld:Mark>
 								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
 								<sld:Fill>
-									<sld:CssParameter name="fill">#FF4500</sld:CssParameter>
+									<sld:CssParameter name="fill">
+										<ogc:Function name="env">
+                                             <ogc:Literal>c1</ogc:Literal>
+                                             <ogc:Literal>#FF4500</ogc:Literal>    
+                                         </ogc:Function>
+									</sld:CssParameter>
                                   	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
 								</sld:Fill>
                                 <sld:Stroke>
@@ -130,7 +135,12 @@
 							<sld:Mark>
 								<sld:WellKnownName>CIRCLE</sld:WellKnownName>
 								<sld:Fill>
-									<sld:CssParameter name="fill">#FF4500</sld:CssParameter>
+									<sld:CssParameter name="fill">
+										<ogc:Function name="env">
+                                             <ogc:Literal>c1</ogc:Literal>
+                                             <ogc:Literal>#FF4500</ogc:Literal>    
+                                         </ogc:Function>
+									</sld:CssParameter>
                                   	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
 								</sld:Fill>
                                 <sld:Stroke>

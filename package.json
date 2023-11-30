@@ -1,6 +1,6 @@
 {
   "name": "openfairviewer",
-  "version": "2.8.1",
+  "version": "2.9.0",
   "description": "OpenFairViewer: a FAIR, ISO and OGC (meta)data compliant GIS data viewer for browsing, accessing and sharing geo-referenced statistics",
   "source": "src/OpenFairViewer.js",
   "main": "dist/OpenFairViewer.js",
@@ -38,6 +38,7 @@
     "bootstrap-slider": "^11.0.2",
     "cesium": "^1.74.0",
     "colorbrewer": "^1.3.0",
+	"@melloware/coloris": "^0.22.0",
     "datatables.net": "^1.10.22",
     "datatables.net-dt": "^1.10.22",
     "file-saver": "^2.0.2",

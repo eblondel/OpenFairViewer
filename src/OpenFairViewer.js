@@ -112,6 +112,10 @@ import * as stats from 'simple-statistics';
 //colorbrewer
 import colorbrewer from 'colorbrewer/index.js';
 window.colorbrewer = colorbrewer;
+//colorpicker
+import "@melloware/coloris/dist/coloris.css";
+import Coloris from "@melloware/coloris";
+Coloris.init();
 //ofv
 import OpenFairLayerSwitcher from './OpenFairLayerSwitcher.js';
 import OpenFairShiny from './OpenFairShiny.js';
@@ -138,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.8.3", DATE: new Date('2023-11-24')}
+		this.versioning = {VERSION: "2.9.0", DATE: new Date('2023-11-30')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -996,6 +1000,7 @@ class OpenFairViewer {
 						if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 						if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
 						if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
+						if(viewlayer.envcol) encoded_view += 'col=' + viewlayer.envcol + ',';
 						if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
 						if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 						if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
@@ -1020,6 +1025,7 @@ class OpenFairViewer {
 					if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 					if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
 					if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
+					if(viewlayer.envcol) encoded_view += 'col=' + viewlayer.envcol + ',';
 					if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
 					if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
@@ -1034,6 +1040,7 @@ class OpenFairViewer {
 					if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 					if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
 					if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
+					if(viewlayer.envcol) encoded_view += 'col=' + viewlayer.envcol + ',';
 					if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
 					if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
@@ -3080,13 +3087,16 @@ class OpenFairViewer {
 		});
 		$("#" + map_classnb_id).val("5").trigger("change");
 		
-		//Color palettes
+		//Color palettes / picker
 		//-------------------
 		//id
 		var map_colorscheme_id = "map-colorscheme-selector";
+		var map_colorpicker_id = "map-colorpicker";
 		//html
-		if(has_choropleth) $("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select>');
-		//jquery widget
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<div id = "'+map_colorpicker_id+'_wrapper" style="margin-top:5px;"><label for="'+map_colorpicker_id+'">Choose a symbol color</label><div style="float: right; margin-right: 20px;"><input id = "'+map_colorpicker_id+'" title="'+this_.options.labels.colorscheme_selector_title+'" data-coloris></div></div>');
+		Coloris({el: "#"+map_colorpicker_id, theme: 'polaroid'});
+		//jquery widget for color scheme selector
 		var formatColorscheme = function(item){
 			if(!item.id) { return item.text; };
 			var $item = $('<span title="'+item.text+'">'+item.svg+' <em>('+item.text+')</em></span>');
@@ -3125,17 +3135,24 @@ class OpenFairViewer {
 			});
 		}
 		if(has_choropleth){
-			initColorschemeSelector();
+			if($("#" + map_type_id).val()=="choropleth") {
+				$("#" + map_colorpicker_id+"_wrapper").hide();
+				initColorschemeSelector();
+			}else{
+				$("#" + map_colorpicker_id+"_wrapper").show();
+			}
 			$("#" + map_colorscheme_id).val("Reds").trigger("change");
 			//events related to colorscheme selection
 			$("#" + map_classnb_id).on('select2:select', function (e) { 
-				initColorschemeSelector();
+				if($("#" + map_type_id).val()=="choropleth") initColorschemeSelector();
 			});
 			$("#" + map_type_id).on('select2:select', function(e) {
 				if(e.target.value == 'choropleth'){
 					$("#" + map_colorscheme_id).next(".select2-container").show();
+					$("#" + map_colorpicker_id+"_wrapper").hide();
 				}else{
 					$("#" + map_colorscheme_id).next(".select2-container").hide();
+					$("#" + map_colorpicker_id+"_wrapper").show();
 				}
 			});
 		}
@@ -4656,6 +4673,7 @@ class OpenFairViewer {
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
 		var colorScheme = from_query_form? $("#map-colorscheme-selector").select2('val') : dataset.envcolscheme;
+		var color = from_query_form? $("#map-colorpicker").val() : dataset.envcol;
 		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="" && item.startsWith("v")) return item}).length-2 : null);
 		var layerStyle =  from_query_form? ($("#map-style-selector").select2('val')? $("#map-style-selector").select2('val') : this_.buildDynamicStylename(dataset, strategyvariable, mapType, classNb)) : dataset.style;
 
@@ -4688,9 +4706,12 @@ class OpenFairViewer {
 								breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								if(colorScheme){
+								if(mapType == "choropleth" && colorScheme){
 									colors = colorbrewer[colorScheme][classNb];
 									if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								}
+								if(mapType == "graduated" && color){
+									colors = [color];
 								}
 								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
@@ -4704,6 +4725,7 @@ class OpenFairViewer {
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
 							layer.envcolscheme = colorScheme;
+							layer.envcol = color;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
 							layer.geom = geom;
@@ -4751,6 +4773,7 @@ class OpenFairViewer {
 							layer.envfun = null;
 							layer.envmaptype = null;
 							layer.envcolscheme = null;
+							layer.envcol = null;
 							layer.count = null;
 							layer.params = {CQL_FILTER: (strategyparams == null)? null : decodeURIComponent(strategyparams_str)};
 							layer.geom = geom;
@@ -4780,6 +4803,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcol = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
@@ -4811,6 +4835,7 @@ class OpenFairViewer {
 					layer.envfun = null;
 					layer.envmaptype = null;
 					layer.envcolscheme = null;
+					layer.envcol = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
 					this_.registerFeatureInfoLayer(layer);
@@ -4863,6 +4888,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcol = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
@@ -4906,9 +4932,12 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							if(colorScheme){
+							if(mapType == "choropleth" && colorScheme){
 								colors = colorbrewer[colorScheme][classNb];
 								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							}
+							if(mapType == "graduated" && color){
+								colors = [color];
 							}
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
@@ -4921,6 +4950,7 @@ class OpenFairViewer {
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
 						layer.envcolscheme = colorScheme;
+						layer.envcol = color;
 						layer.count = values? values.length: null;
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
@@ -4967,6 +4997,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcol = null;
 						layer.count = null;
 						layer.params = {'VIEWPARAMS': strategyparams_str};
 						layer.geom = geom;
@@ -4997,6 +5028,7 @@ class OpenFairViewer {
 					layer.envfun = null;
 					layer.envmaptype = null;
 					layer.envcolscheme = null;
+					layer.envcol = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
 					layer.geom = geom;
@@ -5045,9 +5077,12 @@ class OpenFairViewer {
 								var breaks = this_.calculateBreaks(values, classType, classNb);
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
-								if(colorScheme){
+								if(mapType == "choropleth" && colorScheme){
 									colors = colorbrewer[colorScheme][classNb];
 									if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								}
+								if(mapType == "graduated" && color){
+									colors = [color];
 								}
 								envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 							}
@@ -5068,6 +5103,7 @@ class OpenFairViewer {
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
 							layer.envcolscheme = colorScheme;
+							layer.envcol = color;
 							layer.count = values? values.length : null;
 							layer.params = layer.getSource().getParams();
 							layer.geom = geom;
@@ -5161,6 +5197,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcol = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
@@ -5241,6 +5278,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcol = null;
 						layer.count = null;
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
@@ -5281,9 +5319,12 @@ class OpenFairViewer {
 							var breaks = this_.calculateBreaks(values, classType, classNb);
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
-							if(colorScheme){
-								var colors = colorbrewer[colorScheme][classNb];
+							if(mapType == "choropleth" && colorScheme){
+								colors = colorbrewer[colorScheme][classNb];
 								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+							}
+							if(mapType == "graduated" && color){
+								colors = [color];
 							}
 							envparams = this_.buildEnvParams(geom, strategyvariable, breaks, colors);
 						}
@@ -5303,6 +5344,7 @@ class OpenFairViewer {
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
 						layer.envcolscheme = colorScheme;
+						layer.envcol = color;
 						layer.count = values? values.length : null;
 						layer.params = layer.getSource().getParams();
 						layer.geom = geom;
@@ -5383,6 +5425,7 @@ class OpenFairViewer {
 					layer.envfun = null;
 					layer.envmaptype = null;
 					layer.envcolscheme = null;
+					layer.envcol = null;
 					layer.count = null;
 					layer.params = layer.getSource().getParams();
 					layer.geom = geom;
@@ -7037,6 +7080,7 @@ class OpenFairViewer {
 		layer.envfun = null;
 		layer.envmaptype = null;
 		layer.envcolscheme = null;
+		layer.envcol = null;
 		layer.count = null;
 		layer.params = null;
 		layer.geom = null;
@@ -7280,14 +7324,23 @@ class OpenFairViewer {
 						if(envfun) $("#map-classtype-selector").val(envfun).trigger('change');
 						var envmaptype = datasetDef.envmaptype;
 						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change');
-						if(envmaptype=="graduated") $("#map-colorscheme-selector").next(".select2-container").hide();
+						if(envmaptype=="graduated"){
+							$("#map-colorscheme-selector").next(".select2-container").hide();
+							$("#map-colorpicker_wrapper").show();
+						}
 						if(datasetDef.breaks){
 							var classnb = String(datasetDef.breaks.length-1);
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						if(envmaptype == "choropleth" && envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						var envcol = datasetDef.envcol;
+						var rgb = this_.hexToRgb(envcol);
+						if(envmaptype == "graduated" && envcol){
+							$($("#map-colorpicker_wrapper").find('.clr-field')[0]).css('color', 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')');
+							$("#map-colorpicker").val(envcol);
+						}
 						var style = datasetDef.style;
 						if(style) if($("#map-style-selector").length > 0){
 							$("#map-style-selector").val(style).trigger('change');
@@ -7347,14 +7400,23 @@ class OpenFairViewer {
 						if(envfun) $("#map-classtype-selector").val(envfun).trigger('change');
 						var envmaptype = datasetDef.envmaptype;
 						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change');
-						if(envmaptype=="graduated") $("#map-colorscheme-selector").next(".select2-container").hide();
+						if(envmaptype=="graduated"){
+							$("#map-colorscheme-selector").next(".select2-container").hide();
+							$("#map-colorpicker_wrapper").show();
+						}
 						if(datasetDef.breaks){
 							var classnb = String(datasetDef.breaks.length-1);
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						if(envmaptype == "choropleth" && envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						var envcol = datasetDef.envcol;
+						var rgb = this_.hexToRgb(envcol);
+						if(envmaptype == "graduated" && envcol){
+							$($("#map-colorpicker_wrapper").find('.clr-field')[0]).css('color', 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')');
+							$("#map-colorpicker").val(envcol);
+						}
 						var style = datasetDef.style;
 						if(style) if($("#map-style-selector").length > 0){
 							$("#map-style-selector").val(style).trigger('change');
@@ -7409,14 +7471,23 @@ class OpenFairViewer {
 						if(envfun) $("#map-classtype-selector").val(envfun).trigger('change');
 						var envmaptype = datasetDef.envmaptype;
 						if(envmaptype) $("#map-type-selector").val(envmaptype).trigger('change');
-						if(envmaptype=="graduated") $("#map-colorscheme-selector").next(".select2-container").hide();
+						if(envmaptype=="graduated"){
+							$("#map-colorscheme-selector").next(".select2-container").hide();
+							$("#map-colorpicker_wrapper").show();
+						}
 						if(datasetDef.breaks){
 							var classnb = String(datasetDef.breaks.length-1);
 							if( $("#map-classnb-selector").find('option').map(function() { return $(this).val(); }).get().indexOf(classnb) == -1) classnb = 5;
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change'); 
+						if(envmaptype == "choropleth" && envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						var envcol = datasetDef.envcol;
+						var rgb = this_.hexToRgb(envcol);
+						if(envmaptype == "graduated" && envcol){
+							$($("#map-colorpicker_wrapper").find('.clr-field')[0]).css('color', 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')');
+							$("#map-colorpicker").val(envcol);
+						}
 						var style = datasetDef.style;
 						if(style) if($("#map-style-selector").length > 0){
 							$("#map-style-selector").val(style).trigger('change');
@@ -7582,6 +7653,7 @@ class OpenFairViewer {
 				var envmaptype = encoded_view_obj.maptype;
 				var envparams = encoded_view_obj.env;
 				var envcolscheme = encoded_view_obj.cs;
+				var envcol = encoded_view_obj.col;
 				var count = encoded_view_obj.count;
 				var style = encoded_view_obj.style;	
 				var query = encoded_view_obj.q == "true";
@@ -7594,7 +7666,7 @@ class OpenFairViewer {
 				if(encoded_view_obj.geomtype) if(encoded_view_obj.geomtype == "gml:PointPropertyType") pt = "true";
 				encoded_datasets.push({
 					pid: pid, lyr : lyr, strategy: strategy, queryparams : queryparams, 
-					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, envcolscheme: envcolscheme,
+					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, envcolscheme: envcolscheme, envcol: envcol,
 					geom: encoded_view_obj.geom, geomtype: encoded_view_obj.geomtype,
 					count : count, breaks: breaks, style: style, query: query, 
 					thematicmapping: (variable? true : false),
@@ -7681,6 +7753,19 @@ class OpenFairViewer {
 		  console.log('parent received message! = ', e.data);
 		  eval(e.data);
 		},false);
+	}
+	
+	/**
+	 * hexToRgb
+	 * @param hex
+	 */
+	hexToRgb(hex) {
+	  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	  return result ? {
+		r: parseInt(result[1], 16),
+		g: parseInt(result[2], 16),
+		b: parseInt(result[3], 16)
+	  } : null;
 	}
 	
 	//===========================================================================================
