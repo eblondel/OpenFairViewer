@@ -70,7 +70,12 @@
                                   	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
 								</sld:Fill>
                                 <sld:Stroke>
-                                  <sld:CssParameter name="stroke">#FFFFFF</sld:CssParameter>
+                                  <sld:CssParameter name="stroke">
+									<ogc:Function name="env">
+										 <ogc:Literal>c2</ogc:Literal>
+										 <ogc:Literal>#FFFFFF</ogc:Literal>    
+									 </ogc:Function>
+								  </sld:CssParameter>
                                   <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
                               	</sld:Stroke>
 							</sld:Mark>
@@ -140,7 +145,12 @@
                                   	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
 								</sld:Fill>
                                 <sld:Stroke>
-                                  <sld:CssParameter name="stroke">#FFFFFF</sld:CssParameter>
+                                  <sld:CssParameter name="stroke">
+									<ogc:Function name="env">
+										 <ogc:Literal>c2</ogc:Literal>
+										 <ogc:Literal>#FFFFFF</ogc:Literal>    
+									 </ogc:Function>
+								  </sld:CssParameter>
                                   <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
                               	</sld:Stroke>
 							</sld:Mark>
@@ -210,7 +220,12 @@
                                   	<sld:CssParameter name="fill-opacity">0.9</sld:CssParameter>
 								</sld:Fill>
                                 <sld:Stroke>
-                                  <sld:CssParameter name="stroke">#FFFFFF</sld:CssParameter>
+                                  <sld:CssParameter name="stroke">
+									<ogc:Function name="env">
+										 <ogc:Literal>c2</ogc:Literal>
+										 <ogc:Literal>#FFFFFF</ogc:Literal>    
+									 </ogc:Function>
+								  </sld:CssParameter>
                                   <sld:CssParameter name="stroke-width">1.5</sld:CssParameter>
                               	</sld:Stroke>
 							</sld:Mark>
