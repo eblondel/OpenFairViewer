@@ -121,6 +121,8 @@ import OpenFairLayerSwitcher from './OpenFairLayerSwitcher.js';
 import OpenFairShiny from './OpenFairShiny.js';
 import './OpenFairViewer.css';
 
+
+
 var bootstrapButton = $.fn.button.noConflict(); // return $.fn.button to previously assigned value
 $.fn.bootstrapBtn = bootstrapButton ;
 
@@ -140,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.9.0", DATE: new Date('2023-12-03')}
+		this.versioning = {VERSION: "2.9.0", DATE: new Date('2023-11-30')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1004,6 +1006,7 @@ class OpenFairViewer {
 						if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 						if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
 						if(viewlayer.geomtype) encoded_view += 'geomtype=' + viewlayer.geomtype + ',';
+						encoded_view += 'op=' + $("#"+lyr+"_opslider").val() + ',';
 					}
 					break;
 				case "ogc_dimensions":
@@ -1030,6 +1033,7 @@ class OpenFairViewer {
 					if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
 					if(viewlayer.geomtype) encoded_view += 'geomtype=' + viewlayer.geomtype + ',';
+					encoded_view += 'op=' + $("#"+lyr+"_opslider").val() + ',';
 					break;
 				case "ogc_viewparams":
 					console.log("Setting embed link for view with strategy 'ogc_viewparams'");
@@ -1046,6 +1050,8 @@ class OpenFairViewer {
 					if(params['STYLES']) encoded_view += 'style=' + params['STYLES'] + ',';
 					if(viewlayer.geom) encoded_view += 'geom=' + viewlayer.geom + ',';
 					if(viewlayer.geomtype) encoded_view += 'geomtype=' + viewlayer.geomtype + ',';
+					encoded_view += 'op=' + $("#"+lyr+"_opslider").val() + ',';
+					console.log($("#"+lyr+"_opslider").val());
 					break;
 			}	
 			
@@ -4690,6 +4696,9 @@ class OpenFairViewer {
 		var geomtype = from_query_form? this_.getGeometryType(dataset.dsd) : dataset.geomtype;
 		console.log("Geometry information: "+geom+" ["+geomtype+"]");
 		
+		//opacity
+		opacity = from_query_form? opacity : dataset.opacity;
+		
 		if(!layer){
 			console.log("Adding new layer");
 		    //ADD LAYER
@@ -7703,6 +7712,7 @@ class OpenFairViewer {
 				}
 				var pt = "false";
 				if(encoded_view_obj.geomtype) if(encoded_view_obj.geomtype == "gml:PointPropertyType") pt = "true";
+				var opacity = parseFloat(encoded_view_obj.op);
 				encoded_datasets.push({
 					pid: pid, lyr : lyr, strategy: strategy, queryparams : queryparams, 
 					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, 
@@ -7711,7 +7721,8 @@ class OpenFairViewer {
 					count : count, breaks: breaks, style: style, query: query, 
 					thematicmapping: (variable? true : false),
 					point_vectorizing: this_.options.map.point_vectorizing && pt,
-					point_clustering: this_.options.map.point_vectorizing && this_.options.map.point_clustering && pt
+					point_clustering: this_.options.map.point_vectorizing && this_.options.map.point_clustering && pt,
+					opacity: opacity
 				});
 			}
 
