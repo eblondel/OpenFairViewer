@@ -7706,7 +7706,7 @@ class OpenFairViewer {
 				encoded_datasets.push({
 					pid: pid, lyr : lyr, strategy: strategy, queryparams : queryparams, 
 					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, 
-					envcolscheme: envcolscheme, envcolfill: envcolfill, envcolstroke: encolstroke,
+					envcolscheme: envcolscheme, envcolfill: envcolfill, envcolstroke: envcolstroke,
 					geom: encoded_view_obj.geom, geomtype: encoded_view_obj.geomtype,
 					count : count, breaks: breaks, style: style, query: query, 
 					thematicmapping: (variable? true : false),
