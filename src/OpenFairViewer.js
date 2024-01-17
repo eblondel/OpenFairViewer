@@ -142,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.9.0", DATE: new Date('2023-11-30')}
+		this.versioning = {VERSION: "2.9.0", DATE: new Date('2024-01-17')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -568,8 +568,10 @@ class OpenFairViewer {
 				}			
 			}
 			//threshold
-			if(options.map.thematicmapping_options.thresholding) this.options.map.thematicmapping_options.thresholding = options.map.thematicmapping_options.thresholding;
-			if(options.map.thematicmapping_options.threshold) this.options.map.thematicmapping_options.threshold = options.map.thematicmapping_options.threshold;
+			if(Object.keys(options.map.thematicmapping_options).indexOf('thresholding') > -1){
+				this.options.map.thematicmapping_options.thresholding = options.map.thematicmapping_options.thresholding;
+				if(options.map.thematicmapping_options.threshold) this.options.map.thematicmapping_options.threshold = options.map.thematicmapping_options.threshold;
+			}
 		}
 		
 		//popup
