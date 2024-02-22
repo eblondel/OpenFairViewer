@@ -68,6 +68,8 @@ QueryInfo <- function(input, output, session) {
     
     par <-if(!is.null(query$par)){as.character(query$par)}else{NULL}
 	
+	var <-if(!is.null(query$var)){as.character(query$var)}else{NULL}
+	
     x <-if(!is.null(query$x)){as.numeric(query$x)}else{NULL}
     
     y <-if(!is.null(query$y)){as.numeric(query$y)}else{NULL}
@@ -90,6 +92,8 @@ QueryInfo <- function(input, output, session) {
     if(!is.null(dsd)){
         names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
         dsd[is.na(dsd)]<-""
+		print("DSD=>")
+		print(dput(dsd))
     }
     
     if(is.null(dsd)&(!is.null(csw_server))&(!is.null(csw_version))){
@@ -128,7 +132,7 @@ QueryInfo <- function(input, output, session) {
       print("QUERYINFO : FEATURE WITH GEOMETRY SELECTED")
       ColumnName<-desc[,"name"]  
       }
-      ColumnName = ColumnName[ColumnName != "fid"]
+      ColumnName = ColumnName[tolower(ColumnName) != "fid"]
       print(ColumnName)
       propertyName<-paste(ColumnName, collapse = ',')
       print(propertyName)
