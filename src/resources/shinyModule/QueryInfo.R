@@ -134,6 +134,10 @@ QueryInfo <- function(input, output, session) {
       }
       ColumnName = ColumnName[tolower(ColumnName) != "fid"]
       print(ColumnName)
+	  if(!is.null(dsd) & !is.null(var)){
+		ColumnName = setdiff(ColumnName,dsd$MemberCode[dsd$MemberType == "variable" & dsd$MemberCode != var])
+		print(ColumnName)
+	  }
       propertyName<-paste(ColumnName, collapse = ',')
       print(propertyName)
       
