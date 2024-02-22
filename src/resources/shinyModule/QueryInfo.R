@@ -133,15 +133,12 @@ QueryInfo <- function(input, output, session) {
       ColumnName<-desc[,"name"]  
       }
       ColumnName = ColumnName[tolower(ColumnName) != "fid"]
-      print(ColumnName)
 	  if(!is.null(dsd) & !is.null(var)){
 		ColumnName = setdiff(ColumnName,dsd$MemberCode[dsd$MemberType == "variable" & dsd$MemberCode != var])
-		print(ColumnName)
 	  }
 	  if(!is.null(par) & strategy == "ogc_viewparams"){
 		param_names = unlist(lapply(unlist(strsplit(par,";")), function(x){unlist(strsplit(x,":"))[1]}))
 		ColumnName = setdiff(ColumnName, param_names)
-		print(ColumnName)
 	  }
       propertyName<-paste(ColumnName, collapse = ',')
       print(propertyName)
