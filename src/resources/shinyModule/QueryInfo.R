@@ -38,7 +38,7 @@ QueryInfoUI <- function(id) {
 # Function for module server logic
 QueryInfo <- function(input, output, session) {
   data <- reactiveValues(
-    data=NULL,dsd=NULL,query=NULL,,shiny_type=NULL,time=NULL
+    data=NULL,dsd=NULL,query=NULL,shiny_type=NULL,time=NULL
   )
   
   observe({
