@@ -378,7 +378,7 @@ box-shadow: 2px 2px 2px rgba(0,0,0,.4);
 color: rgba(0,0,0,.8); 
 font-family: Verdana, Geneva, Helvetica, Arial, sans-serif; 
 font-size: 9px; 
-max-height: 420px !important; min-width: 175px !important; max-width: 600px; overflow-x: auto !important; padding: 0px; }
+max-height: 460px !important; min-width: 175px !important; max-width: 600px; overflow-x: auto !important; padding: 0px; }
 .ol-popup-closer { font-size:100% !important; z-index: 1;}
 
 .table-condensed>tbody>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>thead>tr>th { padding:2px; }
