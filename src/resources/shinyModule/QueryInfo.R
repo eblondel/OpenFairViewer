@@ -38,7 +38,7 @@ QueryInfoUI <- function(id) {
 # Function for module server logic
 QueryInfo <- function(input, output, session) {
   data <- reactiveValues(
-    data=NULL,dsd=NULL,query=NULL,shiny_type=NULL,time=NULL
+    metadata=NULL,data=NULL,dsd=NULL,query=NULL,shiny_type=NULL,time=NULL
   )
   
   observe({
@@ -80,25 +80,26 @@ QueryInfo <- function(input, output, session) {
 	#dsd (if any)
 	dsd<-if (!is.null(query$dsd)){jsonlite::fromJSON(query$dsd)}else{NULL}
 
-    #Type of shiny apps 
-    shiny_type <- ifelse(!is.null(wms_server),"popup","dashboard")
-    
-	
+    	#Type of shiny apps 
+    	shiny_type <- ifelse(!is.null(wms_server),"popup","dashboard")
+
+	CSW <- ows4R::CSWClient$new(
+		url = csw_server,
+		serviceVersion = csw_version,
+		logger = "INFO"
+	)
+
+	data$metadata = CSW$getRecordById(pid) #basic dublin core metadata
+	  
 	#### Get columns definition
 	#-----------------------------------------------------------------------------------------------
-    if(!is.null(dsd)){
+    	if(!is.null(dsd)){
 		names(dsd)<-c("MemberName","Definition","MemberCode","PrimitiveType","MemberType","MinOccurs","MaxOccurs","MeasureUnitSymbol","MeasureUnitName")
 		dsd[is.na(dsd)]<-""
 	}
 
 	if(is.null(dsd)&(!is.null(csw_server))&(!is.null(csw_version))){
 		print("QUERYINFO : No dsd parameter provided in url...dsd will be compute with CSW service")
-		CSW <- CSWClient$new(
-			url = csw_server,
-			serviceVersion = csw_version,
-			logger = "INFO"
-		)
-
 		fc <- CSW$getRecordById(paste0(pid,"_dsd"), outputSchema = "http://www.isotc211.org/2005/gfc")
 		dsd<-getColumnDefinitions(fc)
 	}
