@@ -142,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.9.0", DATE: new Date('2024-01-17')}
+		this.versioning = {VERSION: "2.9.1", DATE: new Date('2024-05-13')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -512,7 +512,7 @@ class OpenFairViewer {
 				title : "UN Clear Map",
 				type: 'base',
 				source : new TileArcGISRest({							
-					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Topo/MapServer',
+					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_WebTopo/MapServer',
 					crossOrigin: 'anonymous',
 					wrapX: true
 				})
