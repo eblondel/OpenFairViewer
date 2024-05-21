@@ -2,7 +2,7 @@
 ###This module can be integrated into a shiny application intended to offer a dashboard or a popup under OpenFairViewer.
 
 
-####Extraction of the metadata associated to data to retrieve the complete labels, type of variable and units of measures
+#Extraction of the metadata associated to data to retrieve the complete labels, type of variable and units of measures
 getColumnDefinitions = function(fc) {
   do.call("rbind",lapply(fc$featureType[[1]]$carrierOfCharacteristics,function(x){
 	data.frame(
@@ -17,7 +17,15 @@ getColumnDefinitions = function(fc) {
 		MeasureUnitName=if(is(x$valueMeasurementUnit,"GMLUnitDefinition")) ifelse(!is.null(x$valueMeasurementUnit$name$value),x$valueMeasurementUnit$name$value,"") else ""
 	)
   }))
-}   
+}
+#getColumnListedValues			 
+getColumnListedValues = function(fc, code){
+  coc = fc$featureType[[1]]$carrierOfCharacteristics[sapply(fc$featureType[[1]]$carrierOfCharacteristics, function(x){x$code == code})][[1]]
+  do.call("rbind", lapply(coc$listedValue, function(x){
+    data.frame(code = x$code, label = x$label, definition = x$definition)
+  }))
+}			
+			
 # Function for module UI
 QueryInfoUI <- function(id) {
   ns <- NS(id)
@@ -38,7 +46,17 @@ QueryInfoUI <- function(id) {
 # Function for module server logic
 QueryInfo <- function(input, output, session) {
   data <- reactiveValues(
-    metadata=NULL,fc=NULL,data=NULL,dsd=NULL,query=NULL,shiny_type=NULL,time=NULL
+	  metadata = NULL,
+	  fc = NULL,
+	  data = NULL,
+	  dsd = NULL,
+	  query = NULL,
+	  shiny_type = NULL,
+	  time = NULL,
+	  utils = list(
+		getColumnDefinitions = getColumnDefinitions,
+		getColumnListedValues = getColumnListedValues
+	  )
   )
   
   observe({
