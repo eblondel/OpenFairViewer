@@ -38,7 +38,7 @@ QueryInfoUI <- function(id) {
 # Function for module server logic
 QueryInfo <- function(input, output, session) {
   data <- reactiveValues(
-    metadata=NULL,data=NULL,dsd=NULL,query=NULL,shiny_type=NULL,time=NULL
+    metadata=NULL,fc=NULL,data=NULL,dsd=NULL,query=NULL,shiny_type=NULL,time=NULL
   )
   
   observe({
@@ -100,8 +100,8 @@ QueryInfo <- function(input, output, session) {
 
 	if(is.null(dsd)&(!is.null(csw_server))&(!is.null(csw_version))){
 		print("QUERYINFO : No dsd parameter provided in url...dsd will be compute with CSW service")
-		fc <- CSW$getRecordById(paste0(pid,"_dsd"), outputSchema = "http://www.isotc211.org/2005/gfc")
-		dsd<-getColumnDefinitions(fc)
+		data$fc <- CSW$getRecordById(paste0(pid,"_dsd"), outputSchema = "http://www.isotc211.org/2005/gfc")
+		dsd<-getColumnDefinitions(data$fc)
 	}
 
 
