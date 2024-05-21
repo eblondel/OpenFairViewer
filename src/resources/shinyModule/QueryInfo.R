@@ -13,8 +13,8 @@ getColumnDefinitions = function(fc) {
 		MinOccurs=ifelse(!is.null(x$cardinality$range$lower),x$cardinality$range$lower,""),
 		MaxOccurs=ifelse(!is.null(x$cardinality$range$upper$value),x$cardinality$range$upper$value,""),
 		Definition=ifelse(!is.null(x$definition),x$definition,""),
-		MeasureUnitSymbol=ifelse(!is.null(x$valueMeasurementUnit$identifier$value),x$valueMeasurementUnit$identifier$value,""),
-		MeasureUnitName=ifelse(!is.null(x$valueMeasurementUnit$name$value),x$valueMeasurementUnit$name$value,"")
+		MeasureUnitSymbol=if(is(x$valueMeasurementUnit,"GMLUnitDefinition")) ifelse(!is.null(x$valueMeasurementUnit$identifier$value),x$valueMeasurementUnit$identifier$value,"") else "",
+		MeasureUnitName=if(is(x$valueMeasurementUnit,"GMLUnitDefinition")) ifelse(!is.null(x$valueMeasurementUnit$name$value),x$valueMeasurementUnit$name$value,"") else ""
 	)
   }))
 }   
