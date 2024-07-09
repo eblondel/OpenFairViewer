@@ -142,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.9.1", DATE: new Date('2024-05-13')}
+		this.versioning = {VERSION: "2.9.2", DATE: new Date('2024-07-09')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -6913,7 +6913,8 @@ class OpenFairViewer {
 	addWFSLayer(mainOverlayGroup, pid, id, title, wfsUrl, wfsVersion, layerName, strategy, viewparams, cql_filter, projection, clustering){
 		var this_ = this;
 		var deferred = $.Deferred();
-		this_.getDatasetFeatures(wfsUrl, wfsVersion, layerName, strategy, viewparams.replaceAll(';', '%3B'), cql_filter, null, 'json', projection).then(function(response){
+		print(viewparams);
+		this_.getDatasetFeatures(wfsUrl, wfsVersion, layerName, strategy, viewparams? viewparams.replaceAll(';', '%3B') : null, cql_filter, null, 'json', projection).then(function(response){
 			console.log("Get features to set WFS layer");
 			var format = new olFormat.GeoJSON();
 			var features = response.map(function(item){
