@@ -79,7 +79,7 @@ import OLCesium from 'ol-cesium/src/olcs/OLCesium.js';
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import {unByKey} from 'ol/Observable';
-import {MousePosition, OverviewMap, Zoom, ZoomToExtent, Attribution} from 'ol/Control';
+import {MousePosition, OverviewMap, Zoom, ZoomToExtent, Attribution} from 'ol/control';
 import {OSM, WMTS, TileArcGISRest, XYZ, TileWMS, ImageWMS, Vector, Cluster} from 'ol/source';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import {Group as LayerGroup, Tile as TileLayer, Image as ImageLayer, Vector as VectorLayer} from 'ol/layer';
