@@ -44,7 +44,7 @@ QueryInfoUI <- function(id) {
 }
 
 # Function for module server logic
-QueryInfo <- function(input, output, session) {
+QueryInfo <- function(input, output, session, ui = TRUE) {
   data <- reactiveValues(
 	  metadata = NULL,
 	  fc = NULL,
@@ -238,36 +238,38 @@ QueryInfo <- function(input, output, session) {
 	print(data$time)
   })
 
-  # Parameters selection viewer
-  output$queryText <- renderText({
-	paste(sep = "",
-		"pid: ", data$query$pid, "\n",
-		"layer: ", data$query$layer, "\n",
-		"wfs_server: ",data$query$wfs_server, "\n",
-		"wfs_version: ", data$query$wfs_version, "\n",
-		"wms_server: ",data$query$wms_server, "\n",
-		"wms_version: ", data$query$wms_version, "\n",
-		"feature_geom: ", data$query$feature_geom, "\n",
-		"csw_server: ",data$query$csw_server, "\n",
-		"csw_version: ", data$query$csw_version, "\n",
-		"strategy: ", data$query$strategy, "\n",
-		"par: ", data$query$par, "\n",
-		"var: ", data$query$var, "\n",
-		"x: ", data$query$x, "\n",
-		"y: ", data$query$y, "\n",
-		"width: ", data$query$width, "\n",
-		"height: ", data$query$height, "\n",
-		"bbox: ", data$query$bbox, "\n",
-		"srs: ",data$query$srs, "\n",
-		"dsd: ",data$query$dsd, "\n"
-	)
-	})
+	if(ui){
+	  # Parameters selection viewer
+	  output$queryText <- renderText({
+		paste(sep = "",
+			"pid: ", data$query$pid, "\n",
+			"layer: ", data$query$layer, "\n",
+			"wfs_server: ",data$query$wfs_server, "\n",
+			"wfs_version: ", data$query$wfs_version, "\n",
+			"wms_server: ",data$query$wms_server, "\n",
+			"wms_version: ", data$query$wms_version, "\n",
+			"feature_geom: ", data$query$feature_geom, "\n",
+			"csw_server: ",data$query$csw_server, "\n",
+			"csw_version: ", data$query$csw_version, "\n",
+			"strategy: ", data$query$strategy, "\n",
+			"par: ", data$query$par, "\n",
+			"var: ", data$query$var, "\n",
+			"x: ", data$query$x, "\n",
+			"y: ", data$query$y, "\n",
+			"width: ", data$query$width, "\n",
+			"height: ", data$query$height, "\n",
+			"bbox: ", data$query$bbox, "\n",
+			"srs: ",data$query$srs, "\n",
+			"dsd: ",data$query$dsd, "\n"
+		)
+		})
 
-	#Number of value selected
-	output$value <- renderText({paste(sep = "","number of values : ",nrow(data$data))})
+		#Number of value selected
+		output$value <- renderText({paste(sep = "","number of values : ",nrow(data$data))})
 
-	#Speed to compute data
-	output$time <- renderText({paste(sep = "","running time : ",round(data$time,2)," sec")})
+		#Speed to compute data
+		output$time <- renderText({paste(sep = "","running time : ",round(data$time,2)," sec")})
+	}
 
 	return(data)
 }
