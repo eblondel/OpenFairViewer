@@ -71,6 +71,7 @@
 	"switchto" : "Vista",
 	"colorscheme_selector" : "Seleccionar una paleta de colores",
 	"colorscheme_selector_title" : "Seleccionar una paleta de colores para los intervalos de datos",
+	"colorscheme_inverter_title": "Invertir la paleta de colores",
 	"colorscheme_sequential" : "Secuencial",
 	"colorscheme_diverging" : "Divergente",
 	"colorscheme_singlehue" : "Singlehue",

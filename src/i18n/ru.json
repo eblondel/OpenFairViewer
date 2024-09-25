@@ -71,6 +71,7 @@
 	"switchto" : "Переключить на",
 	"colorscheme_selector" : "Выберите цветовую палитру",
 	"colorscheme_selector_title" : "Выберите цветовую палитру для применения к интервалам данных",
+	"colorscheme_inverter_title": "Инвертировать цветовую палитру",
 	"colorscheme_sequential" : "Последовательный",
 	"colorscheme_diverging" : "Расходящиеся",
 	"colorscheme_singlehue" : "Синглхью",

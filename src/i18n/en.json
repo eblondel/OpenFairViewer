@@ -71,6 +71,7 @@
 	"switchto" : "Switch to",
 	"colorscheme_selector" : "Select a color palette",
 	"colorscheme_selector_title" : "Select a color palette to apply to data intervals",
+	"colorscheme_inverter_title": "Invert color palette",
 	"colorscheme_sequential" : "Sequential",
 	"colorscheme_diverging" : "Diverging",
 	"colorscheme_singlehue" : "Singlehue",

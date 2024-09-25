@@ -73,6 +73,7 @@
 	"switchto" : "Vue",
 	"colorscheme_selector" : "Sélectionner une palette de couleurs",
 	"colorscheme_selector_title" : "Sélectionner une palette de couleurs à appliquer aux intervalles de données",
+	"colorscheme_inverter_title": "Inverser la palette de couleurs",
 	"colorscheme_sequential" : "Séquentiel",
 	"colorscheme_diverging" : "Divergent",
 	"colorscheme_singlehue" : "Teinte unique",

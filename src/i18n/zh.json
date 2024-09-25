@@ -71,6 +71,7 @@
 	"switchto" : "切换到",
 	"colorscheme_selector" : "选择调色板",
 	"colorscheme_selector_title" : "选择要应用于数据间隔的调色板",
+	"colorscheme_inverter_title": "反转调色板",
 	"colorscheme_sequential" : "顺序的",
 	"colorscheme_diverging" : "发散",
 	"colorscheme_singlehue" : "单色调",

@@ -71,6 +71,7 @@
 	"switchto" : "التبديل إلى",
 	"colorscheme_selector" : "حدد لوحة الألوان",
 	"colorscheme_selector_title" : "حدد لوحة ألوان لتطبيقها على فترات البيانات",
+	"colorscheme_inverter_title": "عكس لوحة الألوان",
 	"colorscheme_sequential" : "تسلسلي",
 	"colorscheme_diverging" : "متشعب",
 	"colorscheme_singlehue" : "سينجلهيو",

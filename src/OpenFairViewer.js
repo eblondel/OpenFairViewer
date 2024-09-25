@@ -142,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.9.2", DATE: new Date('2024-07-09')}
+		this.versioning = {VERSION: "2.9.3", DATE: new Date('2024-09-25')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -1002,6 +1002,7 @@ class OpenFairViewer {
 						if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 						if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
 						if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
+						if(viewlayer.envcolinv) encoded_view += 'csinv=' + viewlayer.envcolinv + ',';
 						if(viewlayer.envcolfill) encoded_view += 'fill=' + viewlayer.envcolfill + ',';
 						if(viewlayer.envcolstroke) encoded_view += 'stroke=' + viewlayer.envcolstroke + ',';
 						if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
@@ -1029,6 +1030,7 @@ class OpenFairViewer {
 					if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 					if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
 					if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
+					if(viewlayer.envcolinv) encoded_view += 'csinv=' + viewlayer.envcolinv + ',';
 					if(viewlayer.envcolfill) encoded_view += 'fill=' + viewlayer.envcolfill + ',';
 					if(viewlayer.envcolstroke) encoded_view += 'stroke=' + viewlayer.envcolstroke + ',';
 					if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
@@ -1046,6 +1048,7 @@ class OpenFairViewer {
 					if(viewlayer.envmaptype) encoded_view += 'maptype=' + viewlayer.envmaptype + ',';
 					if(viewlayer.envmaptype) encoded_view += 'env=' + params['env'] + ',';
 					if(viewlayer.envcolscheme) encoded_view += 'cs=' + viewlayer.envcolscheme + ',';
+					if(viewlayer.envcolinv) encoded_view += 'csinv=' + viewlayer.envcolinv + ',';
 					if(viewlayer.envcolfill) encoded_view += 'fill=' + viewlayer.envcolfill + ',';
 					if(viewlayer.envcolstroke) encoded_view += 'stroke=' + viewlayer.envcolstroke + ',';
 					if(viewlayer.count) encoded_view += 'count=' + viewlayer.count + ',';
@@ -3014,6 +3017,57 @@ class OpenFairViewer {
 	}
 	
 	/**
+	 * initColorSchemeSelector
+	 * @param id
+	 * @param reverse
+	 */
+	initColorschemeSelector = function(id, reverse){
+		var this_ = this;
+		var map_colorscheme_placeholder = this_.options.labels.colorscheme_selector;
+		
+		var formatColorscheme = function(item){
+			if(!item.id) { return item.text; };
+			var $item = $('<span title="'+item.text+'">'+item.svg+' <em>('+item.text+')</em></span>');
+			return $item;
+		};
+		
+		var getPaletteAsSVG = function(id, reverse){
+			var classnb = parseInt($("#map-classnb-selector").val());
+			var colors = colorbrewer[id][classnb].slice();
+			if(reverse) colors.reverse();
+			var sq_width = 15;
+			var sq_height = 15;
+			var svg = '<svg width="'+sq_width*classnb+'" height="'+sq_height+'" style="vertical-align:middle;">';
+			var colorHeight = 0;
+			colors.forEach(function(color){ 
+				svg += '<rect fill="'+color+'" width="'+sq_width+'" height="'+sq_height+'" x="'+colorHeight+'"></rect>';
+				colorHeight = colorHeight + sq_width;
+			});
+			svg += '</svg>';
+			return svg;
+		}
+		
+		var previous_val = $("#" + id).val();
+		$("#"+ id).empty().trigger('change');
+		$("#"+ id).select2({
+			theme: 'classic',
+			allowClear: false,
+			placeholder: map_colorscheme_placeholder,
+			data: Object.keys(colorbrewer.schemeGroups).splice(0,3).map(function(schemeGroup){
+				return { 
+					text: this_.options.labels['colorscheme_' + schemeGroup], 
+					children: colorbrewer.schemeGroups[schemeGroup].map(function(item){
+						return {id: item, text: item, svg: getPaletteAsSVG(item, reverse)}
+					}) 
+				} 
+			}),
+			templateResult: formatColorscheme,
+			templateSelection: formatColorscheme
+		});
+		$("#" + id).val(previous_val).trigger("change");
+	}
+	
+	/**
 	 * handleQueryThematicMappingOptions
 	 * @param {String} geomtype
 	 * @param {Integer} columnIdx
@@ -3100,57 +3154,23 @@ class OpenFairViewer {
 		//-------------------
 		//id
 		var map_colorscheme_id = "map-colorscheme-selector";
+		var map_colorscheme_inverter_id = "map-colorscheme-inverter";
 		var map_colorfill_id = "map-colorpicker-fill";
 		var map_colorstroke_id = "map-colorpicker-stroke";
 		//html
-		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select>');
+		$("#dsd-ui-col-"+columnIdx).append('<select id = "'+map_colorscheme_id+'" class="dsd-ui-dimension" title="'+this_.options.labels.colorscheme_selector_title+'"></select><br>');
+		$("#dsd-ui-col-"+columnIdx).append('<div style="margin-left:18px;text-align:left;"><input id = "'+map_colorscheme_inverter_id+'" type="checkbox"><label for="'+map_colorscheme_inverter_id+'" style="margin-left:4px;font-weight:100">'+this_.options.labels.colorscheme_inverter_title+'</label></div>');
 		$("#dsd-ui-col-"+columnIdx).append('<div id = "'+map_colorfill_id+'_wrapper" style="margin-top:5px;"><label for="'+map_colorfill_id+'" style="float:left;margin-left:16px;font-weight:100;">'+this_.options.labels.colorpicker_fill+'</label><div style="float: right; margin-right: 20px;"><input id = "'+map_colorfill_id+'" title="'+this_.options.labels.colorpicker_fill_title+'" value="#FF4500" data-coloris></div></div>');
 		Coloris({el: "#"+map_colorfill_id, theme: 'polaroid'});
 		$("#dsd-ui-col-"+columnIdx).append('<div id = "'+map_colorstroke_id+'_wrapper" style="margin-top:5px;"><label for="'+map_colorstroke_id+'" style="float:left;margin-left:16px;font-weight:100;">'+this_.options.labels.colorpicker_stroke+'</label><div style="float: right; margin-right: 20px;"><input id = "'+map_colorstroke_id+'" title="'+this_.options.labels.colorpicker_stroke_title+'" value="#FFFFFF" data-coloris></div></div>');
 		Coloris({el: "#"+map_colorstroke_id, theme: 'polaroid'});
 		//jquery widget for color scheme selector
-		var formatColorscheme = function(item){
-			if(!item.id) { return item.text; };
-			var $item = $('<span title="'+item.text+'">'+item.svg+' <em>('+item.text+')</em></span>');
-			return $item;
-		};
-		var map_colorscheme_placeholder = this_.options.labels.colorscheme_selector;
-		var getPaletteAsSVG = function(id){
-			var classnb = parseInt($("#map-classnb-selector").val());
-			var colors = colorbrewer[id][classnb];		
-			var sq_width = 15;
-			var sq_height = 15;
-			var svg = '<svg width="'+sq_width*classnb+'" height="'+sq_height+'" style="vertical-align:middle;">';
-			var colorHeight = 0;
-			colors.forEach(function(color){ 
-				svg += '<rect fill="'+color+'" width="'+sq_width+'" height="'+sq_height+'" x="'+colorHeight+'"></rect>';
-				colorHeight = colorHeight + sq_width;
-			});
-			svg += '</svg>';
-			return svg;
-		}
-		var initColorschemeSelector = function(){
-			$("#"+ map_colorscheme_id).select2({
-				theme: 'classic',
-				allowClear: false,
-				placeholder: map_colorscheme_placeholder,
-				data: Object.keys(colorbrewer.schemeGroups).splice(0,3).map(function(schemeGroup){
-					return { 
-						text: this_.options.labels['colorscheme_' + schemeGroup], 
-						children: colorbrewer.schemeGroups[schemeGroup].map(function(item){
-							return {id: item, text: item, svg: getPaletteAsSVG(item)}
-						}) 
-					} 
-				}),
-				templateResult: formatColorscheme,
-				templateSelection: formatColorscheme
-			});
-		}
+		
 		if(has_choropleth){
 			if($("#" + map_type_id).val()=="choropleth") {
 				$("#" + map_colorfill_id+"_wrapper").hide();
 				$("#" + map_colorstroke_id+"_wrapper").hide();
-				initColorschemeSelector();
+				this_.initColorschemeSelector(map_colorscheme_id, false);
 			}else{
 				$("#" + map_colorfill_id+"_wrapper").show();
 				$("#" + map_colorstroke_id+"_wrapper").show();
@@ -3158,7 +3178,7 @@ class OpenFairViewer {
 			$("#" + map_colorscheme_id).val("Reds").trigger("change");
 			//events related to colorscheme selection
 			$("#" + map_classnb_id).on('select2:select', function (e) { 
-				if($("#" + map_type_id).val()=="choropleth") initColorschemeSelector();
+				if($("#" + map_type_id).val()=="choropleth") this_.initColorschemeSelector(map_colorscheme_id, false);
 			});
 			$("#" + map_type_id).on('select2:select', function(e) {
 				if(e.target.value == 'choropleth'){
@@ -3170,6 +3190,10 @@ class OpenFairViewer {
 					$("#" + map_colorfill_id+"_wrapper").show();
 					$("#" + map_colorstroke_id+"_wrapper").show();
 				}
+			});
+			$("#" + map_colorscheme_inverter_id).change(function(e){
+				var ischecked= $(this).is(':checked');
+				this_.initColorschemeSelector(map_colorscheme_id, ischecked);
 			});
 		}
 	}
@@ -3267,6 +3291,7 @@ class OpenFairViewer {
 
 		//event related to selection
 		$("#" + dashboard_id).on('select2:select', function(e) {
+			console.log(e.target.value);
 			this_.displayDashboard(e.target.value);
 		});
 		$("#" + dashboard_id).on('select2:clear', function(e) {
@@ -4689,6 +4714,7 @@ class OpenFairViewer {
 		var mapType =  from_query_form? $("#map-type-selector").select2('val') : dataset.envmaptype;
 		var classType = from_query_form? $("#map-classtype-selector").select2('val') : dataset.envfun;
 		var colorScheme = from_query_form? $("#map-colorscheme-selector").select2('val') : dataset.envcolscheme;
+		var colorSchemeInv = from_query_form? $("#map-colorscheme-inverter").prop('checked') : dataset.envcolinv;
 		var color_fill = from_query_form? $("#map-colorpicker-fill").val() : dataset.envcolfill;
 		var color_stroke = from_query_form? $("#map-colorpicker-stroke").val() : dataset.envcolstroke;
 		var classNb = from_query_form? $("#map-classnb-selector").select2('val') : (dataset.envparams? dataset.envparams.split(";").filter(function(item){if(item!="" && item.startsWith("v")) return item}).length-2 : null);
@@ -4727,8 +4753,9 @@ class OpenFairViewer {
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
 								if(mapType == "choropleth" && colorScheme){
-									colors = colorbrewer[colorScheme][classNb];
+									colors = colorbrewer[colorScheme][classNb].slice();
 									if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+									if(colorSchemeInv) colors.reverse();
 								}
 								if(mapType == "graduated" && color_fill && color_stroke){
 									colors = [color_fill, color_stroke];
@@ -4745,6 +4772,7 @@ class OpenFairViewer {
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
 							layer.envcolscheme = colorScheme;
+							layer.envcolinv = colorSchemeInv;
 							layer.envcolfill = color_fill;
 							layer.envcolstroke = color_stroke;
 							layer.count = values? values.length : null;
@@ -4794,6 +4822,7 @@ class OpenFairViewer {
 							layer.envfun = null;
 							layer.envmaptype = null;
 							layer.envcolscheme = null;
+							layer.envcolinv = null;
 							layer.envcolfill = null;
 							layer.envcolstoke = null;
 							layer.count = null;
@@ -4825,6 +4854,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcolinv = null;
 						layer.envcolfill = null;
 						layer.envcolstroke = null;
 						layer.count = null;
@@ -4858,6 +4888,7 @@ class OpenFairViewer {
 					layer.envfun = null;
 					layer.envmaptype = null;
 					layer.envcolscheme = null;
+					layer.envcolinv = null;
 					layer.envcolfill = null;
 					layer.envcolstroke = null;
 					layer.count = null;
@@ -4912,6 +4943,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcolinv = null;
 						layer.envcolfill = null;
 						layer.envcolstroke = null;
 						layer.count = null;
@@ -4958,8 +4990,9 @@ class OpenFairViewer {
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
 							if(mapType == "choropleth" && colorScheme){
-								colors = colorbrewer[colorScheme][classNb];
+								colors = colorbrewer[colorScheme][classNb].slice();
 								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								if(colorSchemeInv) colors.reverse();
 							}
 							if(mapType == "graduated" && color_fill && color_stroke){
 								colors = [color_fill, color_stroke];
@@ -4975,6 +5008,7 @@ class OpenFairViewer {
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
 						layer.envcolscheme = colorScheme;
+						layer.envcolinv = colorSchemeInv;
 						layer.envcolfill = color_fill;
 						layer.envcolstroke = color_stroke;
 						layer.count = values? values.length: null;
@@ -5023,6 +5057,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcolinv = null;
 						layer.envcolfill = null;
 						layer.envcolstroke = null;
 						layer.count = null;
@@ -5055,6 +5090,7 @@ class OpenFairViewer {
 					layer.envfun = null;
 					layer.envmaptype = null;
 					layer.envcolscheme = null;
+					layer.envcolinv = null;
 					layer.envcolfill = null;
 					layer.envcolstroke = null;
 					layer.count = null;
@@ -5106,8 +5142,9 @@ class OpenFairViewer {
 								if(breaks.length == 1) breaks = [0, breaks[0]];
 								if(breaks.length == 2) breaks[0] = 0;
 								if(mapType == "choropleth" && colorScheme){
-									colors = colorbrewer[colorScheme][classNb];
+									colors = colorbrewer[colorScheme][classNb].slice();
 									if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+									if(colorSchemeInv) colors.reverse();
 								}
 								if(mapType == "graduated" && color_fill && color_stroke){
 									colors = [color_fill, color_stroke];
@@ -5131,6 +5168,7 @@ class OpenFairViewer {
 							layer.envfun = classType;
 							layer.envmaptype = mapType;
 							layer.envcolscheme = colorScheme;
+							layer.envcolinv = colorSchemeInv;
 							layer.envcolfill = color_fill;
 							layer.envcolstroke = color_stroke;
 							layer.count = values? values.length : null;
@@ -5226,6 +5264,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcolinv = null;
 						layer.envcolfill = null;
 						layer.envcolstroke = null;
 						layer.count = null;
@@ -5308,6 +5347,7 @@ class OpenFairViewer {
 						layer.envfun = null;
 						layer.envmaptype = null;
 						layer.envcolscheme = null;
+						layer.envcolinv = null;
 						layer.envcolfill = null;
 						layer.envcolstroke = null;
 						layer.count = null;
@@ -5351,8 +5391,9 @@ class OpenFairViewer {
 							if(breaks.length == 1) breaks = [0, breaks[0]];
 							if(breaks.length == 2) breaks[0] = 0;
 							if(mapType == "choropleth" && colorScheme){
-								colors = colorbrewer[colorScheme][classNb];
+								colors = colorbrewer[colorScheme][classNb].slice();
 								if(classNb<3) colors = colorbrewer[colorScheme][3].slice(0,classNb);
+								if(colorSchemeInv) colors.reverse();
 							}
 							if(mapType == "graduated" && color_fill && color_stroke){
 								colors = [color_fill, color_stroke];
@@ -5375,6 +5416,7 @@ class OpenFairViewer {
 						layer.envfun = classType;
 						layer.envmaptype = mapType;
 						layer.envcolscheme = colorScheme;
+						layer.envcolinv = colorSchemeInv;
 						layer.envcolfill = color_fill;
 						layer.envcolstroke = color_stroke;
 						layer.count = values? values.length : null;
@@ -5457,6 +5499,7 @@ class OpenFairViewer {
 					layer.envfun = null;
 					layer.envmaptype = null;
 					layer.envcolscheme = null;
+					layer.envcolinv = null;
 					layer.envcolfill = null;
 					layer.envcolstroke = null;
 					layer.count = null;
@@ -7369,7 +7412,14 @@ class OpenFairViewer {
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envmaptype == "choropleth" && envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						if(envmaptype == "choropleth" && envcolscheme){
+							var envcolinv = datasetDef.envcolinv;
+							if(envcolinv != null){
+								this_.initColorschemeSelector("map-colorscheme-selector", envcolinv);
+								$("#map-colorscheme-inverter").prop('checked', envcolinv)
+							}
+							$("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						}
 						var envcolfill = datasetDef.envcolfill;
 						var envcolstroke = datasetDef.envcolstroke;
 						var rgb_fill = this_.hexToRgb(envcolfill);
@@ -7450,7 +7500,14 @@ class OpenFairViewer {
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envmaptype == "choropleth" && envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						if(envmaptype == "choropleth" && envcolscheme){
+							var envcolinv = datasetDef.envcolinv;
+							if(envcolinv != null){
+								this_.initColorschemeSelector("map-colorscheme-selector", envcolinv);
+								$("#map-colorscheme-inverter").prop('checked', envcolinv)
+							}
+							$("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						}
 						var envcolfill = datasetDef.envcolfill;
 						var envcolstroke = datasetDef.envcolstroke;
 						var rgb_fill = this_.hexToRgb(envcolfill);
@@ -7526,7 +7583,14 @@ class OpenFairViewer {
 							$("#map-classnb-selector").val(classnb).trigger('change');
 						}
 						var envcolscheme = datasetDef.envcolscheme;
-						if(envmaptype == "choropleth" && envcolscheme) $("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						if(envmaptype == "choropleth" && envcolscheme){
+							var envcolinv = datasetDef.envcolinv;
+							if(envcolinv != null){
+								this_.initColorschemeSelector("map-colorscheme-selector", envcolinv);
+								$("#map-colorscheme-inverter").prop('checked', envcolinv)
+							}
+							$("#map-colorscheme-selector").val(envcolscheme).trigger('change');
+						}
 						var envcolfill = datasetDef.envcolfill;
 						var envcolstroke = datasetDef.envcolstroke;
 						var rgb_fill = this_.hexToRgb(envcolfill);
@@ -7702,6 +7766,7 @@ class OpenFairViewer {
 				var envmaptype = encoded_view_obj.maptype;
 				var envparams = encoded_view_obj.env;
 				var envcolscheme = encoded_view_obj.cs;
+				var envcolinv = encoded_view_obj.csinv;
 				var envcolfill = encoded_view_obj.fill;
 				var envcolstroke = encoded_view_obj.stroke;
 				var count = encoded_view_obj.count;
@@ -7718,7 +7783,7 @@ class OpenFairViewer {
 				encoded_datasets.push({
 					pid: pid, lyr : lyr, strategy: strategy, queryparams : queryparams, 
 					variable: variable, envfun: envfun, envmaptype: envmaptype, envparams: envparams, 
-					envcolscheme: envcolscheme, envcolfill: envcolfill, envcolstroke: envcolstroke,
+					envcolscheme: envcolscheme, envcolinv: envcolinv, envcolfill: envcolfill, envcolstroke: envcolstroke,
 					geom: encoded_view_obj.geom, geomtype: encoded_view_obj.geomtype,
 					count : count, breaks: breaks, style: style, query: query, 
 					thematicmapping: (variable? true : false),
