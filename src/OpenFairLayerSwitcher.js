@@ -34,7 +34,7 @@ export default class OpenFairLayerSwitcher extends LayerSwitcher {
 				//var smallLegendCss = smallLegend? 'margin-right:10px;float:right;' : 'margin-left:40px;';
 				if(lyr.getVisible()) {
 					legend.style.display = "block";
-					legend.style.maxHeight = "250px;";
+					legend.style.maxHeight = "250px";
 					legend.style.overflowY = "auto";
 				} else {
 					legend.style.display = "none";
