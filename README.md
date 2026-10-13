@@ -38,7 +38,7 @@ The development of OpenFairViewer is done in synergy with the [geoflow](https://
 To deploy and configure an OpenFairViewer, you should install [node.js](https://nodejs.org/en/download/) that will provide the ``npm`` command required to build your OpenFairViewer project. Once node.js installed, install the following packages:
 
 ```
-npm instal parcel-bundler --save-dev
+npm install parcel-bundler --save-dev
 npm install parcel-plugin-static-files-copy  --save-dev
 ```
 
