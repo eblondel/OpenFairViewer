@@ -142,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.9.4", DATE: new Date('2025-12-18')}
+		this.versioning = {VERSION: "2.9.5", DATE: new Date('2026-10-19')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
