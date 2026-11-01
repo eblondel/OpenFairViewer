@@ -142,7 +142,7 @@ class OpenFairViewer {
 		var this_ = this;
 		
 		//version
-		this.versioning = {VERSION: "2.9.5", DATE: new Date('2026-10-19')}
+		this.versioning = {VERSION: "2.9.6", DATE: new Date('2026-11-01')}
 		
 		//protocol
 		this.protocol = window.origin.split("://")[0];
@@ -502,8 +502,8 @@ class OpenFairViewer {
 			new TileLayer({
 				title : "UN Clear Map (Dark)",
 				type: 'base',
-				source : new TileArcGISRest({							
-					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_Dark/MapServer',
+				source : new XYZ({
+					url: 'https://pro-ags1.dfs.un.org/arcgis/rest/services/ClearMap_WebDark/MapServer/tile/{z}/{y}/{x}',
 					crossOrigin: 'anonymous',
 					wrapX: true
 				})
@@ -511,8 +511,8 @@ class OpenFairViewer {
 			new TileLayer({
 				title : "UN Clear Map",
 				type: 'base',
-				source : new TileArcGISRest({							
-					url: 'https://geoservices.un.org/arcgis/rest/services/ClearMap_WebTopo/MapServer',
+				source : new XYZ({
+					url: 'https://pro-ags1.dfs.un.org/arcgis/rest/services/ClearMap_WebTopo/MapServer/tile/{z}/{y}/{x}',
 					crossOrigin: 'anonymous',
 					wrapX: true
 				})
